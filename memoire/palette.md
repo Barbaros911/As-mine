@@ -34,3 +34,25 @@ valeurs ont changé, et ce sont celles de l'admin :
 - Contrôle : sur le site construit, aucune couleur verte calculée hors
   WhatsApp sur l'écran des prix (vérifié le 4/10/2026). Blanc sur `--accent`
   5,1 ; `--accent-encre` sur `--accent-clair` 7,6.
+
+## La troisième couleur : l'or doux (24 octobre 2026)
+
+Barbaros, après la refonte des pictogrammes de la liste des lieux : « les
+icônes aussi sont trop bleues. Tout est bleu sur mon site, il faudrait une
+troisième couleur ». Fond bleu nuit, champs bleus, boutons et pictogrammes
+cyan : l'œil n'avait rien où s'arrêter.
+
+- **Choisie : un or doux, `#E8C47C`**, rôle `--f-picto` dans la façade. Les
+  autres teintes étaient prises : le rouge (l'attente), le vert (WhatsApp, la
+  confirmation), l'orange (un partenaire) ; un violet serait resté dans le
+  bleu. L'or sur bleu nuit est l'accord classique du transport haut de gamme.
+  8,8:1 sur le fond de la liste.
+- **Où** : seulement les pictogrammes des lieux (dessin et liseré de la
+  pastille, sur une pastille neutre à 6 % de blanc). Un premier essai à fond
+  doré donnait un brun terne sur le bleu nuit : écarté. Le bleu reste aux
+  champs, aux boutons et à « Voir mon prix ».
+- **Pas ailleurs sans sa demande.** Autres places possibles, non faites :
+  l'épingle des champs, la ligne « AÉROPORTS · GARES · HÔTELS · SALONS »,
+  « Surclassement possible ».
+- Contrôle : `test-public-suggestions.mjs` éprouve la règle (le rouge domine
+  le bleu dans la teinte des pictogrammes), pas la valeur.

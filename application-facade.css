@@ -283,6 +283,11 @@ body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .hero::after{back
 /* ---------- La carte ---------- */
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver{
   --f-cyan:#12c4ee; --f-cyan-doux:#7fdcf6; --f-libelle:#a9c3db; --f-doux:#8fa9c3;
+  /* La troisième couleur (24 octobre 2026, Barbaros : « tout est bleu sur mon
+     site, il faut une troisième couleur ») : un or doux, réservé aux
+     pictogrammes des lieux. Ni rouge (l'attente), ni vert (WhatsApp, la
+     confirmation), ni orange (un partenaire). 8,8:1 sur la liste. */
+  --f-picto:#e8c47c;
   --f-champ:rgba(255,255,255,.055); --f-filet:rgba(255,255,255,.14); --f-filet-fort:rgba(255,255,255,.26);
   --f-erreur:#ff8f8f; --f-erreur-texte:#ffc2c2;
   color:#fff;
@@ -445,13 +450,15 @@ html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(
    Le pictogramme flottait seul, 20 px au trait fin : pâle, et sans rythme
    d'une ligne à l'autre. Il est désormais posé dans une pastille de 38 px,
    la même pour tous les lieux — c'est le dessin qui dit hôtel, gare ou
-   aéroport, pas la couleur. */
+   aéroport, pas la couleur. Le dessin et le liseré sont à l'or doux
+   (« --f-picto ») sur une pastille neutre : le bleu reste aux champs et
+   aux boutons. */
 html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico{position:relative; flex:0 0 38px; width:38px; height:38px; border-radius:12px; font-size:0; color:transparent;
-  background:rgba(18,196,238,.13); box-shadow:inset 0 0 0 1px rgba(127,220,246,.16);}
-html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico::before{content:""; position:absolute; inset:8px; background:var(--f-cyan-doux);
+  background:rgba(255,255,255,.06); box-shadow:inset 0 0 0 1px rgba(232,196,124,.34);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item .ico::before{content:""; position:absolute; inset:8px; background:var(--f-picto);
   -webkit-mask:var(--ico-adresse) center/22px 22px no-repeat; mask:var(--ico-adresse) center/22px 22px no-repeat;}
-html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item:hover .ico, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item[aria-selected="true"] .ico{background:rgba(18,196,238,.22);}
-html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-manuel .ico{background:transparent; box-shadow:inset 0 0 0 1.5px rgba(127,220,246,.4);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item:hover .ico, html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-item[aria-selected="true"] .ico{background:rgba(255,255,255,.1);}
+html[data-ela-space="public"] body:not(.hotel):not(.reception):not(.espace):not(.exploitant) .reserver .suggest-manuel .ico{background:transparent; box-shadow:inset 0 0 0 1.5px rgba(232,196,124,.45);}
 /* Le nom, puis l'adresse en dessous : on lit le lieu d'un coup d'œil, et la
    ville sans chercher au bout de la ligne. Le séparateur reste dans le texte
    (lu par un lecteur d'écran), invisible à l'œil. */

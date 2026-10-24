@@ -11,7 +11,8 @@
 
    CE QUI EST VERROUILLÉ, SUR LE SITE CONSTRUIT (la façade n'existe que là) :
    — CHAQUE LIEU A SA PASTILLE (38 px) ET SON DESSIN : aéroport, gare et
-     hôtel ne se ressemblent pas.
+     hôtel ne se ressemblent pas ; le dessin est à la troisième couleur,
+     l'or doux, pas au bleu de tout le reste.
    — LE NOM EN GRAS, L'ADRESSE DESSOUS, plus petite.
    — LE TEXTE DE LA LIGNE RESTE LE LIBELLÉ EXACT, caractère pour caractère :
      c'est lui qu'on écrit dans le champ, sur le bon et dans le message. Le
@@ -87,6 +88,7 @@ try {
     return { cat: ico.dataset.cat, texte: o.textContent.replace(ico.textContent, ''), titre: t ? t.textContent : null,
       sous: s ? s.textContent : null, icoW: Math.round(r.width), icoH: Math.round(r.height),
       dessin: getComputedStyle(ico, '::before').webkitMaskImage || getComputedStyle(ico, '::before').maskImage,
+      teinte: getComputedStyle(ico, '::before').backgroundColor,
       poids: t ? +getComputedStyle(t).fontWeight : 0, tailleT: t ? parseFloat(getComputedStyle(t).fontSize) : 0,
       tailleS: s ? parseFloat(getComputedStyle(s).fontSize) : 0,
       dessous: !!(tr && sr && sr.top >= tr.bottom - 1), sepW: sep ? Math.round(sep.getBoundingClientRect().width) : 0 };
@@ -99,6 +101,13 @@ try {
   const dessins = ['aeroport', 'gare', 'hotel', 'adresse'].map(c => parCat(c).dessin);
   check('aéroport, gare, hôtel et adresse ont chacun leur dessin',
     dessins.every(d => d && d.startsWith('url(')) && new Set(dessins).size === 4, dessins.map(d => (d || '').slice(0, 30)).join(' | '));
+
+  /* LA TROISIÈME COULEUR (24 octobre 2026, « tout est bleu sur mon site ») :
+     les pictogrammes des lieux ne sont plus bleus. On éprouve la règle, pas
+     une valeur : le rouge domine le bleu dans leur teinte. */
+  const teintes = lignes.map(l => (l.teinte.match(/\d+(\.\d+)?/g) || []).map(Number));
+  check('les pictogrammes des lieux ne sont pas bleus (troisième couleur)',
+    teintes.length >= 4 && teintes.every(([r, , bl]) => r > bl + 40), lignes.map(l => l.teinte).join(' | '));
 
   /* 2. Le nom, puis l'adresse. */
   const gare = parCat('gare');

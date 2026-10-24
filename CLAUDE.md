@@ -772,19 +772,18 @@ leur nom ; **ne jamais renommer une variable d'après la teinte du jour**.
 
 Restent, parce que ce sont des états ou des marques : le rouge de l'attente
 (`#C9302F`), le vert WhatsApp, le vert « confirmée », l'orange d'un
-partenaire. `memoire/palette.md`.
+partenaire. **La troisième couleur, l'or doux** (`--f-picto`, 24/10) : les
+pictogrammes des lieux, rien d'autre sans sa demande. `memoire/palette.md`.
 
 - **Regarder le site publié avant de choisir une couleur** : la façade
-  (`application-facade.css`) habille le site public, sous
-  `html[data-ela-space="public"]`. Une seconde feuille qui habille le même
-  écran finit toujours par le casser.
+  (`application-facade.css`) habille le site public. Une seconde feuille qui
+  habille le même écran finit toujours par le casser.
 - **Le logo** est le fichier officiel (`brand-logo.webp`, et sa version
   négative `brand-logo-negatif.webp` sur fond bleu nuit) : jamais redessiné,
   jamais remplacé par une image générée, jamais recoloré sans demande. Les
   icônes se refont **ensemble** (un jeu à moitié changé est pire qu'un ancien
-  cohérent) ; chaque espace a son manifeste et sa couleur d'icône ; iOS ignore
-  un `apple-touch-icon` en SVG ; pas deux tirets de suite dans un commentaire
-  XML. Refusés : le E seul, toute voiture, roue ou route.
+  cohérent) ; chaque espace a son manifeste et sa couleur d'icône. Refusés :
+  le E seul, toute voiture, roue ou route.
   `memoire/icones-et-logo.md`.
 - **Les photos de l'accueil** : rien ne se supprime dans `photos/` sans lui ;
   les vignettes publiées sont des copies allégées. La photo est « Paris la
