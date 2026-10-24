@@ -23,7 +23,13 @@
   10. l'ordre d'arrivée du direct et du jour ne change rien à l'écran ;
   11. chaque étape dit son taux sur l'étape d'avant, la plus grosse perte
       est nommée (et tue sous cinq personnes), les sources sont rangées par
-      courses réalisées, et l'écran renvoie au Centre de contrôle.
+      courses réalisées, et l'écran renvoie au Centre de contrôle ;
+  12. « Ne pas compter cet appareil » (24/10/2026) : le refus de la politique
+      (ela_mesure_non), posé depuis l'écran. Compté avant, plus rien ne part
+      du site après — pages et moteur —, ni après un rechargement ; un autre
+      visiteur reste compté ; « Compter à nouveau » rend la mesure ; rien
+      ne part au serveur ; un refus d'écrire est dit ; l'application
+      installée sur iPhone dit que Safari garde son propre réglage.
    Port 8172, propre à cette suite. Lancer : node test-admin-trafic.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
@@ -177,8 +183,10 @@ function fauxServeur() {
   return s;
 }
 
-async function contexte(nav, { role = 'admin', largeur = 390, hauteur = 844, srv }) {
-  const ctx = await nav.newContext({ viewport: { width: largeur, height: hauteur }, locale: 'fr-FR', timezoneId: 'Europe/Paris' });
+async function contexte(nav, { role = 'admin', largeur = 390, hauteur = 844, srv, ua, initial }) {
+  const ctx = await nav.newContext({ viewport: { width: largeur, height: hauteur }, locale: 'fr-FR', timezoneId: 'Europe/Paris',
+    ...(ua ? { userAgent: ua } : {}) });
+  if (initial) await ctx.addInitScript(initial);
   await ctx.addInitScript(({ session }) => {
     if (sessionStorage.getItem('__pose')) return;
     sessionStorage.setItem('__pose', '1');
@@ -191,6 +199,11 @@ async function contexte(nav, { role = 'admin', largeur = 390, hauteur = 844, srv
     if (u.startsWith(BASE)) return route.continue();
     if (!u.includes('supabase.co')) return route.abort();
     if (u.includes('/rpc/ela_trafic')) return srv.repondre(route, role);
+    /* La mesure du site public (partie 12) : notée, jamais refusée. */
+    if (u.includes('/functions/v1/mesure')) {
+      (srv.mesures = srv.mesures || []).push(route.request().postData() || '');
+      return route.fulfill(J({ ok: true, compte: true }));
+    }
     if (u.includes('/auth/v1/token')) return route.fulfill(J(SESSION));
     if (u.includes('/rpc/est_exploitant')) return route.fulfill(J(true));
     if (u.includes('/rpc/est_admin')) return route.fulfill(J(role === 'admin'));
@@ -474,6 +487,119 @@ try {
     for (const l of ['Visiteurs', 'Pages vues', 'Prix demandés', 'Réservations', 'Appels', 'WhatsApp']) chiffres.push(await tuile(p, l));
     check(`10 ${nom} : les six chiffres du jour sont ceux du serveur`, chiffres.join(' ') === '127 221 39 8 6 12', chiffres.join(' '));
     check(`10 ${nom} : les courses confirmées et réalisées sont dites`, /5 confirmée\(s\) et 2 réalisée\(s\)/.test(await texte(p, '#trfZone')));
+    await ctx.close();
+  });
+
+  /* ── 12. « NE PAS COMPTER CET APPAREIL » ──
+     Le même refus que la politique de confidentialité, posé depuis l'écran
+     Trafic. On éprouve ce que le SITE PUBLIC envoie ensuite, dans le même
+     navigateur : c'est la seule preuve que l'admin écrit bien la clé que
+     mesure.js et le moteur lisent. Un vrai navigateur d'iPhone : le
+     Chromium de test se dit robot, et le site ne le compterait jamais. */
+  const UA_IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
+  const pagesPubliques = async (p, srv) => {
+    const avant = (srv.mesures || []).length;
+    /* Le fichier, par son nom : le serveur de cette suite ne fait pas le
+       repli « sans .html » de Cloudflare. */
+    await p.goto(BASE + '/transfert-orly-paris.html'); await p.waitForTimeout(600);
+    await p.goto(BASE + '/'); await p.waitForTimeout(600);
+    await p.locator('.pied-tel').first().click().catch(() => {}); await p.waitForTimeout(400);
+    return (srv.mesures || []).slice(avant).map(m => { try { const c = JSON.parse(m); return c.page + ':' + c.evenement; } catch { return '?'; } });
+  };
+  const ouvrirAppareil = async p => {
+    await p.goto(BASE + '/ela-admin/');
+    await p.waitForFunction(() => document.body.classList.contains('espace'), null, { timeout: 15000 }).catch(() => {});
+    await p.waitForTimeout(600);
+    await ouvrir(p);
+    await p.locator('#trfAppareil').scrollIntoViewIfNeeded();
+  };
+  /* Le bouton reçoit le doigt : le point touché est bien le bouton, à l'arrêt. */
+  const touche = (p, sel) => p.evaluate(s => {
+    const b = document.querySelector(s), r = b && b.getBoundingClientRect();
+    if (!r || !r.width) return 'invisible';
+    const x = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return x === b || b.contains(x) ? Math.round(r.height) : 'recouvert par ' + (x && (x.id || x.className || x.tagName));
+  }, sel);
+  await partie('12', async () => {
+    const srv = fauxServeur();
+    const { ctx, p, erreurs } = await contexte(nav, { srv, ua: UA_IPHONE });
+    const avantExclusion = await pagesPubliques(p, srv);
+    check('12 un appareil normal est compté : page de service, moteur et appel envoient leur geste',
+      avantExclusion.includes('fr-orly:page_vue') && avantExclusion.includes('accueil:moteur_ouvert') && avantExclusion.includes('accueil:clic_appel'), avantExclusion.join(' '));
+    await ouvrirAppareil(p);
+    check('12 l\'écran Trafic dit que cet appareil est compté', (await texte(p, '#trfAppareilEtat')) === 'Cet appareil est compté dans les statistiques.', await texte(p, '#trfAppareilEtat'));
+    const h = await touche(p, '#btnTrfExclure');
+    check('12 « Ne pas compter cet appareil » est visible et reçoit le doigt (≥ 44 px)', typeof h === 'number' && h >= 44, String(h));
+    check('12 « Compter à nouveau » n\'apparaît pas tant que l\'appareil est compté', !(await p.locator('#btnTrfRecompter').isVisible()));
+    check('12 hors de l\'application installée, pas d\'avertissement iPhone', !(await p.locator('#trfAppareilIphone').isVisible()));
+    const requetes = srv.requetes.length;
+    await p.locator('#btnTrfExclure').click();
+    check('12 l\'appui écrit le refus de la politique sur CE navigateur', await p.evaluate(() => localStorage.getItem('ela_mesure_non')) === '1');
+    check('12 l\'écran dit « Cet appareil est exclu des statistiques »', (await texte(p, '#trfAppareilEtat')) === 'Cet appareil est exclu des statistiques', await texte(p, '#trfAppareilEtat'));
+    check('12 l\'action secondaire « Compter à nouveau cet appareil » est proposée, le bouton d\'exclusion disparaît',
+      await p.locator('#btnTrfRecompter').isVisible() && !(await p.locator('#btnTrfExclure').isVisible()));
+    const h2 = await touche(p, '#btnTrfRecompter');
+    check('12 « Compter à nouveau » reçoit le doigt (≥ 44 px)', typeof h2 === 'number' && h2 >= 44, String(h2));
+    check('12 l\'aide nomme ce navigateur seulement, et l\'adresse du site', /ce navigateur seulement, sur 127\.0\.0\.1/.test(await texte(p, '#trfAppareilAide')), await texte(p, '#trfAppareilAide'));
+    await p.waitForTimeout(300);
+    check('12 l\'exclusion n\'envoie rien au serveur (ni IP, ni liste)', srv.requetes.length === requetes, `${requetes} → ${srv.requetes.length}`);
+    /* La sonde redessine la zone des chiffres toutes les 10 s : l'état de
+       l'appareil, posé hors d'elle, ne doit pas disparaître. */
+    await p.waitForTimeout(10500);
+    check('12 la sonde du direct ne fait pas disparaître l\'état', (await texte(p, '#trfAppareilEtat')) === 'Cet appareil est exclu des statistiques');
+    const apresExclusion = await pagesPubliques(p, srv);
+    check('12 appareil exclu : plus rien ne part, ni des pages ni du moteur', apresExclusion.length === 0, apresExclusion.join(' '));
+    await ouvrirAppareil(p);
+    check('12 l\'exclusion tient après un rechargement', (await texte(p, '#trfAppareilEtat')) === 'Cet appareil est exclu des statistiques'
+      && await p.locator('#btnTrfRecompter').isVisible());
+    check('12 après rechargement, toujours rien ne part', (await pagesPubliques(p, srv)).length === 0);
+    /* Un autre visiteur — un autre navigateur — n'est pas touché. */
+    const autre = await nav.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR', userAgent: UA_IPHONE });
+    const mesuresAutre = [];
+    await autre.route('**/*', route => {
+      const u = route.request().url();
+      if (u.startsWith(BASE)) return route.continue();
+      if (u.includes('/functions/v1/mesure')) { mesuresAutre.push(route.request().postData() || ''); return route.fulfill(J({ ok: true })); }
+      return u.includes('supabase.co') ? route.fulfill(J([])) : route.abort();
+    });
+    const pa = await autre.newPage();
+    await pa.goto(BASE + '/transfert-orly-paris.html'); await pa.waitForTimeout(600);
+    check('12 un autre visiteur reste compté', mesuresAutre.some(m => /"fr-orly"/.test(m) && /"page_vue"/.test(m)), String(mesuresAutre.length));
+    await autre.close();
+    await ouvrirAppareil(p);
+    await p.locator('#btnTrfRecompter').click();
+    check('12 « Compter à nouveau » retire le refus', await p.evaluate(() => localStorage.getItem('ela_mesure_non')) === null);
+    check('12 l\'écran redit « compté » et repropose l\'exclusion', (await texte(p, '#trfAppareilEtat')) === 'Cet appareil est compté dans les statistiques.'
+      && await p.locator('#btnTrfExclure').isVisible() && !(await p.locator('#btnTrfRecompter').isVisible()));
+    const reactive = await pagesPubliques(p, srv);
+    check('12 réactivé : la mesure repart', reactive.includes('fr-orly:page_vue') && reactive.includes('accueil:moteur_ouvert') && reactive.includes('accueil:clic_appel'), reactive.join(' '));
+    check('12 aucune erreur JavaScript', erreurs.length === 0, erreurs.join(' | '));
+    await ctx.close();
+  });
+  /* Un navigateur qui refuse d'écrire (navigation privée) : l'écran le dit,
+     il ne prétend pas avoir exclu l'appareil. */
+  await partie('12 écriture refusée', async () => {
+    const srv = fauxServeur();
+    const { ctx, p } = await contexte(nav, { srv, initial: () => {
+      const ecrire = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (k, v) { if (k === 'ela_mesure_non') throw new Error('QuotaExceededError'); return ecrire.call(this, k, v); };
+    } });
+    await ouvrir(p);
+    await p.locator('#btnTrfExclure').click();
+    const t = await texte(p, '#trfAppareilEtat');
+    check('12 un navigateur qui refuse d\'écrire : l\'écran le dit, l\'appareil n\'est pas déclaré exclu',
+      /n'a pas pu enregistrer le choix/.test(t) && await p.locator('#btnTrfExclure').isVisible(), t);
+    await ctx.close();
+  });
+  /* L'application installée sur iPhone (navigator.standalone) : son stockage
+     n'est pas celui de Safari. L'écran le dit et donne le chemin. */
+  await partie('12 iPhone installé', async () => {
+    const srv = fauxServeur();
+    const { ctx, p } = await contexte(nav, { srv, initial: () => { Object.defineProperty(Navigator.prototype, 'standalone', { get: () => true, configurable: true }); } });
+    await ouvrir(p);
+    const t = await texte(p, '#trfAppareilIphone');
+    check('12 dans l\'application installée sur iPhone, l\'écran dit de refaire le réglage dans Safari',
+      await p.locator('#trfAppareilIphone').isVisible() && /Safari/.test(t) && /elatransfer\.com\/ela-admin\//.test(t), t);
     await ctx.close();
   });
 } finally {

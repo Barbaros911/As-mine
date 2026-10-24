@@ -49,6 +49,25 @@
   font-size:14px;font-weight:650;line-height:1.4;}
 .trf-erreur-aide{font-weight:500;}
 
+/* ---------- « NE PAS COMPTER CET APPAREIL » (24/10/2026) ----------
+   Sous les chiffres (à 390 px, le direct et les six tuiles du jour doivent
+   tenir dans l'écran), hors de la zone que la sonde redessine. Compté :
+   une carte et un bouton en creux (ce n'est pas le geste de l'écran).
+   Exclu : une seule ligne sur le fond d'accent, et « Compter à nouveau »
+   en lien discret — l'état se lit, le retour reste possible. Le texte dit
+   l'état, jamais une couleur seule. */
+.trf-appareil{margin:0 20px 36px;padding:12px 14px;border-radius:14px;background:var(--carte);border:1px solid var(--filet);}
+.trf-appareil.exclu{background:var(--accent-clair);border-color:var(--accent-clair);}
+.trf-appareil-etat{margin:0;font-size:14.5px;font-weight:700;color:var(--encre);line-height:1.35;}
+.trf-appareil.exclu .trf-appareil-etat{color:var(--accent-encre);}
+.trf-appareil-exclure{min-height:44px;margin-top:10px;}
+.trf-appareil-recompter{display:inline-flex;align-items:center;min-height:44px;margin:2px 0 0;padding:0;border:0;
+  background:none;color:var(--accent-encre);font:inherit;font-size:14px;font-weight:650;text-decoration:underline;
+  text-underline-offset:3px;cursor:pointer;}
+.trf-appareil [hidden]{display:none;}
+.trf-appareil-aide{margin:6px 0 0;font-size:12.5px;line-height:1.45;color:var(--gris);}
+.trf-appareil :focus-visible{outline:3px solid rgba(20,126,220,.45);outline-offset:2px;}
+
 /* ---------- LES TUILES ---------- */
 .trf-tuiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
 .trf-tuile{display:flex;flex-direction:column;gap:2px;min-width:0;padding:12px 12px 10px;border-radius:14px;
@@ -113,6 +132,7 @@
 /* ---------- ORDINATEUR ---------- */
 @media (min-width:900px){
   body.espace .trf{padding:2px 28px 44px;}
+  body.espace .trf-appareil{margin:0 28px 44px;}
   .trf-fraicheur{flex:1 1 auto;}
   .trf-tuiles{grid-template-columns:repeat(3,minmax(0,1fr));}
   .trf-tuile-n{font-size:30px;}
