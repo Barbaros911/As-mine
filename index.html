@@ -9426,10 +9426,13 @@ window.ELA_TEXTES = {
      Comme GAMMES, CES VALEURS SONT LE REPLI : le serveur les remplace au
      chargement (« grille_publique », voir « chargerTarifsServeur ») et
      Barbaros les règle dans Réglages → Tarifs. Histoire et raisons :
-     memoire/grille-tranches-forfaits.md. */
+     memoire/grille-tranches-forfaits.md.
+     LA MARCHE À 27 KM (24 octobre 2026, « j'accepte ») : de 22 à 32 km, une
+     seule marche faisait payer 70 € à 22,1 km comme à 32 km. Elle coupe le
+     plus grand saut en deux : 60 € en berline, 95 € en van. */
   var GRILLE_PUBLIQUE = {
-    berline: { tranches:[{km:12,prix:35},{km:22,prix:50},{km:32,prix:70},{km:42,prix:90}], auDela:2.50 },
-    van:     { tranches:[{km:12,prix:50},{km:22,prix:80},{km:32,prix:110},{km:42,prix:130}], auDela:3.80 }
+    berline: { tranches:[{km:12,prix:35},{km:22,prix:50},{km:27,prix:60},{km:32,prix:70},{km:42,prix:90}], auDela:2.50 },
+    van:     { tranches:[{km:12,prix:50},{km:22,prix:80},{km:27,prix:95},{km:32,prix:110},{km:42,prix:130}], auDela:3.80 }
   };
   /* Un aéroport se reconnaît à ses terminaux (« AEROPORTS », même rayon que
      le flyer), Disneyland à un point et un rayon — les mêmes que la
@@ -9798,8 +9801,8 @@ window.ELA_TEXTES = {
 
   /* ═══ LA GRILLE DU SERVEUR, ET SA SEULE PORTE ═══
      Format de la ligne « grille_publique » (centimes, entiers) :
-       { "tranches_km":[12,22,32,42],
-         "berline":{ "tranches_centimes":[3500,5000,7000,9000], "au_dela_km_centimes":250 },
+       { "tranches_km":[12,22,27,32,42],
+         "berline":{ "tranches_centimes":[3500,5000,6000,7000,9000], "au_dela_km_centimes":250 },
          "van":{ … }, "forfaits":{ "orly":{ "berline":5500, "van":8000 }, … },
          "accueil_centimes":1000 }
      « grilleValide » rend la grille du site, ou null si une seule valeur
@@ -18480,7 +18483,7 @@ window.ELA_TEXTES = {
   }
 
   /* LA GRILLE DU SITE PUBLIC, À L'ÉCRAN. Un tableau Ligne × Berline / Van,
-     la forme même du flyer : quatre tranches (limite en km, puis les deux
+     la forme même du flyer : les tranches (limite en km, puis les deux
      prix), le prix par km au-delà, les trois forfaits Paris, l'accueil.
      Les cases gardent leur valeur d'origine (« data-initial ») : ce qui a
      changé passe en bleu. À l'envoi, c'est la grille ENTIÈRE qui part, et
@@ -18513,7 +18516,7 @@ window.ELA_TEXTES = {
     if(!zone) return;
     while(zone.firstChild) zone.removeChild(zone.firstChild);
     direGrille(grilleLue === "absente"
-      ? "Le serveur ne publie pas encore cette grille (migration 20261023120000 à appliquer) : le site applique celle écrite dans la page."
+      ? "Le serveur ne publie pas encore cette grille (migration 20261024120000 à appliquer) : le site applique celle écrite dans la page."
       : "", grilleLue === "absente");
     var tete = document.createElement("div"); tete.className = "forfait-ligne forfait-tete";
     ["Ligne","Berline €","Van €"].forEach(function(x){
@@ -18708,7 +18711,7 @@ window.ELA_TEXTES = {
       Array.prototype.forEach.call(document.querySelectorAll("#tarifGrille input"), function(c){
         c.dataset.initial = c.value; c.classList.remove("modifie"); });
       direGrille(grilleLue === "absente"
-        ? "Enregistrée, mais pas encore appliquée : la migration 20261023120000 doit d'abord être appliquée."
+        ? "Enregistrée, mais pas encore appliquée : la migration 20261024120000 doit d'abord être appliquée."
         : "Grille enregistrée. Elle s'applique dès le prochain chargement de la page, pour tous.", grilleLue === "absente");
     }).catch(function(){
       direGrille("Échec de l'enregistrement — vérifiez la connexion et réessayez.", true);

@@ -37,7 +37,7 @@ const errs=[];
 
 /* Quatre distances distinctes, et quatre prix berline distincts qui en
    découlent — la GRILLE DU SITE PUBLIC depuis le 23 octobre 2026 : 35 / 50 /
-   70 / 90 € jusqu'à 12 / 22 / 32 / 42 km, puis 90 € + 2,50 €/km, arrondi à
+   60 / 70 / 90 € jusqu'à 12 / 22 / 27 / 32 / 42 km, puis 90 € + 2,50 €/km, arrondi à
    la dizaine, le 5 pile qui descend (Vendôme → Argenteuil n'est pas un
    forfait Paris) :
      Mapbox   50,0 km →  90 + 8 × 2,50 = 110 €  (au-delà des tranches : un
@@ -45,7 +45,7 @@ const errs=[];
                                            serait aussi par une course de
                                            0 km, et ne prouverait rien)
      ORS      40,0 km →  tranche « 42 km » →  90 €
-     OSRM     24,3 km →  tranche « 32 km » →  70 €
+     OSRM     24,3 km →  tranche « 27 km » →  60 €
      Vol d'oiseau : Vendôme → Argenteuil ≈ 11,8 km × 1,3 ≈ 15,3 km
                             →  tranche « 22 km » →  50 €
    AUCUN DE CES QUATRE PRIX N'EST CELUI D'UN AUTRE, et c'est toute la
@@ -232,7 +232,7 @@ check('et les alternatives lui sont demandées',
    serait facturer une estimation là où une vraie route était disponible.
    --------------------------------------------------------------------- */
 r = await course({ ors:false, osrm:true });
-check('ORS en panne : OSRM reprend la main', r.prix==='70,00€', r.prix);
+check('ORS en panne : OSRM reprend la main', r.prix==='60,00€', r.prix);
 check('il a bien été essayé d\'abord', r.versORS.length>0);
 check('et le prix n\'est pas une estimation', !r.mesure.includes('≈') && !r.prixEstime, r.mesure);
 
@@ -319,7 +319,7 @@ check('et les trois ont été essayés',
    exemple le jour où le quota ORS est vidé et où Barbaros efface la clé
    en attendant d'en régénérer une. Rien ne doit casser. --------------- */
 r = await course({ sansCles:true, ors:true, osrm:true });
-check('sans aucune clé, OSRM suffit', r.prix==='70,00€', r.prix);
+check('sans aucune clé, OSRM suffit', r.prix==='60,00€', r.prix);
 check('et aucun service à clé n\'est appelé',
   r.versMapbox.length===0 && r.versORS.length===0);
 
