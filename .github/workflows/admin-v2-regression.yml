@@ -459,20 +459,21 @@ jobs:
       # EMPREINTE FIGÉES (celle du binaire éprouvé le 6 octobre 2026) : un
       # fichier qui changerait sous nos pieds arrête l'étape au lieu de
       # tourner. Il ne sert qu'ici : rien n'en part en ligne.
-      # LA DOUBLE VÉRIFICATION DE L'ADMIN (24 octobre 2026, P1 sécurité). Le
-      # décor reproduit d'abord le trou (un admin qui a un code entre au mot
-      # de passe seul), puis exige après la migration : refus en aal1, accès
-      # en aal2, une ancienne session refusée dès l'activation, anon et
-      # non-opérateur refusés, le cliquet qui refuse de se lever tant qu'un
-      # opérateur actif n'a pas de code, le retour arrière, et la garde qui
-      # n'écrase jamais une porte inconnue. Voir le script.
-      - name: La double vérification, exécutée et non relue
+      # LE CODE ADMIN À 6 CHIFFRES (24 octobre 2026, P1 sécurité). Le décor
+      # reproduit d'abord le trou (un admin entre au mot de passe seul), puis
+      # exige après la migration : refus sans le code, accès dans la session
+      # où il a été tapé et pas dans une autre, 5 essais puis 15 minutes de
+      # blocage, changement réservé à une session confirmée, empreinte
+      # bcrypt, anon et non-opérateur refusés, le cliquet qui refuse de se
+      # lever tant qu'un opérateur actif n'a pas de code, le retour arrière,
+      # et la garde qui n'écrase jamais une porte inconnue. Voir le script.
+      - name: Le code admin, exécuté et non relu
         shell: bash
         env: {PGPASSWORD: postgres, PGHOST: 127.0.0.1, PGUSER: postgres}
-        run: sh supabase/tests/double-verification.sh
+        run: sh supabase/tests/code-admin.sh
       # LES DONNÉES MÉTIER DE L'ADMIN SUR LE SERVEUR (24 octobre 2026, P1).
       # Le décor reproduit d'abord la part serveur du trou (l'agent écrit le
-      # carnet), puis exige : anon, non-opérateur et admin en aal1 refusés ;
+      # carnet), puis exige : anon, non-opérateur et admin sans son code refusés ;
       # carnet versionné (rejeu sans doublon, conflit refusé), lu par l'agent
       # sans les taux ; règlement unique par identifiant ; facture numérotée
       # après le compteur existant, rejouée sans doublon, aucun refus qui

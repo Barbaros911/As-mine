@@ -1,10 +1,9 @@
 -- ============================================================================
--- RETOUR ARRIÈRE de 20261024000000_double_verification_admin.sql
--- À NE LANCER QUE SI LA DOUBLE VÉRIFICATION DOIT ÊTRE RETIRÉE (jamais pour
--- « débloquer » un téléphone perdu : pour ça, voir SECURITE-ADMIN-MFA.md,
--- « J'ai perdu mon téléphone »).
+-- RETOUR ARRIÈRE de 20261024020000_code_admin.sql
+-- À NE LANCER QUE SI LE CODE ADMIN DOIT ÊTRE RETIRÉ (jamais pour « débloquer »
+-- un code oublié : pour ça, voir SECURITE-ADMIN-CODE.md).
 -- Repose est_exploitant() et est_admin() exactement comme avant, sans le
--- niveau de session. Le réglage et le juge restent, inertes.
+-- juge de session. Les tables et les fonctions du code restent, inertes.
 -- ============================================================================
 create or replace function public.est_exploitant()
 returns boolean
@@ -31,4 +30,4 @@ as $$
   );
 $$;
 
-select 'double vérification retirée' as etat;
+select 'code admin retiré' as etat;

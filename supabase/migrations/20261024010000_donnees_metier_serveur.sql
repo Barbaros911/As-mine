@@ -21,8 +21,8 @@
 --
 -- LES RÈGLES :
 --   · anon ne lit ni n'écrit rien ; un compte connecté qui n'est pas
---     opérateur non plus (est_exploitant/est_admin, donc la double
---     vérification de 20261024000000 quand elle est posée) ;
+--     opérateur non plus (est_exploitant/est_admin, donc le code
+--     admin de 20261024020000 quand il est posé) ;
 --   · le carnet se LIT par tout opérateur (l'agent attribue un chauffeur),
 --     sans le taux de commission pour l'agent ; il s'ÉCRIT par l'admin ;
 --   · les règlements et les factures : admin seul, en lecture comme en

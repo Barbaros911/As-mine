@@ -60,10 +60,10 @@ Comment l'admin décide qui entre :
 2. **Le droit** : après la connexion, le serveur vérifie que ce compte est
    inscrit, actif, dans la table `operateurs` (`est_exploitant()`). Un compte
    absent de cette table est refusé, même avec le bon mot de passe.
-3. **Le code à 6 chiffres** (depuis le 24 octobre 2026) : un compte qui a
-   activé sa double vérification n'est reconnu qu'avec mot de passe **et**
-   code — le serveur le vérifie à chaque requête. Activation, appareil de
-   secours, téléphone perdu : `SECURITE-ADMIN-MFA.md`.
+3. **Le code admin à 6 chiffres** (depuis le 24 octobre 2026) : un compte
+   qui a choisi son code n'est reconnu qu'avec mot de passe **et** code — le
+   serveur le vérifie à chaque requête. Choix, changement, code oublié :
+   `SECURITE-ADMIN-CODE.md`.
 4. **Le rôle** : `admin` voit tout — prix, réglages, factures, commissions,
    Pilotage, Trafic (`est_admin()`). `agent_reservation` ne fait que traiter
    les courses. C'est le serveur qui l'impose, pas l'écran.

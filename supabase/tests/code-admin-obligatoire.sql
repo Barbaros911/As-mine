@@ -7,11 +7,11 @@ end $$;
 insert into public.operateurs(user_id, role, actif)
   values ('aaaaaaaa-0000-0000-0000-000000000007', 'agent_reservation', true);
 begin;
-select public.essai_attendre('aaaaaaaa-0000-0000-0000-000000000007', 'aal1', false, false,
+select public.essai_attendre('aaaaaaaa-0000-0000-0000-000000000007', 'mdp', false, false,
   'cliquet levé : un nouvel opérateur sans code est refusé');
 rollback;
 begin;
-select public.essai_attendre('aaaaaaaa-0000-0000-0000-000000000003', 'aal1', false, false,
+select public.essai_attendre('aaaaaaaa-0000-0000-0000-000000000003', 'mdp', false, false,
   'cliquet levé : mot de passe seul refusé');
 rollback;
 begin;
