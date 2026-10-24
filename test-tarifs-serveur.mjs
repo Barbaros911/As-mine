@@ -8,8 +8,11 @@
    - la page du QR easyHotel gardait ses montants écrits en dur, pendant
      que le moteur facturait le nouveau forfait un clic plus loin.
 
-   Les prix attendus sont calculés À LA MAIN, 24,3 km :
-     serveur 3,50 €/km → 85,05 → 90 €   |   repli 2,90 €/km → 70,47 → 70 €
+   Depuis le 23 octobre 2026, le site public facture par TRANCHES (la ligne
+   « grille_publique » du serveur) ; le tarif au km ne sert plus qu'aux pages
+   des hôtels. Les prix attendus, À LA MAIN, Place Vendôme → Argenteuil,
+   24,3 km (tranche « jusqu'à 32 km ») :
+     grille du serveur, tranche à 90 €  →  90 €   |   repli de la page  →  70 €
 
    Lancer :  node test-tarifs-serveur.mjs
    ===================================================================== */
@@ -37,8 +40,11 @@ await new Promise(r => serveur.listen(8094, '127.0.0.1', r));
 const BASE = 'http://127.0.0.1:8094';
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const J = (b, s=200) => ({status:s, contentType:'application/json', body:JSON.stringify(b)});
-const TARIF = [{gamme:'berline', par_km_centimes:350, minimum_centimes:3000},
-               {gamme:'van', par_km_centimes:600, minimum_centimes:5000}];
+const GRILLE = [{ valeur: { tranches_km:[12,22,32,42],
+  berline:{ tranches_centimes:[3500,5000,9000,9900], au_dela_km_centimes:250 },
+  van:{ tranches_centimes:[5000,8000,13000,14000], au_dela_km_centimes:380 },
+  forfaits:{ orly:{berline:5500,van:8000}, cdg:{berline:7000,van:11000}, disney:{berline:9000,van:13000} },
+  accueil_centimes:1000 } }];
 const FORFAITS = [{partenaire_cle:'easyhotel-aeroville', destination_cle:'orly', vehicule_cle:'berline', montant_centimes:9500},
                   {partenaire_cle:'easyhotel-aeroville', destination_cle:'orly', vehicule_cle:'van', montant_centimes:13000}];
 const nav = await chromium.launch();
@@ -50,10 +56,10 @@ async function client(repond, lent){
   await p.route('**/*', async route => {
     const u = route.request().url();
     if (u.startsWith(BASE)) return route.continue();
-    if (u.includes('/rest/v1/tarif_public') || u.includes('/rest/v1/forfaits_partenaires_publics')) {
+    if (u.includes('/rest/v1/grille_publique') || u.includes('/rest/v1/forfaits_partenaires_publics')) {
       if (!repond) return route.abort();
       if (lent) await new Promise(r => setTimeout(r, lent));
-      return route.fulfill(J(u.includes('tarif_public') ? TARIF : FORFAITS));
+      return route.fulfill(J(u.includes('grille_publique') ? GRILLE : FORFAITS));
     }
     if (u.includes('photon.komoot.io')) {
       const loin = u.toLowerCase().includes('argenteuil');
@@ -81,11 +87,11 @@ async function client(repond, lent){
 }
 
 let r = await client(true, 0);
-check('tarif du serveur : berline 3,50 €/km → 90 €', /Berline=90,00\s€/.test(r.prix), r.prix);
+check('grille du serveur : la tranche de 24,3 km à 90 € → 90 €', /Berline=90,00\s€/.test(r.prix), r.prix);
 /* Le vrai risque : un serveur LENT. On le ralentit exprès au-delà du temps
    que met un client à remplir le formulaire dans ce test. */
 r = await client(true, 3500);
-check('serveur lent (3,5 s) : le prix attend le tarif, 90 € et pas 70', /Berline=90,00\s€/.test(r.prix), r.prix);
+check('serveur lent (3,5 s) : le prix attend la grille, 90 € et pas 70', /Berline=90,00\s€/.test(r.prix), r.prix);
 r = await client(false, 0);
 check('serveur muet : le site donne quand même un prix (repli 70 €)', /Berline=70,00\s€/.test(r.prix), r.prix);
 check('aucune erreur JavaScript', r.erreurs.length === 0, r.erreurs.join(' | '));

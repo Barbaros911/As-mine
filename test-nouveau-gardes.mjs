@@ -15,7 +15,8 @@
    — NEUF PASSAGERS ouvraient un écran VIDE, sans un mot. Un groupe de
      neuf est une belle course — deux voitures — pas une impasse.
 
-   LA PANCARTE NE CONCERNE QUE LE CLIENT QUI ARRIVE : on suit le DÉPART,
+   LA PANCARTE (l'accueil, compris depuis le 23/10/2026) NE CONCERNE QUE
+   LE CLIENT QUI ARRIVE : on suit le DÉPART,
    pas l'un ou l'autre bout du trajet. Un client qui PART vers Roissy n'a
    personne qui l'attend dans un hall avec son nom à la main. Deux
    contrôles vérifient les deux sens.
@@ -148,14 +149,14 @@ await p.locator('#departList [role=option]',{hasText:'Terminal 2E'}).first().cli
 await p.locator('#btnVoirPrix').click(); await p.waitForTimeout(1000);
 await p.locator('.veh-carte').first().click();
 await p.locator('#btnContinuer').click(); await p.waitForTimeout(300);
-check('départ d\'un terminal : l\'option pancarte apparaît',
+check('départ d\'un terminal : le bloc de la pancarte apparaît',
   await p.locator('#ecran-recap .bloc-pancarte').isVisible());
-/* L'APERÇU NE VIENT QU'AVEC L'OPTION. La pancarte est payante depuis
-   septembre 2026 : la montrer avant qu'elle soit prise promettrait
-   gratuitement ce qu'on vend. */
-check('mais l\'aperçu attend qu\'elle soit prise',
-  await p.locator('#apercuPancarte').isHidden());
-await p.locator('#ecran-recap .opt-pancarte').click(); await p.waitForTimeout(250);
+/* DEPUIS LE 23 OCTOBRE 2026, L'ACCUEIL EST COMPRIS sur le site public au
+   départ d'un aéroport : plus de case à cocher, l'aperçu est montré
+   d'office (test-nouveau-option). Les pages des hôtels gardent l'option. */
+check('accueil compris : l\'aperçu est montré, sans case à cocher',
+  await p.locator('#apercuPancarte').isVisible()
+  && await p.locator('#ecran-recap .opt-pancarte').isHidden());
 await p.fill('#clientNom','Jean Martin');
 await p.waitForTimeout(200);
 check('elle porte le nom saisi, en capitales',

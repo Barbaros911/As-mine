@@ -134,20 +134,22 @@ try {
     const l = await lignePeages(p);
     check('péage vu : « Péages non compris » avant le choix du véhicule', l.vue && /^Péages non compris/.test(l.texte) && /lien de paiement/.test(l.texte), JSON.stringify(l));
     const prix = await p.locator('.veh-carte .veh-prix').allInnerTexts();
-    check('péage vu : le prix du véhicule reste un vrai montant (220 km × 2,90 € = 640 €)', prix.some(t => /^640,00\s*€$/.test(t.trim())), prix.join(' | '));
+    /* La grille du site public (23/10/2026) : 90 € jusqu'à 42 km, puis
+       2,50 €/km — 90 + 178 × 2,50 = 535, et le 5 pile descend : 530 €. */
+    check('péage vu : le prix du véhicule reste un vrai montant (220 km : 90 € + 178 × 2,50 € = 530 €)', prix.some(t => /^530,00\s*€$/.test(t.trim())), prix.join(' | '));
     /* 220 km rendus en 8 800 s (147 min, plus la marge de 5 à 10 min) :
        la page parle en heures — « 2 h 32–2 h 37 », jamais « 152–157 min ». */
     const mesure = await p.locator('#resumeMesure').innerText().catch(() => '');
     check('au-delà d\'une heure, la durée se lit en heures', /2 h 32–2 h 37/.test(mesure) && !/152/.test(mesure), mesure);
     await jusquAuRecap(p);
     const total = await p.locator('#recapTotal').innerText().catch(() => '');
-    check('péage vu : le total dit « 640,00 € + péages »', /640,00\s*€\s*\+ péages/.test(total), total);
+    check('péage vu : le total dit « 530,00 € + péages »', /530,00\s*€\s*\+ péages/.test(total), total);
     check('péage vu : la note du récapitulatif le redit', await p.locator('#recapPeages').isVisible()
       && /Péages non compris/.test(await p.locator('#recapPeages').innerText()));
     await envoyer(p);
     const b = depots[0] || {};
     check('péage vu : la demande part avec son prix et « péages : oui »',
-      depots.length === 1 && b.prix?.total === 640 && b.course?.peages === 'oui' && b.course?.tarifAConfirmer === false,
+      depots.length === 1 && b.prix?.total === 530 && b.course?.peages === 'oui' && b.course?.tarifAConfirmer === false,
       JSON.stringify({ n:depots.length, p:b.prix?.total, g:b.course?.peages, t:b.course?.tarifAConfirmer }));
     await ctx.close();
   }
@@ -212,8 +214,8 @@ try {
     const { ctx, p } = await client('sans');
     const T = await p.evaluate(() => ({ fr: window.ELA_TEXTES.fr.legal_cgv_body, en: window.ELA_TEXTES.en.legal_cgv_body }));
     check('CGV FR : les péages ne sont pas compris, et leur montant est ajouté avant la confirmation',
-      /Les péages ne sont pas compris dans le prix calculé au kilomètre/.test(T.fr) && /ajouté au prix avant toute confirmation/.test(T.fr));
-    check('CGV EN : the same', /Tolls are not included in the per-kilometre price/.test(T.en) && /added to the price before any confirmation/.test(T.en));
+      /Les péages ne sont pas compris dans le prix, sauf dans un prix forfaitaire/.test(T.fr) && /ajouté au prix avant toute confirmation/.test(T.fr));
+    check('CGV EN : the same', /Tolls are not included in the price, except in a flat fare/.test(T.en) && /added to the price before any confirmation/.test(T.en));
     check('CGV : plus aucune limite de 90 km ; seule l\'adresse hors de France reste sans prix',
       !/90 km/.test(T.fr) && !/90 km/.test(T.en) && /hors de France/.test(T.fr) && /outside France/.test(T.en));
     check('CGV : le forfait d\'un partenaire comprend les péages', /Il comprend les péages éventuels/.test(T.fr) && /It includes any tolls/.test(T.en));

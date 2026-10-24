@@ -435,6 +435,21 @@ jobs:
             -f supabase/migrations/20261014010000_prix_pages.sql \
             -f supabase/migrations/20261014010000_prix_pages.sql \
             -f supabase/tests/prix-pages-apres.sql
+          # La grille du site public (23 octobre 2026) : la vue publique de la
+          # ligne « grille_publique ». Migration appliquée, réglage fait comme
+          # depuis l'admin, migration REJOUÉE : le réglage survit (jamais un
+          # prix de production écrasé), anon lit la grille et n'écrit rien.
+          # Éprouvée contre une migration qui écrase et une vue trop large.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database grillepublique;'
+          psql -h 127.0.0.1 -U postgres -d grillepublique -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/vues-lecture-seule.sql \
+            -f supabase/migrations/20260928120000_tarif_unifie.sql \
+            -f supabase/migrations/20261005000000_vues_lecture_seule.sql \
+            -f supabase/migrations/20261023120000_grille_publique.sql \
+            -c "update public.parametres_commerciaux set valeur = jsonb_set(valeur, '{accueil_centimes}', '1500') where cle = 'grille_publique';" \
+            -f supabase/migrations/20261023120000_grille_publique.sql \
+            -f supabase/tests/grille-publique-apres.sql
 
       # LE PILOTAGE PAR LA PORTE DU NAVIGATEUR : PostgREST, le serveur que
       # Supabase place devant la base, avec de vrais jetons signés. La porte
@@ -455,6 +470,20 @@ jobs:
         shell: bash
         env: {PGPASSWORD: postgres, PGHOST: 127.0.0.1, PGUSER: postgres}
         run: sh supabase/tests/double-verification.sh
+      # LES DONNÉES MÉTIER DE L'ADMIN SUR LE SERVEUR (24 octobre 2026, P1).
+      # Le décor reproduit d'abord la part serveur du trou (l'agent écrit le
+      # carnet), puis exige : anon, non-opérateur et admin en aal1 refusés ;
+      # carnet versionné (rejeu sans doublon, conflit refusé), lu par l'agent
+      # sans les taux ; règlement unique par identifiant ; facture numérotée
+      # après le compteur existant, rejouée sans doublon, aucun refus qui
+      # brûle un numéro ; DEUX SESSIONS RÉELLES (dblink) qui émettent en même
+      # temps ; l'import d'une ancienne sauvegarde qui ajoute, ne remplace
+      # rien, dit les conflits et se rejoue sans doublon ; la relecture dans
+      # une autre session ; une base sans les tables d'Admin v2.
+      - name: Les données métier, exécutées et non relues
+        shell: bash
+        env: {PGPASSWORD: postgres, PGHOST: 127.0.0.1, PGUSER: postgres}
+        run: sh supabase/tests/donnees-metier.sh
       - name: Le Pilotage en HTTP (PostgREST)
         shell: bash
         env: {PGHOST: 127.0.0.1, PGPORT: '5432', PGUSER: postgres, PGPASSWORD: postgres}

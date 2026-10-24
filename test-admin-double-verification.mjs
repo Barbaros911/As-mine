@@ -109,6 +109,9 @@ function serveurSupabase(etat) {
       if (!id && m === 'POST') {
         /* Comme l'API de Supabase : un second code exige aal2. */
         if (verifies && c.aal !== 'aal2') return route.fulfill(J({ msg: 'AAL2 required to enroll a new factor' }, 403));
+        /* « doublonNom » : le prochain nom est déjà pris, comme quand deux
+           appareils sont ajoutés dans la même seconde. */
+        if (etat.doublonNom) { etat.doublonNom = false; return route.fulfill(J({ msg: 'A factor with the friendly name "x" for this user already exists' }, 422)); }
         if (compte.codes.some(f => f.friendly_name === corps.friendly_name)) return route.fulfill(J({ msg: 'A factor with the friendly name already exists' }, 422));
         const f = { id: 'f' + (++etat.n), factor_type: 'totp', status: 'unverified', friendly_name: corps.friendly_name, code: CODES[Math.min(etat.n - 1, 1)] };
         compte.codes.push(f);
@@ -257,21 +260,29 @@ const VERIFIE = () => [{ id: 'f1', factor_type: 'totp', status: 'verified', frie
   check('3i. le bon code active et ouvre l\'espace', await espace(p) && etat.comptes['u-barbaros'].codes.some(f => f.status === 'verified'));
   check('3j. la session est désormais aal2', niveau(await session(p)) === 'aal2');
   await p.evaluate(() => { const b = document.getElementById('btnReglages') || document.querySelector('[data-admin-vers="ecran-reglages"]'); b && b.click(); });
+  await attendre(p, () => document.getElementById('ecran-reglages').classList.contains('actif'));
   await attendre(p, () => /Active sur 1 appareil/.test((document.getElementById('dvEtat') || {}).textContent || ''));
   check('3k. Réglages : « Active sur 1 appareil », et le conseil d\'un appareil de secours', /Active sur 1 appareil.*secours/.test(await p.textContent('#dvEtat')), await p.textContent('#dvEtat'));
+  etat.doublonNom = true;
   await p.click('#btnDvAjouter');
   await attendre(p, () => { const z = document.querySelector('#dvPanneau .mfa-cle'); return z && !z.hidden; });
-  check('3l. un appareil de secours s\'ajoute (la session aal2 l\'autorise)', await visible(p, '#dvPanneau .mfa-saisie'));
-  await p.fill('#dvPanneau .mfa-saisie', CODES[1]);
-  await p.click('#dvPanneau .mfa-activer');
+  await attendre(p, () => { const e = document.querySelector('#dvPanneau .mfa-saisie'); return e && e.getBoundingClientRect().height > 0; });
+  /* Si le champ reste caché, on dit POURQUOI (écran affiché, panneau)
+     au lieu de planter sur un délai : la CI ne se reproduit pas ici. */
+  const etatPanneau = await p.evaluate(() => ({ ecran: (document.querySelector('.ecran.actif') || {}).id || '?',
+    panneau: !document.getElementById('dvPanneau').hidden, espace: document.body.classList.contains('espace') }));
+  check('3l. un appareil de secours s\'ajoute, même si son nom tombe sur un nom déjà pris (même seconde)', await visible(p, '#dvPanneau .mfa-saisie'), JSON.stringify(etatPanneau));
+  await p.fill('#dvPanneau .mfa-saisie', CODES[1], { timeout: 5000 }).catch(() => {});
+  await p.click('#dvPanneau .mfa-activer', { timeout: 5000 }).catch(() => {});
   await attendre(p, () => /Active sur 2 appareils/.test(document.getElementById('dvEtat').textContent));
   check('3m. Réglages : « Active sur 2 appareils »', /Active sur 2 appareils/.test(await p.textContent('#dvEtat')), await p.textContent('#dvEtat'));
   check('3n. chaque appareil peut être retiré (il en reste un autre)', (await p.locator('#dvListe button').count()) === 2);
   await p.screenshot({ path: 'captures-admin/double-verification-reglages.png', fullPage: false });
   const premier = p.locator('#dvListe button').first();
-  await premier.click();
+  if (!(await premier.count())) { ko.forEach(k => console.log('  ✗ ' + k)); console.log('=== test-admin-double-verification : arrêté avant 3o ==='); process.exit(1); }
+  await premier.click({ timeout: 5000 }).catch(() => {});
   check('3o. retirer demande deux appuis', (await premier.textContent()) === 'Confirmer le retrait' && etat.comptes['u-barbaros'].codes.length === 2);
-  await premier.click();
+  await premier.click({ timeout: 5000 }).catch(() => {});
   await attendre(p, () => /Active sur 1 appareil/.test(document.getElementById('dvEtat').textContent));
   check('3p. retiré : il en reste un, qui ne se retire pas d\'ici', etat.comptes['u-barbaros'].codes.length === 1 && (await p.locator('#dvListe button').count()) === 0);
   await ctx.close();

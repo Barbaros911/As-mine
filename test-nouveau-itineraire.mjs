@@ -36,18 +36,18 @@ const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
 
 /* Quatre distances distinctes, et quatre prix berline distincts qui en
-   découlent — 2,90 €/km (tarif unifié du 28 septembre 2026 : il n'y a
-   plus qu'une seule grille au kilomètre, pour tout le monde), arrondi à
-   la dizaine, le 5 pile qui descend :
-     Mapbox   18,0 km →  52,20 € →  50 €  (au-dessus du plancher berline,
-                                           35 € depuis le 4/10/2026 : un
+   découlent — la GRILLE DU SITE PUBLIC depuis le 23 octobre 2026 : 35 / 50 /
+   70 / 90 € jusqu'à 12 / 22 / 32 / 42 km, puis 90 € + 2,50 €/km, arrondi à
+   la dizaine, le 5 pile qui descend (Vendôme → Argenteuil n'est pas un
+   forfait Paris) :
+     Mapbox   50,0 km →  90 + 8 × 2,50 = 110 €  (au-delà des tranches : un
                                            niveau reconnu au plancher le
                                            serait aussi par une course de
                                            0 km, et ne prouverait rien)
-     ORS      40,0 km → 116,00 € → 120 €
-     OSRM     24,3 km →  70,47 € →  70 €
+     ORS      40,0 km →  tranche « 42 km » →  90 €
+     OSRM     24,3 km →  tranche « 32 km » →  70 €
      Vol d'oiseau : Vendôme → Argenteuil ≈ 11,8 km × 1,3 ≈ 15,3 km
-                            →  44,31 € →  40 €
+                            →  tranche « 22 km » →  50 €
    AUCUN DE CES QUATRE PRIX N'EST CELUI D'UN AUTRE, et c'est toute la
    mécanique de cette suite : lire « 70 € » suffit à dire que c'est OSRM qui
    a répondu. Un changement de tarif qui en ferait coïncider deux rendrait la
@@ -58,9 +58,9 @@ const errs=[];
    suive, et la suite tombait tous les jours. Un test qui tombe tous les
    jours ne surveille plus rien : on s'habitue, et le jour où il tomberait
    pour une vraie raison personne ne le verrait. RECALCULÉ À LA MAIN depuis
-   GAMMES, jamais recopié de ce que la page affiche — un test qui prend la
+   la grille du site public, jamais recopié de ce que la page affiche — un test qui prend la
    sortie pour référence ne vérifie plus rien. */
-const KM = { mapbox:18000, ors:40000, osrm:24300 };
+const KM = { mapbox:50000, ors:40000, osrm:24300 };
 
 async function course({ mapbox, ors, osrm, sansCles, jours, orsRep, osrmRep }){
   const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
@@ -151,7 +151,7 @@ async function course({ mapbox, ors, osrm, sansCles, jours, orsRep, osrmRep }){
 
 /* --- 1. TEL QUE LE SITE EST PUBLIÉ : clé ORS, pas de clé Mapbox ------- */
 let r = await course({ ors:true, osrm:true });
-check('en ligne aujourd\'hui, c\'est ORS qui donne la distance', r.prix==='120,00€', r.prix);
+check('en ligne aujourd\'hui, c\'est ORS qui donne la distance', r.prix==='90,00€', r.prix);
 check('et OSRM n\'est pas dérangé', r.versOSRM.length===0, r.versOSRM.join(' '));
 check('la clé part en « api_key »',
   r.versORS[0] && r.versORS[0].includes('api_key='), r.versORS[0]);
@@ -196,14 +196,14 @@ check('l\'heure d\'arrivée de la carte porte la même fourchette',
    plus courte. Sa décision : « la plus courte, avec autoroute, comme
    Waze ». ORS rend ici la plus rapide EN PREMIER (c'est son ordre) et
    une alternative plus courte de 5 min plus lente : c'est elle qui doit
-   être facturée. 28 km × 2,90 = 81,20 → 80 €. Sur l'ancien code, le prix
-   restait 120 €. */
+   être facturée. 28 km : tranche « 32 km », 70 € ; la plus rapide (40,7 km)
+   coûterait 90 €. */
 const DEUX = (lente) => ({ features:[
   { properties:{ summary:{ distance:40700, duration:2100 } } },
   { properties:{ summary:{ distance:28000, duration:lente } } } ] });
 r = await course({ orsRep: req => req.method()==='POST' ? DEUX(2400) : null });
 check('la route plus courte est retenue, même si elle est un peu plus lente',
-  r.prix==='80,00€', r.prix);
+  r.prix==='70,00€', r.prix);
 check('et la durée affichée est celle de la route retenue (40 min + marge)',
   r.mesure.includes('28 km') && r.mesure.includes('45–50 min'), r.mesure);
 /* La tolérance a une borne : une route plus courte qui ferait perdre plus
@@ -211,18 +211,18 @@ check('et la durée affichée est celle de la route retenue (40 min + marge)',
    la prend pas. On garde alors la plus rapide. */
 r = await course({ orsRep: req => req.method()==='POST' ? DEUX(3000) : null });
 check('une route plus courte mais beaucoup plus lente est écartée',
-  r.prix==='120,00€', r.prix);
+  r.prix==='90,00€', r.prix);
 /* ORS refuse les alternatives (trop loin, ou toute autre raison) : on
    retombe sur l'appel d'avant, une seule route. Jamais pire qu'avant. */
 r = await course({ orsRep: req => req.method()==='POST' ? null
   : { features:[{ properties:{ summary:{ distance:KM.ors, duration:2700 } } }] } });
 check('alternatives refusées par ORS : la route simple répond encore',
-  r.prix==='120,00€', r.prix);
+  r.prix==='90,00€', r.prix);
 check('et OSRM n\'est pas dérangé pour autant', r.versOSRM.length===0, r.versOSRM.join(' '));
 /* Même règle sur OSRM, qui sert le jour où ORS tombe. */
 r = await course({ ors:false, osrmRep:{ routes:[
   { distance:40700, duration:2100 }, { distance:28000, duration:2400 } ] } });
-check('OSRM aussi : la plus courte raisonnable est retenue', r.prix==='80,00€', r.prix);
+check('OSRM aussi : la plus courte raisonnable est retenue', r.prix==='70,00€', r.prix);
 check('et les alternatives lui sont demandées',
   r.versOSRM[0] && r.versOSRM[0].includes('alternatives=true'), r.versOSRM[0]);
 
@@ -238,7 +238,7 @@ check('et le prix n\'est pas une estimation', !r.mesure.includes('≈') && !r.pr
 
 /* --- 3. Les deux en panne : le vol d'oiseau, annoncé comme tel -------- */
 r = await course({ ors:false, osrm:false });
-check('les deux en panne : le vol d\'oiseau', r.prix==='40,00€', r.prix);
+check('les deux en panne : le vol d\'oiseau', r.prix==='50,00€', r.prix);
 check('les deux ont été essayés',
   r.versORS.length>0 && r.versOSRM.length>0,
   r.versORS.length+' ors / '+r.versOSRM.length+' osrm');
@@ -247,7 +247,7 @@ check('et la course est marquée « ≈ », sur la mesure ET sur le prix',
 
 /* --- 4. Le jour où la clé Mapbox est posée, elle passe devant --------- */
 r = await course({ mapbox:true, ors:true, osrm:true });
-check('avec la clé Mapbox, c\'est elle qui donne la distance', r.prix==='50,00€', r.prix);
+check('avec la clé Mapbox, c\'est elle qui donne la distance', r.prix==='110,00€', r.prix);
 check('ORS n\'est alors pas appelé', r.versORS.length===0, r.versORS.join(' '));
 check('OSRM non plus', r.versOSRM.length===0, r.versOSRM.join(' '));
 check('la clé Mapbox part en « access_token »',
@@ -288,7 +288,7 @@ check('le tracé est réclamé, en version simplifiée',
    Mapbox tombe, ORS répond : c'est ORS qui doit parler, pas OSRM et
    surtout pas le vol d'oiseau. --------------------------------------- */
 r = await course({ mapbox:false, ors:true, osrm:true });
-check('Mapbox en panne : ORS prend la suite, pas OSRM', r.prix==='120,00€', r.prix);
+check('Mapbox en panne : ORS prend la suite, pas OSRM', r.prix==='90,00€', r.prix);
 check('OSRM reste au repos', r.versOSRM.length===0, r.versOSRM.join(' '));
 /* ET SURTOUT : ORS NE CONNAÎT PAS LE TRAFIC. Écrire la mention quand même
    ferait d'elle une décoration — et un client qui se fie à une heure
@@ -305,11 +305,11 @@ check('sans Mapbox, on ne prétend PAS tenir compte du trafic',
 r = await course({ mapbox:true, ors:true, osrm:true, jours:30 });
 check('une course dans un mois : Mapbox est appelé sans « depart_at »',
   r.versMapbox[0] && !r.versMapbox[0].includes('depart_at'), r.versMapbox[0]);
-check('et elle passe quand même par Mapbox', r.prix==='50,00€', r.prix);
+check('et elle passe quand même par Mapbox', r.prix==='110,00€', r.prix);
 
 /* --- 6. Les trois en panne : le vol d'oiseau, et les trois essayés ---- */
 r = await course({ mapbox:false, ors:false, osrm:false });
-check('les trois en panne : le vol d\'oiseau', r.prix==='40,00€', r.prix);
+check('les trois en panne : le vol d\'oiseau', r.prix==='50,00€', r.prix);
 check('et les trois ont été essayés',
   r.versMapbox.length>0 && r.versORS.length>0 && r.versOSRM.length>0,
   r.versMapbox.length+' / '+r.versORS.length+' / '+r.versOSRM.length);

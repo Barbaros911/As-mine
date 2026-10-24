@@ -22,9 +22,9 @@ begin
     raise exception '% : est_exploitant() = %, attendu %', p_cas, e, p_exploitant; end if;
   if a is distinct from p_admin then
     raise exception '% : est_admin() = %, attendu %', p_cas, a, p_admin; end if;
-  if n <> (case when p_exploitant then 1 else 0 end) then
+  if n is distinct from (case when p_exploitant then 1 else 0 end) then
     raise exception '% : % course(s) lue(s), attendu %', p_cas, n, case when p_exploitant then 1 else 0 end; end if;
-  if sonde <> (case when p_admin then 'acceptee' else 'refusee' end) then
+  if sonde is distinct from (case when p_admin then 'acceptee' else 'refusee' end) then
     raise exception '% : fonction réservée à l''admin %', p_cas, sonde; end if;
   raise notice 'ok — %', p_cas;
 end $$;
