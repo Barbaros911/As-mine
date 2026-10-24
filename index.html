@@ -775,6 +775,14 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
   font:inherit;font-weight:600;text-align:left;cursor:pointer;}
 .sans-chauffeur-bord[hidden]{display:none}
 @media (min-width:900px){ body.espace .sans-chauffeur-bord{margin:16px 28px 0;width:calc(100% - 56px);} }
+/* Un client pas encore prévenu : le rouge de « il manque », celui des
+   pastilles urgentes — c'est un client qui attend sans le savoir. */
+.a-prevenir-bord{border-color:#f0cfcf;background:#fbe9e9;color:#8f2220;}
+/* Ce qui a été ouvert pour le client, une ligne par message. */
+.msg-histo{list-style:none;margin:0 0 10px;padding:0}
+.msg-histo li{font-size:14px;line-height:1.45;padding:7px 0;border-top:1px solid var(--filet)}
+.msg-histo li:first-child{border-top:0}
+.msg-histo:empty{display:none}
 /* La demande d'avis n'est PAS l'action principale d'une course réalisée :
    elle est en creux, contour seul. Un second bouton plein ferait deux
    actions qui crient sur une ligne qui n'attend plus personne. */
@@ -2611,7 +2619,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 #bordArrivee:not([hidden])~#bordAvis,#bordAlertes:not([hidden])~#bordAvis,
 #bordDettes:not([hidden])~#bordAvis,#bordHorsLigne:not([hidden])~#bordAvis,
 #bordSynchro:not([hidden])~#bordAvis,#bordConflit:not([hidden])~#bordAvis,
-#bordSansChauffeur:not([hidden])~#bordAvis{display:none}
+#bordSansChauffeur:not([hidden])~#bordAvis,#bordAPrevenir:not([hidden])~#bordAvis{display:none}
 .sauvegarde-bord[hidden]{display:none}
 @media (min-width:900px){ body.espace .sauvegarde-bord{margin:16px 28px 0;} }
 /* ═══ L'ADMIN ERGONOMIQUE (9 octobre 2026) : bandeaux compacts, Actualiser,
@@ -4248,6 +4256,11 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          la relance ne vise que les demandes en attente. Comme les dettes,
          l'écriteau n'existe que s'il y a quelque chose à faire. -->
     <button class="sans-chauffeur-bord" type="button" id="bordSansChauffeur" hidden></button>
+    <!-- UN CLIENT PAS ENCORE PRÉVENU (24 octobre 2026) : confirmé sans avoir
+         reçu son lien de paiement, refusé ou annulé sans le savoir. Un refus
+         n'est dans aucune liste du tableau de bord : l'écriteau ouvre
+         directement la course la plus urgente. -->
+    <button class="sans-chauffeur-bord a-prevenir-bord" type="button" id="bordAPrevenir" hidden></button>
     <!-- LES AVIS À DEMANDER (15 octobre 2026, SEO-AUTORITE.md § 11). Le bouton
          « Demander un avis » est manuel, course par course : ne le proposer
          qu'aux clients contents serait exactement le tri que Google et la loi
@@ -5886,6 +5899,24 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <p class="bloc-note" id="bbHotelNote" hidden></p>
     </div>
 
+    <!-- ═══ LES MESSAGES AU CLIENT (24 octobre 2026, à sa demande : « un
+         pense-bête qui m'empêche d'oublier ») ═══
+         Ce qui a été OUVERT pour le client, et ce qui reste à lui dire.
+         « Ouvert », pas « envoyé » : le site ouvre WhatsApp, Messages ou
+         Telegram sur le téléphone de Barbaros, il ne voit jamais si l'on a
+         appuyé sur « envoyer ». Le bloc est posé juste au-dessus des
+         boutons : l'alerte rouge et le geste qui l'éteint se lisent ensemble. -->
+    <div class="bloc" id="bbMsgClient" hidden>
+      <h2 class="bloc-titre">Messages au client</h2>
+      <p class="ch-alerte rouge" id="bbAPrevenir" hidden></p>
+      <p class="ch-alerte orange" id="bbLienPrix" hidden></p>
+      <ul class="msg-histo" id="bbMsgHisto"></ul>
+      <p class="bloc-note" id="bbMsgVide">Aucun message ouvert pour ce client depuis l'admin.</p>
+      <!-- Il éteint une alerte : deux appuis, comme « Refuser ». Un pouce
+           qui glisse ferait taire le rappel d'un client jamais prévenu. -->
+      <button class="bouton-fantome" type="button" id="btnDejaPrevenu" hidden>Déjà prévenu autrement (appel…)</button>
+    </div>
+
     <div class="veh-action" id="bbActions">
       <!-- ACCUSER RÉCEPTION — le message qui manquait.
            Le client appuie sur « Confirmer » et n'a plus AUCUNE nouvelle
@@ -5930,6 +5961,13 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
            Le bouton n'apparaît qu'une fois la course confirmée : prévenir un
            client qu'on n'a pas encore de chauffeur pour lui n'a pas de sens. -->
       <button class="bouton vert" type="button" id="btnPrevenirClient" hidden>
+        <span>Prévenir le client</span>
+      </button>
+      <!-- LE REFUS, L'ANNULATION ET LE CHANGEMENT SE DISENT AUSSI (24 octobre
+           2026). Rien ne partait : le client refusé attendait une voiture qui
+           ne viendrait pas. Le message est prêt, dans sa langue, par le moyen
+           qu'il a choisi ; c'est Barbaros qui appuie. Le libellé dit lequel. -->
+      <button class="bouton vert" type="button" id="btnPrevenirChangement" hidden>
         <span>Prévenir le client</span>
       </button>
       <!-- CLORE EST LE GESTE LE PLUS FRÉQUENT : c'est lui qui fait entrer la
@@ -12944,6 +12982,17 @@ window.ELA_TEXTES = {
         if(b.depot && b.depot !== "recu"){ b.depot = "recu"; change = true; }
         if(d.statut && d.statut !== b.statut){ b.statut = d.statut; change = true; }
         if(Number(d.numero) > 0 && b.numero !== Number(d.numero)){ b.numero = Number(d.numero); change = true; }
+        /* L'HEURE CHANGÉE PAR ELATRANSFER ARRIVE SUR LE BON (24/10/2026).
+           « etat-course » la rendait déjà ; la page ne la lisait pas, et le
+           client gardait l'ancienne heure sous les yeux après un changement.
+           Seulement une date et une heure bien formées : une réponse
+           incomplète ne recule rien, comme pour l'état. */
+        if(b.course && /^\d{4}-\d{2}-\d{2}$/.test(d.date || "") && /^\d{2}:\d{2}$/.test(d.heure || "")
+           && (b.course.date !== d.date || b.course.heure !== d.heure)){
+          b.course.date = d.date; b.course.heure = d.heure;
+          if(b.dateMsg && !b.course.immediat) b.dateMsg = d.date.split("-").reverse().join("/") + " " + d.heure;
+          change = true;
+        }
         var ch = d.chauffeur || {};
         if(ch.nom || ch.telephone){
           var avant = b.chauffeur || {};
@@ -14023,9 +14072,16 @@ window.ELA_TEXTES = {
     }
     var tel = telWa(c.client && c.client.telephone);
     if(!tel) return;
-    window.open("https://wa.me/" + tel + "?text="
-                + encodeURIComponent(messageAvis(c)), "_blank");
-    majCourse(c.ref, c.statut, { avisDemande: new Date().toISOString() });
+    /* PAR LE MOYEN QU'IL A CHOISI (24/10/2026). La demande partait toujours
+       sur WhatsApp : un client « appel / SMS » sans WhatsApp ne la recevait
+       jamais. Pour Telegram, le message est copié et la note qui le dit vit
+       sur le bon : on l'ouvre d'abord — rien n'est attendu, le geste reste
+       celui du clic. */
+    if(canalEnvoi(c) === "telegram") ouvrirBonBord(c.ref);
+    var canal = ecrireAuClient(c, tel, messageAvis(c));
+    var ext = noterMessage(c, "avis", canal);
+    ext.avisDemande = new Date().toISOString();
+    majCourse(c.ref, c.statut, ext);
   }
 
   /* ---- Le tableau de bord ---- */
@@ -14098,9 +14154,12 @@ window.ELA_TEXTES = {
      saisie au téléphone sans chauffeur reste CONFIRMÉE). Elle doit donc se
      voir : sur sa carte, et par un écriteau en tête du tableau de bord. */
   /* Les pastilles d'une demande hors cas standard. Une course finie n'en
-     porte plus : elles appellent un geste, et il n'y en a plus à faire. */
+     porte plus : elles appellent un geste, et il n'y en a plus à faire —
+     sauf « Client à prévenir » (24/10/2026) : un refus que le client ignore
+     encore appelle justement un geste. */
   function drapeauxCourse(c){
     var st = c.statut || "attente", co = c.course || {}, l = [];
+    if(aPrevenirActif(c)) l.push({ t:"Client à prévenir", urgent:true });
     if(st === "realisee" || st === "refusee" || st === "annulee") return l;
     if(co.immediat && st === "attente") l.push({ t:"Immédiat", urgent:true });
     if(co.tarifAConfirmer && !(c.prix && c.prix.total > 0)) l.push({ t:"Tarif à confirmer" });
@@ -14168,6 +14227,14 @@ window.ELA_TEXTES = {
       ecSansCh.textContent = nbSansCh === 1
         ? "1 course confirmée n'a pas de chauffeur — la voir"
         : nbSansCh + " courses confirmées n'ont pas de chauffeur — les voir";
+    }
+    var nbAPrev = tout.filter(aPrevenirActif).length;
+    var ecAPrev = document.getElementById("bordAPrevenir");
+    if(ecAPrev){
+      ecAPrev.hidden = !nbAPrev;
+      ecAPrev.textContent = nbAPrev === 1
+        ? "1 client n'a pas encore été prévenu — ouvrir la course"
+        : nbAPrev + " clients n'ont pas encore été prévenus — ouvrir la plus urgente";
     }
     document.querySelectorAll(".compteur").forEach(function(b){
       b.classList.toggle("actif", b.dataset.filtre === filtreBord);
@@ -14672,6 +14739,10 @@ window.ELA_TEXTES = {
        part sur le serveur avec le bon : tous les appareils la voient. */
     if(statut === "confirmee" && avant === "attente" && !liste[i].confirmeeLe)
       liste[i].confirmeeLe = new Date().toISOString();
+    /* UNE COURSE FAITE N'A PLUS RIEN À DIRE AU CLIENT (24/10/2026) : le
+       pense-bête « client à prévenir » s'éteint avec elle, quel que soit le
+       geste qui la clôt (le bon, ou « Terminée » sur la liste). */
+    if(statut === "realisee" && liste[i].aPrevenir) liste[i].aPrevenir = null;
     /* LA COMMISSION SE FIGE QUAND LA COURSE EST FAITE (30/09/2026). C'est à
        cet instant que le chauffeur contracte sa dette ; changer un taux de
        canal ou de carnet le mois suivant ne doit pas réécrire ce qu'il
@@ -14960,10 +15031,9 @@ window.ELA_TEXTES = {
        au client qu'on ne sait pas où on en est. */
     var bAcc = document.getElementById("btnAccuserReception");
     bAcc.hidden = ((c.statut || "attente") !== "attente") || !tel;
-    /* Le libellé dit si le mot est déjà parti : sur dix demandes reçues la
-       nuit, on ne se souvient pas de qui a eu une réponse. */
-    bAcc.textContent = c.accuse ? "Accusé de réception envoyé — renvoyer"
-                                : "Accuser réception au client";
+    /* Le libellé dit si le mot a déjà été ouvert : sur dix demandes reçues
+       la nuit, on ne se souvient pas de qui a eu une réponse. */
+    bAcc.textContent = libelleAccuse(c);
     /* PLACER LA COURSE N'A DE SENS QUE TANT QU'ELLE N'EST PAS PLACÉE. Une
        course déjà réalisée ou refusée ne se diffuse pas non plus : la
        proposer à 800 personnes ferait répondre des chauffeurs pour rien, et
@@ -14977,6 +15047,7 @@ window.ELA_TEXTES = {
        course que personne n'a prise se rediffuse. */
     bDif.textContent = c.diffusee ? "Déjà placée au groupe — rediffuser"
                                   : "Placer au groupe de chauffeurs";
+    dessinerMessagesBon(c);
     ecran("ecran-bord-bon");
     jugerCommissionBon();
   }
@@ -15109,6 +15180,7 @@ window.ELA_TEXTES = {
     note.textContent = bonBord.paye ? "Payé."
       : sansPrix(bonBord) ? "Fixez d'abord le prix : le lien doit porter le montant exact."
       : "Le lien doit porter " + euros(bonBord.prix.total) + ". Le chauffeur se met en route une fois le paiement reçu.";
+    jugerLienPrix();
   }
   (function(){
     var l = document.getElementById("bbLienPaiement");
@@ -15174,6 +15246,11 @@ window.ELA_TEXTES = {
       if(chChange || cmChange || lpChange){
         var extraRetour = { chauffeur: ch, commission: cm };
         if(lpChange) extraRetour.lienPaiement = lp;
+        /* UN NOUVEAU CHAUFFEUR SUR UNE COURSE CONFIRMÉE SE DIT AU CLIENT
+           (CGV art. 8 : il « en est informé avant la prise en charge ») :
+           la confirmation, qui porte son nom et son numéro, est à refaire. */
+        if(chChange && ch.nom && (actuelle.statut || "attente") === "confirmee")
+          extraRetour.aPrevenir = armerPrevenir(actuelle, "confirmation");
         majCourse(actuelle.ref, actuelle.statut || "attente", extraRetour);
       }
     }
@@ -15262,7 +15339,10 @@ window.ELA_TEXTES = {
       return;
     }
     direConfirmer("");
-    bonBord = majCourse(bonBord.ref, "confirmee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie() });
+    /* Confirmer n'est pas prévenir (deux gestes, et ils le restent) : le
+       pense-bête dit que la confirmation reste à dire au client. */
+    bonBord = majCourse(bonBord.ref, "confirmee", { chauffeur: chauffeurSaisi(), commission: commissionSaisie(),
+                                                    aPrevenir: armerPrevenir(bonBord, "confirmation") });
     pousserNotification(bonBord);
     ouvrirBonBord(bonBord.ref);
   });
@@ -15442,14 +15522,16 @@ window.ELA_TEXTES = {
   }
   /* Écrire au client par SON canal. Rien n'est attendu avant l'ouverture :
      Safari exige le geste. Telegram n'accepte pas de message tout écrit
-     vers un numéro : il est copié, Barbaros le colle. */
+     vers un numéro : il est copié, Barbaros le colle. Elle rend le canal
+     ouvert (« whatsapp », « sms », « telegram ») : c'est lui que garde la
+     trace des messages. */
   function ecrireAuClient(c, tel, texte){
-    var canal = canalClient(c) || "whatsapp", t = encodeURIComponent(texte);
-    if(canal === "messages" || canal === "telephone"){
+    var canal = canalEnvoi(c), t = encodeURIComponent(texte);
+    if(canal === "sms"){
       var ios = /iPad|iPhone|iPod/.test(navigator.userAgent)
              || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       window.location.href = "sms:+" + tel + (ios ? "&body=" : "?body=") + t;
-      return;
+      return canal;
     }
     if(canal === "telegram"){
       try{ navigator.clipboard.writeText(texte).catch(function(){}); }catch(e){}
@@ -15457,21 +15539,316 @@ window.ELA_TEXTES = {
       var n = document.getElementById("bbContact");
       n.hidden = false;
       n.textContent = "Message copié : collez-le dans la conversation Telegram du client.";
-      return;
+      return canal;
     }
     window.open("https://wa.me/" + tel + "?text=" + t, "_blank");
+    return canal;
   }
+  function canalEnvoi(c){
+    var p = canalClient(c);
+    return (p === "messages" || p === "telephone") ? "sms" : p === "telegram" ? "telegram" : "whatsapp";
+  }
+
+/* =====================================================================
+   LES MESSAGES AU CLIENT : CE QUI A ÉTÉ OUVERT, CE QUI RESTE À DIRE
+   ---------------------------------------------------------------------
+   24 octobre 2026, à sa demande : « un pense-bête qui m'empêche
+   d'oublier ». « Prévenir le client » ne laissait AUCUNE trace : le
+   message qui porte le lien de paiement pouvait ne jamais partir, et rien
+   ne le disait — le client ne paie pas, le chauffeur ne part pas. Un refus
+   ou une annulation ne se disaient nulle part : le client attendait une
+   voiture qui ne viendrait pas.
+   DEUX CHAMPS SUR LA COURSE, qui partent au serveur avec le bon :
+   · « messagesClient » — ce qui a été OUVERT pour lui : type, canal,
+     heure. « Ouvert » et pas « envoyé » : le site ouvre WhatsApp, Messages
+     ou Telegram sur le téléphone de Barbaros ; il ne voit jamais si l'on a
+     appuyé sur « envoyer ». Le mot juste empêche de prendre un message
+     préparé pour un message parti ;
+   · « aPrevenir » — ce qui DOIT être dit au client et ne l'a pas encore
+     été : la confirmation, un refus, une annulation, un changement. Posé
+     par le geste lui-même, effacé quand le message est ouvert, ou quand
+     Barbaros dit l'avoir prévenu autrement. Une course d'avant ce jour
+     n'en porte pas : aucune fausse alerte sur l'historique.
+   Le serveur relit « aPrevenir » : un client resté sans nouvelles
+   15 minutes fait partir un rappel Telegram (« nouvelle-demande »). La
+   règle d'échéance et de cohérence est écrite DEUX fois — ici et là-bas —
+   parce que l'une tourne dans le navigateur et l'autre chez Supabase ;
+   « test-admin-messages-client.mjs » les éprouve toutes les deux.
+   ===================================================================== */
+  var TYPES_MSG = { accuse:"Accusé de réception", confirmation:"Confirmation", refus:"Refus",
+                    annulation:"Annulation", modification:"Modification", avis:"Demande d'avis" };
+  var CANAUX_MSG = { whatsapp:"ouvert dans WhatsApp", sms:"ouvert dans Messages (SMS)",
+                     telegram:"copié pour Telegram", autre:"prévenu autrement" };
+  /* Ce que chaque pense-bête suppose de la course : une confirmation ou un
+     changement ne valent que pour une course confirmée, un refus pour une
+     course refusée. Un état qui a changé depuis rend le pense-bête caduc. */
+  var STATUT_PREVENIR = { confirmation:"confirmee", modification:"confirmee",
+                          refus:"refusee", annulation:"annulee" };
+  /* Sans numéro, il n'y a personne à prévenir depuis l'admin : rien n'est
+     posé, et un ancien pense-bête tombe. */
+  function armerPrevenir(c, type, plus){
+    if(!telWa(c && c.client && c.client.telephone)) return null;
+    var a = { type:type, depuis:new Date().toISOString() };
+    if(plus) Object.keys(plus).forEach(function(k){ a[k] = plus[k]; });
+    return a;
+  }
+  /* La trace d'un message ouvert, et ce qu'elle éteint : un pense-bête du
+     même type, ou un changement si c'est la confirmation qui part — elle
+     redit tout, changement compris. */
+  function noterMessage(c, type, canal){
+    /* La copie du registre, pas celle de l'écran : la sonde a pu la
+       rafraîchir entre-temps, et une trace écrite par un autre appareil ne
+       doit pas disparaître sous la nôtre. */
+    c = registre().filter(function(x){ return x && x.ref === c.ref; })[0] || c;
+    var l = (c.messagesClient || []).concat([{ type:type, canal:canal, le:new Date().toISOString() }]).slice(-30);
+    var a = c.aPrevenir;
+    var eteint = !!a && (a.type === type || (type === "confirmation" && a.type === "modification"));
+    return { messagesClient:l, aPrevenir: eteint ? null : (a || null) };
+  }
+  /* L'heure qui rend le pense-bête urgent : le départ, ou le geste pour une
+     demande immédiate, qui n'a pas de rendez-vous. */
+  function echeancePrevenir(c){
+    var a = c.aPrevenir || {}, co = c.course || {};
+    if(co.immediat) return Date.parse(a.depuis) || 0;
+    var d = new Date((co.date || "") + "T" + (co.heure || "00:00"));
+    return isNaN(d.getTime()) ? (Date.parse(a.depuis) || 0) : d.getTime();
+  }
+  /* Ce qui reste à dire au client, et seulement tant que ça sert : une
+     heure après le départ (trois heures après le geste pour une demande
+     immédiate), le dire n'apprend plus rien à personne. */
+  function aPrevenirActif(c){
+    var a = c && c.aPrevenir;
+    if(!a || !STATUT_PREVENIR[a.type] || STATUT_PREVENIR[a.type] !== (c.statut || "attente")) return null;
+    if(!telWa(c.client && c.client.telephone)) return null;
+    /* Un client qui a payé a reçu son lien : sa confirmation lui est
+       parvenue, par un chemin ou par un autre. */
+    if(a.type === "confirmation" && c.paye) return null;
+    var limite = (c.course && c.course.immediat) ? echeancePrevenir(c) + 3 * 3600e3
+                                                 : echeancePrevenir(c) + 3600e3;
+    return Date.now() > limite ? null : a;
+  }
+  function quandCourt(iso){
+    var d = new Date(iso);
+    if(isNaN(d.getTime())) return "";
+    var jour = d.toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" });
+    var h = d.toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
+    return (jour === new Date().toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit" })
+            ? "aujourd'hui" : "le " + jour) + " à " + h;
+  }
+  /* L'historique : la trace, plus les deux gestes que l'admin retenait déjà
+     avant elle (accusé, avis), pour qu'une course ancienne ne paraisse pas
+     muette. Leur canal n'a pas été gardé : on ne l'invente pas. */
+  function historiqueMessages(c){
+    var l = (c.messagesClient || []).slice();
+    var a = function(t){ return l.some(function(m){ return m.type === t; }); };
+    if(c.accuse && !a("accuse")) l.push({ type:"accuse", canal:"", le:c.accuse });
+    if(c.avisDemande && !a("avis")) l.push({ type:"avis", canal:"", le:c.avisDemande });
+    return l.sort(function(x, y){ return String(x.le).localeCompare(String(y.le)); });
+  }
+  function phraseAPrevenir(a){
+    var depuis = quandCourt(a.depuis);
+    return ({
+      confirmation:"Le client n'a pas encore reçu sa confirmation : chauffeur, heure et lien de paiement. "
+        + "Sans elle, il ne paie pas et le chauffeur ne part pas.",
+      refus:"Le client ne sait pas encore que sa demande n'est pas prise : il attend peut-être une voiture.",
+      annulation:"Le client ne sait pas encore que sa course est annulée.",
+      modification:"Le client ne connaît pas encore le changement."
+    }[a.type] || "") + (depuis ? " (depuis " + depuis.replace(/^aujourd'hui à /, "") + ")" : "");
+  }
+  var LIBELLE_PREVENIR = { refus:"Prévenir le client du refus", annulation:"Prévenir le client de l'annulation",
+                           modification:"Prévenir le client du changement" };
+  function dessinerMessagesBon(c){
+    var bloc = document.getElementById("bbMsgClient");
+    if(!bloc || !c) return;
+    var tel = telWa(c.client && c.client.telephone), a = aPrevenirActif(c), histo = historiqueMessages(c);
+    /* Sans numéro et sans rien d'ouvert, le bloc n'aurait rien à dire. */
+    bloc.hidden = !tel && !histo.length;
+    var al = document.getElementById("bbAPrevenir");
+    al.hidden = !a; al.textContent = a ? phraseAPrevenir(a) : "";
+    var ul = document.getElementById("bbMsgHisto");
+    ul.innerHTML = "";
+    histo.slice().reverse().forEach(function(m){
+      var li = document.createElement("li");
+      li.textContent = (TYPES_MSG[m.type] || m.type) + " — " + (CANAUX_MSG[m.canal] || "ouvert")
+        + (quandCourt(m.le) ? " — " + quandCourt(m.le) : "");
+      ul.appendChild(li);
+    });
+    document.getElementById("bbMsgVide").hidden = histo.length > 0;
+    desarmerDeja();
+    document.getElementById("btnDejaPrevenu").hidden = !a;
+    var bc = document.getElementById("btnPrevenirChangement");
+    bc.hidden = !(a && LIBELLE_PREVENIR[a.type]);
+    bc.querySelector("span").textContent = (a && LIBELLE_PREVENIR[a.type]) || "Prévenir le client";
+    jugerLienPrix();
+  }
+  /* LE PRIX A CHANGÉ, LE LIEN PEUT-ÊTRE PAS. Le lien du chauffeur porte un
+     montant fixe : après un nouveau prix, celui qui est collé réclame
+     l'ancien. On le dit tant que le même lien est dans le champ. */
+  function jugerLienPrix(){
+    var e = document.getElementById("bbLienPrix");
+    if(!e || !bonBord) return;
+    var a = aPrevenirActif(bonBord);
+    var vieux = !!a && a.prixChange && !!a.lienAvant && lienSaisi() === a.lienAvant
+             && payableParLien(bonBord) && !bonBord.paye;
+    e.hidden = !vieux;
+    e.textContent = vieux ? "Le prix a changé : le lien de paiement collé porte sans doute l'ancien montant. "
+      + "Demandez au chauffeur un nouveau lien, collez-le, puis prévenez le client." : "";
+  }
+
+  /* LES MESSAGES PRÊTS. Même règle que l'accusé : dans la langue de la
+     course, le départ « public » (jamais la chambre), le N° court. */
+  function enAnglais(c){ return (c.langue || "fr") === "en"; }
+  function bonjourClient(c){
+    var p = ((c.client && c.client.nom) || "").trim().split(/\s+/)[0];
+    return enAnglais(c) ? (p ? "Hello " + p + ", " : "Hello, ") : (p ? "Bonjour " + p + ", " : "Bonjour, ");
+  }
+  function quandClient(c, date, heure){
+    if(c.course && c.course.immediat) return enAnglais(c) ? "As soon as possible" : "Dès que possible";
+    var loc = enAnglais(c) ? "en-GB" : "fr-FR", d = new Date(date + "T" + heure);
+    return isNaN(d.getTime()) ? ((date || "") + " " + (heure || "")).trim()
+      : d.toLocaleDateString(loc) + " " + d.toLocaleTimeString(loc, { hour:"2-digit", minute:"2-digit" });
+  }
+  function trajetClient(c){
+    var co = c.course || {};
+    return (co.departPublic || co.depart || "") + " → " + (co.arriveePublic || co.arrivee || "");
+  }
+  /* Le numéro d'Elatransfer, écrit comme on le compose : « 07 … » pour un
+     client français, « +33 7 … » pour un client étranger. */
+  function telElatransfer(c){
+    var n = NUMERO_WA.slice(2), paires = n.slice(1).replace(/(\d{2})(?=\d)/g, "$1 ");
+    return enAnglais(c) ? "+33 " + n.charAt(0) + " " + paires : "0" + n.charAt(0) + " " + paires;
+  }
+  /* « RIEN NE VOUS EST DÛ » SEULEMENT QUAND C'EST VRAI À COUP SÛR : la
+     course n'est pas payée (CGV art. 3 et 7). Une course déjà payée se
+     règle de vive voix — c'est un remboursement, ou pas, selon qui annule,
+     et ça ne s'écrit pas dans un message tout fait. */
+  function rienDu(c){ return c.paye ? [] : [enAnglais(c) ? "You owe nothing." : "Rien ne vous est dû."]; }
+  function messageRefus(c){
+    var en = enAnglais(c), co = c.course || {};
+    return [bonjourClient(c) + (en ? "we are sorry: no driver is available for your request "
+                                   : "nous sommes désolés : aucun chauffeur n'est disponible pour votre demande ")
+              + refParlee(c) + ".",
+            trajetClient(c), quandClient(c, co.date, co.heure)]
+      .concat(rienDu(c))
+      .concat([en ? "For another time, reply to this message or call " + telElatransfer(c) + "."
+                  : "Pour un autre horaire, répondez à ce message ou appelez le " + telElatransfer(c) + "."])
+      .join("\n");
+  }
+  function messageAnnulation(c){
+    var en = enAnglais(c), co = c.course || {};
+    return [bonjourClient(c) + (en ? "your ride " + refParlee(c) + " is cancelled."
+                                   : "votre course " + refParlee(c) + " est annulée."),
+            trajetClient(c), quandClient(c, co.date, co.heure)]
+      .concat(rienDu(c))
+      .concat([en ? "Any question: " + telElatransfer(c) + "." : "Pour toute question : " + telElatransfer(c) + "."])
+      .join("\n");
+  }
+  /* LE CHANGEMENT DIT CE QUI A CHANGÉ, et l'ancienne heure à côté de la
+     nouvelle : « 11:00 » seul ne dit pas qu'on a bougé. Le lien du bon porte
+     la nouvelle heure et la pose sur le bon du client. Le prix n'y est que
+     s'il a changé (CGV art. 4 : un nouveau prix est communiqué avant de
+     s'appliquer) ; le lien de paiement n'y est jamais — un nouveau prix
+     payable par lien repasse par la confirmation complète. */
+  function messageModification(c){
+    var en = enAnglais(c), co = c.course || {}, av = (c.aPrevenir && c.aPrevenir.avant) || {};
+    var quand = quandClient(c, co.date, co.heure), avant = av.date ? quandClient(c, av.date, av.heure) : "";
+    var l = [bonjourClient(c) + (en ? "your transfer " + refParlee(c) + " has been changed."
+                                    : "votre transfert " + refParlee(c) + " a été modifié."),
+             (en ? "Date: " : "Date : ") + quand
+               + (avant && avant !== quand ? (en ? " (instead of " : " (au lieu de ") + avant + ")" : "")];
+    var dep = co.departPublic || co.depart || "", arr = co.arriveePublic || co.arrivee || "";
+    if(av.depart !== undefined && av.depart !== dep) l.push((en ? "Pick-up: " : "Départ : ") + dep);
+    if(av.arrivee !== undefined && av.arrivee !== arr) l.push((en ? "Drop-off: " : "Arrivée : ") + arr);
+    if(av.vehicule !== undefined && av.vehicule !== (co.vehicule || "")) l.push((en ? "Vehicle: " : "Véhicule : ") + co.vehicule);
+    var prix = (c.prix && c.prix.total) || 0;
+    if(av.prix !== undefined && prix > 0 && av.prix !== prix)
+      l.push((en ? "Price: " + prix.toLocaleString("en-GB", { style:"currency", currency:"EUR" })
+                 : "Prix : " + eurosFR(prix)));
+    var ch = c.chauffeur || {};
+    if(ch.nom) l.push((en ? "Driver: " : "Chauffeur : ") + ch.nom + (ch.telephone ? " · " + ch.telephone : ""));
+    l.push((en ? "Your booking: " : "Votre bon : ") + lienDuBon(c));
+    return l.join("\n");
+  }
+  /* Ce que le client lit d'une course confirmée : comparé avant et après
+     « Modifier la course », il dit si le changement le concerne. Le nom,
+     le téléphone, la chambre, la précision ne changent rien pour lui. */
+  function vueClient(course, prix){
+    var k = course || {};
+    return { date:k.date || "", heure:k.heure || "", depart:k.departPublic || k.depart || "",
+             arrivee:k.arriveePublic || k.arrivee || "", vehicule:k.vehicule || "",
+             prix:(prix && prix.total) || 0 };
+  }
+  var dejaArme = null, dejaMinuteur = null;
+  function desarmerDeja(){
+    dejaArme = null;
+    if(dejaMinuteur){ clearTimeout(dejaMinuteur); dejaMinuteur = null; }
+    var b = document.getElementById("btnDejaPrevenu");
+    if(b) b.textContent = "Déjà prévenu autrement (appel…)";
+  }
+  (function(){
+    var b = document.getElementById("btnDejaPrevenu");
+    if(b) b.addEventListener("click", function(){
+      if(!bonBord) return;
+      var a = aPrevenirActif(bonBord);
+      if(!a) return;
+      if(dejaArme !== bonBord.ref){
+        dejaArme = bonBord.ref;
+        this.textContent = "Confirmer : le client est déjà prévenu";
+        dejaMinuteur = setTimeout(desarmerDeja, 8000);
+        return;
+      }
+      desarmerDeja();
+      var m = majCourse(bonBord.ref, bonBord.statut || "attente", noterMessage(bonBord, a.type, "autre"));
+      if(m){ bonBord = m; dessinerMessagesBon(m); }
+    });
+    var bc = document.getElementById("btnPrevenirChangement");
+    if(bc) bc.addEventListener("click", function(){
+      if(!bonBord) return;
+      var a = aPrevenirActif(bonBord), tel = telWa(bonBord.client && bonBord.client.telephone);
+      if(!a || !tel || !LIBELLE_PREVENIR[a.type]) return;
+      var texte = a.type === "refus" ? messageRefus(bonBord)
+                : a.type === "annulation" ? messageAnnulation(bonBord) : messageModification(bonBord);
+      /* Rien n'est attendu avant l'ouverture : Safari exige le geste. */
+      var canal = ecrireAuClient(bonBord, tel, texte);
+      var m = majCourse(bonBord.ref, bonBord.statut || "attente", noterMessage(bonBord, a.type, canal));
+      if(m){ bonBord = m; dessinerMessagesBon(m); }
+    });
+  })();
+  /* Après un geste qui doit se dire, l'écran montre où le dire : la note
+     du geste, l'alerte rouge et le bouton qui l'éteint. */
+  function montrerPrevenir(){
+    var n = document.getElementById("bbModifNote"), b = document.getElementById("bbMsgClient");
+    var cible = (n && !n.hidden) ? n : b;
+    if(!cible) return;
+    /* LA PAGE PORTE scroll-behavior:smooth, et l'écran qui vient de se
+       rouvrir est en train de remonter en haut, en douceur : mesuré, cette
+       animation ignorait un défilement « instant » et ramenait tout en
+       haut. On suspend le doux le temps de poser l'écran, ce qui l'arrête. */
+    var html = document.documentElement, avant = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto";
+    window.scrollTo(0, Math.max(0, cible.getBoundingClientRect().top + window.scrollY - 8));
+    html.style.scrollBehavior = avant;
+  }
+
   document.getElementById("btnAccuserReception").addEventListener("click", function(){
     if(!bonBord) return;
     var tel = telWa(bonBord.client && bonBord.client.telephone);
     if(!tel) return;
-    ecrireAuClient(bonBord, tel, messageAccuse(bonBord));
+    var canal = ecrireAuClient(bonBord, tel, messageAccuse(bonBord));
     /* On garde la trace : sur une liste de dix demandes reçues la nuit, on
        ne se souvient pas de qui a déjà eu un mot. */
-    majCourse(bonBord.ref, bonBord.statut || "attente",
-              { accuse: new Date().toISOString() });
-    this.textContent = "Accusé de réception envoyé";
+    var ext = noterMessage(bonBord, "accuse", canal);
+    ext.accuse = new Date().toISOString();
+    var m = majCourse(bonBord.ref, bonBord.statut || "attente", ext);
+    if(m){ bonBord = m; dessinerMessagesBon(m); }
+    this.textContent = libelleAccuse(bonBord);
   });
+  /* « Ouvert », pas « envoyé » : l'admin ne voit pas le bouton « envoyer »
+     de WhatsApp (24/10/2026). */
+  function libelleAccuse(c){
+    return c.accuse ? "Accusé de réception ouvert " + quandCourt(c.accuse) + " — renvoyer"
+                    : "Accuser réception au client";
+  }
   document.getElementById("btnDiffuserGroupe").addEventListener("click", function(){
     if(!bonBord) return;
     /* SANS NUMÉRO : « wa.me/?text= » ouvre le sélecteur de WhatsApp et
@@ -15519,7 +15896,11 @@ window.ELA_TEXTES = {
     if((jl.url || "") !== (bonBord.lienPaiement || ""))
       bonBord = majCourse(bonBord.ref, bonBord.statut, { lienPaiement: jl.url || "" }) || bonBord;
     direConfirmer("");
-    ecrireAuClient(bonBord, tel, messageConfirmation(bonBord));
+    var canal = ecrireAuClient(bonBord, tel, messageConfirmation(bonBord));
+    /* LA TRACE QUI MANQUAIT (24/10/2026) : ce message porte le lien de
+       paiement, et il ne laissait rien derrière lui. */
+    bonBord = majCourse(bonBord.ref, bonBord.statut, noterMessage(bonBord, "confirmation", canal)) || bonBord;
+    dessinerMessagesBon(bonBord);
   });
   /* MÊME RÈGLE SUR LA FICHE (3 octobre 2026) : avant l'heure de départ,
      « Marquer comme réalisée » demande un second appui. */
@@ -15621,7 +16002,12 @@ window.ELA_TEXTES = {
     }
     var ref = bonBord.ref;
     desarmerRefus();
-    majCourse(ref, "refusee");
+    /* LE REFUS SE DIT AU CLIENT (24/10/2026 ; CGV art. 3 : « Elatransfer en
+       informe le Client dans les meilleurs délais »). On revient au tableau
+       de bord, comme avant — c'est là que le témoin d'envoi dit une panne
+       du réseau — et son écriteau rouge « client pas encore prévenu »
+       rouvre la course, où le message est prêt. */
+    majCourse(ref, "refusee", { aPrevenir: armerPrevenir(bonBord, "refus") });
     ecran("ecran-bord");
   });
 
@@ -15648,7 +16034,9 @@ window.ELA_TEXTES = {
     var avecChauffeur = !!(bonBord.chauffeur && (bonBord.chauffeur.nom || bonBord.chauffeur.telephone));
     desarmerAnnul();
     var ref = bonBord.ref;
-    majCourse(ref, "annulee", { annuleeLe: new Date().toISOString() });
+    /* Le client aussi doit le savoir (24/10/2026) : le pense-bête le dit,
+       le message est prêt sous le bon. */
+    majCourse(ref, "annulee", { annuleeLe: new Date().toISOString(), aPrevenir: armerPrevenir(bonBord, "annulation") });
     /* On RESTE sur le bon, qui dit maintenant « Annulée » : c'est la preuve
        que le geste a pris. Et rien ne part tout seul chez le chauffeur — on
        le rappelle, sinon la voiture part quand même. */
@@ -15657,6 +16045,7 @@ window.ELA_TEXTES = {
     note.textContent = "Course annulée. La réception le verra sous 30 secondes."
       + (avecChauffeur ? " Prévenez le chauffeur : rien ne lui est envoyé automatiquement." : "");
     note.hidden = false;
+    montrerPrevenir();
   });
 
   /* ═══ MODIFIER LA COURSE (30/09/2026, à sa demande) ═══
@@ -15738,8 +16127,40 @@ window.ELA_TEXTES = {
     var modifs = (c.modifications || []).concat([{ le: new Date().toISOString(), avant: avant }]).slice(-20);
     var client = { nom: nom, telephone: tel };
     Object.keys(c.client || {}).forEach(function(k){ if(!(k in client)) client[k] = c.client[k]; });
-    var maj = majCourse(c.ref, c.statut || "attente",
-      { course: co, prix: p, client: client, modifieLe: new Date().toISOString(), modifications: modifs });
+    var extMd = { course: co, prix: p, client: client, modifieLe: new Date().toISOString(), modifications: modifs };
+    /* UN CHANGEMENT QUI CONCERNE LE CLIENT SE DIT AU CLIENT (24/10/2026),
+       sur une course CONFIRMÉE : il a un bon, une heure, parfois un lien de
+       paiement. En attente, rien n'est posé — la confirmation à venir
+       portera la nouvelle heure. Trois cas :
+       · la confirmation n'est pas encore partie : elle reste à faire, et
+         elle dira tout ;
+       · le prix a changé sur une course payable par lien, pas encore
+         payée : c'est la confirmation complète qu'il faut refaire, avec un
+         nouveau lien (l'ancien réclame l'ancien montant) ;
+       · sinon : le message de changement, qui garde l'état d'avant pour
+         dire « au lieu de ». Deux changements de suite gardent le premier
+         « avant » : c'est celui que le client connaît. */
+    if((c.statut || "attente") === "confirmee"){
+      var vAvant = vueClient(c.course, c.prix), vApres = vueClient(co, p);
+      var vChange = Object.keys(vAvant).some(function(k){ return vAvant[k] !== vApres[k]; });
+      var enCours = aPrevenirActif(c), prixChange = vAvant.prix !== vApres.prix;
+      var pourArmer = { client: client };
+      if(vChange){
+        if(enCours && enCours.type === "confirmation"){
+          extMd.aPrevenir = JSON.parse(JSON.stringify(enCours));
+          if(prixChange && !extMd.aPrevenir.prixChange){
+            extMd.aPrevenir.prixChange = true;
+            extMd.aPrevenir.lienAvant = c.lienPaiement || "";
+          }
+        } else if(prixChange && payableParLien(c) && !c.paye){
+          extMd.aPrevenir = armerPrevenir(pourArmer, "confirmation", { prixChange:true, lienAvant: c.lienPaiement || "" });
+        } else {
+          extMd.aPrevenir = armerPrevenir(pourArmer, "modification",
+            { avant: enCours && enCours.type === "modification" && enCours.avant ? enCours.avant : vAvant });
+        }
+      }
+    }
+    var maj = majCourse(c.ref, c.statut || "attente", extMd);
     fermerModif();
     ouvrirBonBord(c.ref);
     var note = document.getElementById("bbModifNote");
@@ -15747,6 +16168,7 @@ window.ELA_TEXTES = {
     note.textContent = "Course modifiée. La réception le verra sous 30 secondes."
       + (aChauffeur ? " Prévenez le chauffeur : rien ne lui est envoyé automatiquement." : "");
     note.hidden = false;
+    if(maj && aPrevenirActif(maj)) montrerPrevenir();
   });
 
   /* ═══ EFFACER UNE COURSE POUR DE BON ═══
@@ -16042,6 +16464,17 @@ window.ELA_TEXTES = {
       filtreBord = "confirmee"; dessinerBord();
       var l = document.getElementById("listeBord");
       if(l) l.scrollIntoView({ block:"start" });
+    });
+  })();
+  /* L'écriteau « client pas prévenu » ouvre la course la plus pressée : un
+     refus n'est dans aucune liste, et chercher, c'est oublier. */
+  (function(){
+    var b = document.getElementById("bordAPrevenir");
+    if(b) b.addEventListener("click", function(){
+      var l = registre().filter(aPrevenirActif).sort(function(x, y){
+        return echeancePrevenir(x) - echeancePrevenir(y);
+      });
+      if(l[0]) ouvrirBonBord(l[0].ref);
     });
   })();
   document.querySelectorAll(".compteur").forEach(function(b){
@@ -18706,6 +19139,11 @@ window.ELA_TEXTES = {
       dateMsg: date.split("-").reverse().join("/") + " " + heure
     };
     if(chNom || chTel) c.chauffeur = { nom:chNom, telephone:chTel };
+    /* Prise au téléphone, avec un chauffeur : le lien de paiement et le bon
+       restent à lui envoyer (24/10/2026). S'il a déjà tout dit de vive voix,
+       « Déjà prévenu autrement » l'éteint. Sans chauffeur, c'est « Sans
+       chauffeur » qui parle ; le pense-bête viendra avec le nom. */
+    if(chNom){ var aTel = armerPrevenir(c, "confirmation"); if(aTel) c.aPrevenir = aTel; }
     /* Rattachée à un hôtel : sa réception la voit. Le canal reste
        « admin » (la commission est celle de la saisie au téléphone). */
     var crH = document.getElementById("crHotel");

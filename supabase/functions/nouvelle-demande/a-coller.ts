@@ -130,6 +130,38 @@ function corps(bon: any, adresseAdmin: any) {
   l.push(adresseAdmin);
   return l.join("\n");
 }
+
+/* ═══ LE CLIENT PAS ENCORE PRÉVENU (24 octobre 2026) ═══
+   Barbaros : « un pense-bête qui m'empêche d'oublier ». Le geste est fait
+   dans l'admin — course confirmée, refusée, annulée ou modifiée — mais
+   rien n'a été ouvert pour le client depuis 15 minutes. Le titre dit le
+   risque, le corps dit le bouton à toucher. Ni nom, ni téléphone : même
+   règle que l'alerte, ils sont dans l'admin.
+   L'heure vient de la course (date et heure), pas de « dateMsg » : ce texte
+   d'origine ne suit pas « Modifier la course », et ce rappel vise justement
+   les courses qu'on vient de toucher. */
+function rendezVous(bon: any) {
+  const c = bon.course ?? {};
+  if (c.immediat) return "IMMÉDIAT";
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(c.date ?? ""));
+  const h = String(c.heure ?? "").trim();
+  return d ? (d[3] + "/" + d[2] + " " + h).trim() : (h || "—");
+}
+
+function titreAPrevenir(bon: any, etiquette: any, dernier: any) {
+  return (dernier ? "DERNIER RAPPEL — " : "") + "CLIENT PAS PRÉVENU — " + etiquette + ", " + rendezVous(bon);
+}
+
+function corpsAPrevenir(type: any, etiquette: any) {
+  const quoi = {
+    confirmation: [etiquette + " est confirmée, mais le client n'a reçu ni sa confirmation ni son lien de paiement : sans paiement, le chauffeur ne part pas.", "« Prévenir le client »"],
+    refus: [etiquette + " est refusée, mais le client ne le sait pas : il attend peut-être une voiture.", "« Prévenir le client du refus »"],
+    annulation: [etiquette + " est annulée, mais le client ne le sait pas.", "« Prévenir le client de l'annulation »"],
+    modification: [etiquette + " a été modifiée, mais le client ne connaît pas le changement.", "« Prévenir le client du changement »"],
+  }[type];
+  if (!quoi) return "";
+  return quoi[0] + "\nOuvrez la course et appuyez sur " + quoi[1] + ", ou sur « Déjà prévenu autrement » si c'est fait.";
+}
 function versB64u(octets: any){let s="";const t=new Uint8Array(octets);for(let i=0;i<t.length;i++)s+=String.fromCharCode(t[i]);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
 function depuisB64u(texte: any){let p=String(texte).replace(/-/g,"+").replace(/_/g,"/");while(p.length%4)p+="=";const brut=atob(p),t=new Uint8Array(brut.length);for(let i=0;i<brut.length;i++)t[i]=brut.charCodeAt(i);return t;}
 function coller(...m: any[]){let n=0;for(const x of m)n+=x.length;const o=new Uint8Array(n);let d=0;for(const x of m){o.set(x,d);d+=x.length;}return o;}
@@ -192,7 +224,10 @@ async function journal(type_evenement:string,course_ref:string,canal:string,r:Re
 /* Sous chaque alerte : « ✅ Vu » arrête les rappels (fonction telegram-bot),
    « Ouvrir la course » mène au bon — et l'ouvrir les arrête aussi. */
 function boutons(ref:string){return{inline_keyboard:[[{text:"✅ Vu — arrêter les rappels",callback_data:`vu:${ref}`}],[{text:"Ouvrir la course",url:`${ADMIN}?ref=${encodeURIComponent(ref)}`}]]};}
-async function parTelegram(t:string,m:string,ref=""):Promise<Resultat>{
+/* « clavier » remplace les boutons d'une alerte de demande (24/10/2026) : le
+   rappel « client pas prévenu » n'a pas de « Vu », qui arrête les rappels
+   d'une demande EN ATTENTE et ne veut rien dire ici. */
+async function parTelegram(t:string,m:string,ref="",clavier?:Record<string,unknown>):Promise<Resultat>{
   if(!TELEGRAM_TOKEN||!TELEGRAM_CHAT)return{ok:false,detail:"telegram_non_configure",statut:"indisponible"};
   /* ON GARDE L'IDENTIFIANT DU MESSAGE (2 octobre 2026) : un rappel REMPLACE le
      précédent — on efface l'ancien avant d'envoyer le nouveau — pour qu'une
@@ -201,7 +236,7 @@ async function parTelegram(t:string,m:string,ref=""):Promise<Resultat>{
   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
   try{
     const r=await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,{method:"POST",headers:{"Content-Type":"application/json"},signal:ctrl.signal,
-      body:JSON.stringify({chat_id:TELEGRAM_CHAT,text:t+"\n\n"+m,disable_web_page_preview:true,...(ref?{reply_markup:boutons(ref)}:{})})});
+      body:JSON.stringify({chat_id:TELEGRAM_CHAT,text:t+"\n\n"+m,disable_web_page_preview:true,...(clavier?{reply_markup:clavier}:ref?{reply_markup:boutons(ref)}:{})})});
     const txt=await r.text();
     if(!r.ok)return{ok:false,detail:`${r.status} ${txt}`};
     let id="";try{id=String(JSON.parse(txt)?.result?.message_id??"")}catch{id=""}
@@ -447,11 +482,68 @@ async function relancer():Promise<string>{
   return `relance : ${lignes.length} en attente, ${rattrapes} rattrapée(s), ${rappelsTg} rappel(s) Telegram, ${rappelsPush} rappel(s) notification, ${finals} message(s) final(aux)`;
 }
 
+/* ═══ LE CLIENT PAS ENCORE PRÉVENU (24 octobre 2026, à sa demande : « un
+   pense-bête qui m'empêche d'oublier ») ═══
+   L'admin pose « aPrevenir » sur la course quand un geste doit se dire au
+   client — confirmation, refus, annulation, changement — et l'efface quand
+   le message est ouvert. Resté posé 15 min : un rappel Telegram ; un
+   second, le dernier, à H-3 (45 min après le geste pour une demande
+   immédiate, qui n'a pas de rendez-vous), au moins 30 min après le
+   premier. DEUX AU PLUS PAR GESTE : c'est un pense-bête, pas une alarme —
+   l'alarme reste celle des demandes en attente, et Barbaros ne veut pas
+   « trop d'alertes sur Telegram ». Rien une fois le départ passé.
+   MÊMES RÈGLES QUE L'ADMIN (« aPrevenirActif ») : le type doit encore
+   correspondre à l'état de la course, un client qui a payé a reçu sa
+   confirmation, il faut un numéro. Le compte se lit dans le journal depuis
+   l'heure du geste : un nouveau geste repart de zéro.
+   Telegram seul, sans bouton « Vu » : « Ouvrir la course » suffit. Rien
+   n'est cru de l'appel, tout est relu sur le serveur. */
+const STATUT_PREVENIR:Record<string,string>={confirmation:"confirmee",modification:"confirmee",refus:"refusee",annulation:"annulee"};
+const PREVENIR_PREMIER_MS=15*MIN_MS,PREVENIR_DERNIER_MS=3*3600*1000,PREVENIR_ECART_MS=30*MIN_MS,PREVENIR_IMMEDIAT_MS=45*MIN_MS,PREVENIR_IMMEDIAT_FIN_MS=3*3600*1000;
+async function rappelerAPrevenir():Promise<string>{
+  if(!U||!S)return "client pas prévenu : non configuré";
+  if(!TELEGRAM_TOKEN||!TELEGRAM_CHAT)return "client pas prévenu : Telegram non configuré";
+  /* Les courses d'hier et après : une course passée n'a plus rien à dire. */
+  const hier=new Date(heureCivileParis(Date.now())-24*3600*1000).toISOString().slice(0,10);
+  const r=await db(`courses?select=ref,statut,bon&statut=in.(confirmee,refusee,annulee)&bon->>aPrevenir=not.is.null&bon->course->>date=gte.${hier}&limit=100`).catch(()=>null);
+  if(!r||!r.ok)return "client pas prévenu : lecture refusée"+(r?" ("+r.status+")":"");
+  const lignes=((await r.json().catch(()=>[]))||[]) as Array<Record<string,any>>;let n=0;
+  for(const l of lignes){
+    const ref=String(l.ref||"").slice(0,32);if(!/^[A-Z]{2,4}-[0-9A-Z-]{4,26}$/.test(ref))continue;
+    const bon=(l.bon??{}) as Record<string,any>,a=(bon.aPrevenir??null) as Record<string,any>|null;
+    if(!a||STATUT_PREVENIR[String(a.type)]!==String(l.statut))continue;
+    if(String(bon.client?.telephone??"").replace(/\D/g,"").length<8)continue;
+    if(a.type==="confirmation"&&bon.paye)continue;
+    const depuis=Date.parse(String(a.depuis||""));if(!Number.isFinite(depuis))continue;
+    const age=Date.now()-depuis;if(age<PREVENIR_PREMIER_MS-SOUPLESSE_MS)continue;
+    const immediat=bon.course?.immediat===true,reste=immediat?null:resteAvantDepart(bon);
+    if(immediat?age>PREVENIR_IMMEDIAT_FIN_MS:(reste===null||reste<=0))continue;
+    const j=await db(`journal_notifications_admin?select=type_evenement,cree_le&type_evenement=eq.client_a_prevenir&course_ref=eq.${encodeURIComponent(ref)}&cree_le=gte.${encodeURIComponent(new Date(depuis).toISOString())}&order=cree_le.asc`);
+    if(!j.ok)continue;
+    const faits=((await j.json())||[]) as Array<Record<string,string>>;
+    if(faits.length>=2)continue;
+    if(faits.length===1){
+      const proche=immediat?age>=PREVENIR_IMMEDIAT_MS-SOUPLESSE_MS:(reste!==null&&reste<=PREVENIR_DERNIER_MS);
+      if(!proche||Date.now()-plusRecent(faits,depuis)<PREVENIR_ECART_MS-SOUPLESSE_MS)continue;
+    }
+    const etiq=etiquette(bon,ref);
+    const tg=await parTelegram(titreAPrevenir(bon,etiq,faits.length===1),corpsAPrevenir(String(a.type),etiq),ref,
+      {inline_keyboard:[[{text:"Ouvrir la course",url:`${ADMIN}?ref=${encodeURIComponent(ref)}`}]]});
+    await journal("client_a_prevenir",ref,"telegram",tg);n++;
+  }
+  return `${n} rappel(s) « client pas prévenu »`;
+}
+
 Deno.serve(async(req)=>{
   let charge:Record<string,unknown>;try{charge=await req.json()}catch{return new Response("corps illisible",{status:400})}
   if(charge.type==="RELANCE"||charge.type==="INSTALLER_TELEGRAM"){
     if(!(await relanceAutorisee(req)))return new Response("relance refusée : en-tête x-ela-relance absent ou faux",{status:401});
-    if(charge.type==="RELANCE")return new Response(await relancer(),{status:200});
+    if(charge.type==="RELANCE"){
+      /* Deux tâches indépendantes : une lecture refusée d'un côté n'arrête
+         pas l'autre. */
+      const attente=await relancer(),prevenir=await rappelerAPrevenir();
+      return new Response(attente+" | "+prevenir,{status:200});
+    }
     /* Poser le webhook du bouton « Vu ». Appelé une fois par la migration ;
        le rappeler ne fait que reposer la même adresse. */
     return new Response(await installerTelegram(),{status:200});
