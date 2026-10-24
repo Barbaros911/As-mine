@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Elatransfer — Transferts pour hôtels, agences, entreprises</title>
-  <meta name="description" content="Votre page de réservation, un QR code et un espace réception, mis en place gratuitement. Elatransfer trouve le chauffeur et coordonne chaque transfert.">
+  <meta name="description" content="Hôtels, agences, entreprises : votre page de réservation, un QR code et un espace équipe. Elatransfer trouve le chauffeur et coordonne chaque transfert.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://elatransfer.com/professionnels/">
   <meta name="theme-color" content="#062f55">
@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","@id":"https://elatransfer.com/professionnels/#service","name":"Transferts avec chauffeur pour hôtels, agences et entreprises","serviceType":"Page de réservation, QR code et espace réception, avec organisation des transferts","audience":{"@type":"BusinessAudience","audienceType":"Hôtels, agences et entreprises"},"provider":{"@type":"Organization","@id":"https://elatransfer.com/#organisation","name":"Elatransfer","url":"https://elatransfer.com/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","@id":"https://elatransfer.com/professionnels/#service","name":"Transferts avec chauffeur pour hôtels, agences et entreprises","serviceType":"Page de réservation, QR code et espace équipe, avec organisation des transferts","audience":{"@type":"BusinessAudience","audienceType":"Hôtels, agences et entreprises"},"provider":{"@type":"Organization","@id":"https://elatransfer.com/#organisation","name":"Elatransfer","url":"https://elatransfer.com/"}}</script>
   <!-- LA PAGE DES PROFESSIONNELS — 8 octobre 2026, mission « Démo
        professionnels », bloc 1. Mémoire : memoire/demo-pro.md.
        Elle est autonome (styles et textes ici) : la page du site public
@@ -231,18 +231,29 @@
     .direction .partenaire-carte{margin-top:18px;}
     .partenaire-carte h3{font-size:clamp(21px,2.6vw,26px);}
     .bouton.contour{color:var(--navy);background:transparent;border-color:var(--navy);}
-    .apercu-grille{display:grid;grid-template-columns:minmax(0,270px) minmax(0,1fr);gap:clamp(24px,4vw,48px);align-items:start;margin-top:22px;}
+    .ecrans{display:inline-grid;grid-template-columns:repeat(3,auto);gap:4px;margin-top:18px;padding:4px;border:1px solid var(--line);border-radius:999px;background:#fff;max-width:100%;}
+    .ecrans button{min-height:44px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:var(--navy);font:inherit;font-size:15px;font-weight:700;cursor:pointer;}
+    .ecrans button[aria-pressed="true"]{background:var(--navy);color:#fff;}
+    /* Petit téléphone : les trois boutons se partagent la largeur, sur une seule ligne. */
+    @media (max-width:420px){ .ecrans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;} .ecrans button{padding:0 4px;font-size:14px;} }
+    .ecrans button:focus-visible{outline:3px solid #12C4EE;outline-offset:2px;}
+    .apercu-grille{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,4vw,40px);align-items:start;margin-top:22px;}
+    .apercu-grille[hidden]{display:none;}
+    .apercu-grille.ecran-telephone{grid-template-columns:repeat(2,minmax(0,270px));}
+    .apercu-grille.ecran-tablette{grid-template-columns:repeat(2,minmax(0,380px));}
     .apercu figure{margin:0;min-width:0;}
     .apercu img{display:block;width:100%;height:auto;background:var(--fond);
       box-shadow:0 1px 2px rgba(6,47,85,.05),0 14px 36px rgba(6,47,85,.12);}
     .apercu-tel img{border:6px solid var(--navy-deep);border-radius:30px;}
+    .apercu-tab img{border:10px solid var(--navy-deep);border-radius:22px;}
     .apercu-ecran img{border:1px solid var(--line);border-radius:14px;}
     .apercu figcaption{margin-top:12px;color:var(--navy);font-size:15px;font-weight:700;line-height:1.4;}
     .apercu-note{margin:18px 0 0;color:var(--muted);font-size:14px;}
     .apercu-note a{display:flex;align-items:center;width:max-content;max-width:100%;min-height:44px;color:#0a5f8f;font-weight:700;}
     @media (max-width:700px){
-      .sans-liste,.grille.deux,.apercu-grille{grid-template-columns:1fr;}
-      .apercu-tel{width:min(260px,72%);margin:0 auto;}
+      .sans-liste,.grille.deux,.apercu-grille.ecran-ordinateur,.apercu-grille.ecran-tablette{grid-template-columns:1fr;}
+      .apercu-tab{width:min(340px,88%);margin:0 auto;}
+      .apercu-tel figcaption{font-size:13.5px;}
       .sans-liste li{font-size:16px;}
     }
     /* ═══ PLUS QU'UN NUMÉRO DE CHAUFFEUR (23 octobre 2026) — deux colonnes de
@@ -293,14 +304,14 @@
     <p class="avis" id="avisConfirmation" role="status" hidden><span></span><button type="button" aria-label="Fermer" data-t-aria="aria_fermer">×</button></p>
     <section class="hero">
       <div class="hero-in">
-        <p class="surtitre" data-t="surtitre">Hôtels · Agences · Entreprises</p>
-        <h1 data-t="titre">Votre réception réserve. Elatransfer gère tout le reste.</h1>
-        <p class="lead" data-t="sous_titre">Elatransfer réserve et coordonne les transferts de vos clients. Vous recevez votre page de réservation, votre QR code et votre espace réception ; nous cherchons le chauffeur dans un large réseau de professionnels, confirmons au client et coordonnons chaque course.</p>
+        <p class="surtitre" data-t="surtitre">Hôtels · Agences · Entreprises · Événements</p>
+        <h1 data-t="titre">Votre équipe réserve. Elatransfer gère tout le reste.</h1>
+        <p class="lead" data-t="sous_titre">Votre page de réservation, votre QR code et votre espace équipe, à votre nom. Vos clients, collaborateurs et invités réservent ; Elatransfer cherche le chauffeur dans un large réseau de professionnels, confirme et coordonne chaque transfert.</p>
         <div class="actions">
-          <a class="bouton" href="#demo" data-t="cta_demo">Voir la démo hôtel</a>
-          <a class="bouton creux" href="#contact" data-t="cta_parler">Parler de mon établissement</a>
+          <a class="bouton" href="#demo" data-t="cta_demo">Essayer la démo</a>
+          <a class="bouton creux" href="#contact" data-t="cta_parler">Demander une proposition</a>
         </div>
-        <p class="points" data-t="points">Mise en place gratuite · Sans engagement · Tarifs négociés pour votre établissement</p>
+        <p class="points" data-t="points">Mise en place gratuite · Sans engagement · Tarifs négociés avec vous</p>
         <p class="reference" data-t="reference">Déjà en service dans l'hôtellerie, en Île-de-France.</p>
         <p class="note-google" data-avis-google="fr en" data-forme="pro" hidden></p>
       </div>
@@ -317,11 +328,11 @@
     </section>
 
     <section class="bloc vecu" aria-labelledby="t-vecu">
-      <h2 id="t-vecu" data-t="vecu_titre">Ce que vit votre réception</h2>
+      <h2 id="t-vecu" data-t="vecu_titre">Vos défis au quotidien</h2>
       <div class="grille">
         <div class="carte"><p data-t="vecu1">Un client doit être à Roissy à 7 h. Il le demande à 5 h.</p></div>
         <div class="carte"><p data-t="vecu2">On cherche un numéro, on rappelle, et personne ne sait si la voiture viendra.</p></div>
-        <div class="carte"><p data-t="vecu3">Si le chauffeur ne vient pas, c'est à l'hôtel qu'on le reproche.</p></div>
+        <div class="carte"><p data-t="vecu3">Si le chauffeur ne vient pas, c'est à vous qu'on le reproche.</p></div>
       </div>
     </section>
 
@@ -332,7 +343,7 @@
          chauffeur par lien (memoire/paiement-lien.md), l'espace réception
          garde l'état et l'historique de chaque course. -->
     <section class="bloc sans" aria-labelledby="t-sans">
-      <h2 id="t-sans" data-t="sans_titre">Ce que vous n'avez plus à organiser</h2>
+      <h2 id="t-sans" data-t="sans_titre">Ce que vous n'avez plus à gérer</h2>
       <div class="sans-panneau">
         <ul class="coches sans-liste">
           <li data-t="sans1">Chercher un chauffeur disponible à chaque demande.</li>
@@ -342,27 +353,27 @@
           <li data-t="sans5">Acheter un véhicule ou employer un chauffeur.</li>
           <li data-t="sans6">Encaisser le trajet : le client paie son chauffeur avant le départ.</li>
         </ul>
-        <p class="sans-fin" data-t="sans_fin">Votre réception transmet la demande. Elatransfer coordonne le reste.</p>
+        <p class="sans-fin" data-t="sans_fin">Votre équipe transmet la demande. Elatransfer coordonne le reste.</p>
       </div>
     </section>
 
     <section class="bloc" aria-labelledby="t-cree">
-      <h2 id="t-cree" data-t="cree_titre">Ce que nous créons pour vous</h2>
+      <h2 id="t-cree" data-t="cree_titre">Une offre clé en main</h2>
       <div class="grille">
         <article class="carte">
           <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
-          <h3 data-t="cree1_t">Votre page</h3>
-          <p data-t="cree1">Une page à votre nom et à vos couleurs, avec votre photo et votre logo si vous souhaitez nous le fournir. Vos clients l'ouvrent par un lien ou un QR code et réservent eux-mêmes, depuis leur chambre, sans mobiliser votre équipe.</p>
+          <h3 data-t="cree1_t">Votre page de réservation</h3>
+          <p data-t="cree1">Une page à votre nom et à vos couleurs, avec votre photo et votre logo si vous souhaitez nous le fournir. Vos clients ou vos invités l'ouvrent par un lien ou un QR code et réservent eux-mêmes depuis leur téléphone, sans mobiliser votre équipe.</p>
         </article>
         <article class="carte">
           <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V10h14v10M9 10V6h6v4"/></svg></div>
-          <h3 data-t="cree2_t">Votre espace réception</h3>
-          <p data-t="cree2">Votre équipe réserve par le numéro de chambre ou le nom du client, voit où en est chaque demande et retrouve l'historique. À chaque relève, l'équipe suivante reprend sans repartir de zéro.</p>
+          <h3 data-t="cree2_t">Votre espace équipe</h3>
+          <p data-t="cree2">Votre équipe réserve au nom d'un client (ou par le numéro de chambre, à l'hôtel), voit où en est chaque demande et retrouve l'historique. À chaque relève, l'équipe suivante reprend sans repartir de zéro.</p>
         </article>
         <article class="carte">
           <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg></div>
-          <h3 data-t="cree3_t">Notre coordination</h3>
-          <p data-t="cree3">Nous vérifions chaque demande, cherchons dans notre réseau le chauffeur professionnel qui convient, l'attribuons et confirmons au client. Votre réception a un seul interlocuteur : Elatransfer.</p>
+          <h3 data-t="cree3_t">Un interlocuteur unique</h3>
+          <p data-t="cree3">Nous vérifions chaque demande, cherchons dans notre réseau le chauffeur professionnel qui convient, l'attribuons et confirmons au client. Une question, un imprévu : votre équipe appelle un seul numéro.</p>
         </article>
       </div>
     </section>
@@ -376,23 +387,57 @@
          s'affiche « en retard ». Aucun vrai hôtel, aucune vraie course, aucun
          prix (« à fixer »). Une version par langue (data-src-en), chargées
          seulement quand on y arrive. Refaire les captures si la démo change
-         d'aspect : memoire/demo-pro.md. -->
+         d'aspect : memoire/demo-pro.md.
+         TROIS ÉCRANS (23 octobre 2026, Barbaros : « qu'ils puissent voir la
+         version ordinateur, téléphone, tablette ») : six captures par langue,
+         page client et espace équipe sur téléphone (390 px), tablette (820 px)
+         et ordinateur (1280 px). Un seul écran visible à la fois ; les autres
+         ne se chargent qu'au choix. La page s'ouvre sur l'écran du visiteur. -->
     <section class="bloc apercu" aria-labelledby="t-apercu">
-      <h2 id="t-apercu" data-t="apercu_titre">À quoi ça ressemble</h2>
-      <div class="apercu-grille">
+      <h2 id="t-apercu" data-t="apercu_titre">Aperçu sur téléphone, tablette et ordinateur</h2>
+      <div class="ecrans" role="group" aria-label="Choisir l'écran" data-t-aria="aria_ecrans">
+        <button type="button" data-ecran="telephone" aria-pressed="true" data-t="ecran_telephone">Téléphone</button>
+        <button type="button" data-ecran="tablette" aria-pressed="false" data-t="ecran_tablette">Tablette</button>
+        <button type="button" data-ecran="ordinateur" aria-pressed="false" data-t="ecran_ordinateur">Ordinateur</button>
+      </div>
+      <div class="apercu-grille ecran-telephone" data-ecran="telephone">
         <figure class="apercu-tel">
-          <img src="/professionnels/apercu-client-fr.webp" data-src-en="/professionnels/apercu-client-en.webp" width="540" height="1052" loading="lazy" decoding="async"
-            alt="Page de réservation d'un hôtel d'exemple : le nom de l'hôtel, puis les destinations Aéroport CDG, Orly et Le Bourget, avec des prix à fixer par l'établissement." data-t-alt="apercu_client_alt">
-          <figcaption data-t="apercu_client">La page de vos clients, ouverte par un lien ou un QR code.</figcaption>
+          <img src="/professionnels/apercu-client-telephone-fr.webp" data-src-en="/professionnels/apercu-client-telephone-en.webp" width="540" height="1052" loading="lazy" decoding="async"
+            alt="Page de réservation d'un hôtel d'exemple, sur téléphone : le nom de l'hôtel, puis ses destinations (Aéroport CDG, Orly, Le Bourget…), avec des prix à fixer par l'établissement." data-t-alt="alt_client_telephone">
+          <figcaption data-t="apercu_client">Votre page de réservation, ouverte par un lien ou un QR code.</figcaption>
+        </figure>
+        <figure class="apercu-tel">
+          <img src="/professionnels/apercu-equipe-telephone-fr.webp" data-src-en="/professionnels/apercu-equipe-telephone-en.webp" width="540" height="1052" loading="lazy" decoding="async"
+            alt="Espace équipe d'un hôtel d'exemple, sur téléphone : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="alt_equipe_telephone">
+          <figcaption data-t="apercu_equipe">Votre espace équipe : chaque demande et où elle en est.</figcaption>
+        </figure>
+      </div>
+      <div class="apercu-grille ecran-tablette" data-ecran="tablette" hidden>
+        <figure class="apercu-tab">
+          <img src="/professionnels/apercu-client-tablette-fr.webp" data-src-en="/professionnels/apercu-client-tablette-en.webp" width="820" height="1100" loading="lazy" decoding="async"
+            alt="Page de réservation d'un hôtel d'exemple, sur tablette : le nom de l'hôtel, puis ses destinations (Aéroport CDG, Orly, Le Bourget…), avec des prix à fixer par l'établissement." data-t-alt="alt_client_tablette">
+          <figcaption data-t="apercu_client">Votre page de réservation, ouverte par un lien ou un QR code.</figcaption>
+        </figure>
+        <figure class="apercu-tab">
+          <img src="/professionnels/apercu-equipe-tablette-fr.webp" data-src-en="/professionnels/apercu-equipe-tablette-en.webp" width="820" height="1100" loading="lazy" decoding="async"
+            alt="Espace équipe d'un hôtel d'exemple, sur tablette : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="alt_equipe_tablette">
+          <figcaption data-t="apercu_equipe">Votre espace équipe : chaque demande et où elle en est.</figcaption>
+        </figure>
+      </div>
+      <div class="apercu-grille ecran-ordinateur" data-ecran="ordinateur" hidden>
+        <figure class="apercu-ecran">
+          <img src="/professionnels/apercu-client-ordinateur-fr.webp" data-src-en="/professionnels/apercu-client-ordinateur-en.webp" width="1280" height="760" loading="lazy" decoding="async"
+            alt="Page de réservation d'un hôtel d'exemple, sur ordinateur : le nom de l'hôtel, puis ses destinations (Aéroport CDG, Orly, Le Bourget…), avec des prix à fixer par l'établissement." data-t-alt="alt_client_ordinateur">
+          <figcaption data-t="apercu_client">Votre page de réservation, ouverte par un lien ou un QR code.</figcaption>
         </figure>
         <figure class="apercu-ecran">
-          <img src="/professionnels/apercu-reception-fr.webp" data-src-en="/professionnels/apercu-reception-en.webp" width="1280" height="760" loading="lazy" decoding="async"
-            alt="Espace réception d'un hôtel d'exemple : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="apercu_reception_alt">
-          <figcaption data-t="apercu_reception">L'espace de votre réception : chaque demande et où elle en est.</figcaption>
+          <img src="/professionnels/apercu-equipe-ordinateur-fr.webp" data-src-en="/professionnels/apercu-equipe-ordinateur-en.webp" width="1280" height="760" loading="lazy" decoding="async"
+            alt="Espace équipe d'un hôtel d'exemple, sur ordinateur : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="alt_equipe_ordinateur">
+          <figcaption data-t="apercu_equipe">Votre espace équipe : chaque demande et où elle en est.</figcaption>
         </figure>
       </div>
       <p class="apercu-note"><span data-t="apercu_note">Captures de la démonstration, avec des données fictives.</span>
-        <a href="#demo" data-t="apercu_lien">Essayer avec le nom de votre établissement</a></p>
+        <a href="#demo" data-t="apercu_lien">Essayer la démo personnalisée</a></p>
     </section>
 
     <!-- PLUS QU'UN NUMÉRO DE CHAUFFEUR (23 octobre 2026, à la demande de
@@ -413,7 +458,7 @@
           <h3 data-t="vs_direct_t">Un chauffeur en direct</h3>
           <ul class="tirets">
             <li data-t="vs_direct1">Un numéro, et ses propres disponibilités.</li>
-            <li data-t="vs_direct2">S'il a un empêchement, la réception cherche quelqu'un d'autre.</li>
+            <li data-t="vs_direct2">S'il a un empêchement, votre équipe cherche quelqu'un d'autre.</li>
           </ul>
         </div>
         <div class="versus-col versus-ela">
@@ -421,15 +466,15 @@
           <ul class="coches">
             <li data-t="vs_ela1">Un seul interlocuteur, et un large réseau de chauffeurs professionnels.</li>
             <li data-t="vs_ela2">S'il a un empêchement, nous cherchons un autre chauffeur, au même prix.</li>
-            <li data-t="vs_ela3">L'état de chaque demande, dans votre espace réception.</li>
+            <li data-t="vs_ela3">L'état de chaque demande, dans votre espace équipe.</li>
           </ul>
         </div>
       </div>
-      <h3 class="parcours-titre" data-t="parcours_titre">Le parcours d'une demande</h3>
+      <h3 class="parcours-titre" data-t="parcours_titre">Comment ça marche</h3>
       <ol class="etapes">
-        <li><span class="num">1</span><div><b data-t="etape1_t">La demande</b><p data-t="etape1">Le client scanne le QR code, ou votre réception saisit la demande pour lui. Elle arrive chez Elatransfer.</p></div></li>
+        <li><span class="num">1</span><div><b data-t="etape1_t">La demande</b><p data-t="etape1">Le client scanne le QR code, ou votre équipe saisit la demande pour lui. Elle arrive chez Elatransfer.</p></div></li>
         <li><span class="num">2</span><div><b data-t="etape2_t">La recherche</b><p data-t="etape2">Nous vérifions la demande et cherchons dans notre réseau un chauffeur professionnel disponible.</p></div></li>
-        <li><span class="num">3</span><div><b data-t="etape3_t">La confirmation</b><p data-t="etape3">Une fois le chauffeur attribué, le client reçoit la confirmation ; votre réception voit « Réservation validée ».</p></div></li>
+        <li><span class="num">3</span><div><b data-t="etape3_t">La confirmation</b><p data-t="etape3">Une fois le chauffeur attribué, le client reçoit la confirmation ; votre équipe voit « Réservation validée ».</p></div></li>
         <li><span class="num">4</span><div><b data-t="etape4_t">La prise en charge</b><p data-t="etape4">Payé directement par le client avant le départ, le chauffeur vient à l'heure convenue. La course passe à « Effectuée ».</p></div></li>
       </ol>
     </section>
@@ -444,20 +489,20 @@
          Rien n'est promis qui n'existe : aucun chiffre, aucun gain, aucun
          délai ; « n'est pas transporteur » = CGV art. 2 et 12. -->
     <section class="bloc direction" aria-labelledby="t-direction">
-      <h2 id="t-direction" data-t="dir_titre">Pour la direction</h2>
-      <p class="intro" data-t="dir_intro">Un service de transfert proposé à vos clients, à votre nom, sans rien ajouter à votre organisation.</p>
+      <h2 id="t-direction" data-t="dir_titre">Vos avantages</h2>
+      <p class="intro" data-t="dir_intro">Un service de transfert à votre nom pour vos clients, sans investissement ni changement dans votre organisation.</p>
       <div class="grille deux">
         <div class="carte">
-          <h3 data-t="dir_etab_t">Votre établissement</h3>
+          <h3 data-t="dir_etab_t">Pour votre structure</h3>
           <ul class="coches">
             <li data-t="dir_etab1">Aucun véhicule à acheter, aucun chauffeur à employer.</li>
-            <li data-t="dir_etab2">Rien à installer : votre page et l'espace réception s'ouvrent dans un navigateur.</li>
+            <li data-t="dir_etab2">Rien à installer : votre page et l'espace équipe s'ouvrent dans un navigateur.</li>
             <li data-t="dir_etab3">Des tarifs convenus avec vous, affichés à vos clients avant qu'ils réservent.</li>
-            <li data-t="dir_etab4">Votre établissement n'est pas transporteur : le chauffeur répond du transport.</li>
+            <li data-t="dir_etab4">Vous n'êtes pas transporteur : le chauffeur répond du transport.</li>
           </ul>
         </div>
         <div class="carte">
-          <h3 data-t="dir_cli_t">Vos clients</h3>
+          <h3 data-t="dir_cli_t">Pour vos clients</h3>
           <ul class="coches">
             <li data-t="dir_cli1">Un prix annoncé avant de réserver.</li>
             <li data-t="dir_cli2">Une confirmation avec le nom du chauffeur, le véhicule et l'heure.</li>
@@ -476,9 +521,9 @@
            la grille se remet en rendez-vous (memoire/programme-partenaire.md). -->
       <div class="partenaire-carte" id="partenaire" aria-labelledby="t-partenaire" role="region">
         <h3 id="t-partenaire" data-t="part_titre">Devenez partenaire Elatransfer</h3>
-        <p class="partenaire-lead" data-t="part1">Une rémunération peut être prévue pour chaque transfert réalisé, selon les conditions convenues avec votre établissement.</p>
+        <p class="partenaire-lead" data-t="part1">Une rémunération peut être prévue pour chaque transfert réalisé, selon les conditions convenues avec vous.</p>
         <ul class="partenaire-liste">
-          <li data-t="part2">Aucun abonnement, aucun frais pour votre établissement.</li>
+          <li data-t="part2">Aucun abonnement, aucun frais pour vous.</li>
           <li data-t="part3">Les conditions peuvent évoluer avec votre activité, trimestre après trimestre.</li>
         </ul>
         <a class="bouton contour" href="#contact" data-t="part_cta">Recevoir nos conditions</a>
@@ -488,9 +533,9 @@
     <section class="demo" id="demo" aria-labelledby="t-demo">
       <div class="demo-in demo-grille">
         <div>
-          <p class="surtitre" data-t="demo_sur">La démo hôtel, à votre nom</p>
-          <h2 id="t-demo" data-t="demo_titre">Voyez ce que verraient vos clients et votre réception</h2>
-          <p data-t="demo_texte">Saisissez le nom de votre établissement : la démonstration s'ouvre aussitôt, à votre nom. Réservez comme un client, puis suivez la demande côté réception jusqu'à « Effectuée ». Aucune réservation réelle n'est faite.</p>
+          <p class="surtitre" data-t="demo_sur">Démo personnalisée et gratuite</p>
+          <h2 id="t-demo" data-t="demo_titre">Testez votre page et votre espace équipe, à votre nom</h2>
+          <p data-t="demo_texte">Saisissez le nom de votre établissement : la démonstration s'ouvre aussitôt, à votre nom, sur téléphone, tablette ou ordinateur. Réservez comme un client, puis suivez la demande côté équipe jusqu'à « Effectuée ». Aucune réservation réelle n'est faite.</p>
           <p class="demo-acces" data-t="demo_acces">Accès immédiat, valable 7 jours sur cet appareil.</p>
           <p class="demo-autres"><span data-t="demo_autres">Vous préférez nous parler ? Assistance humaine de 7&nbsp;h à 22&nbsp;h.</span><br>
             <a href="tel:+33759312433" data-t="demo_appel">Appeler le +33 7 59 31 24 33</a>
@@ -501,7 +546,7 @@
         <div class="reprise" id="demoReprise" hidden>
           <h3 data-t="reprise_titre">Votre démonstration est ouverte</h3>
           <p id="repriseTexte"></p>
-          <a class="bouton" href="/demo/hotel/" id="repriseOuvrir" data-t="reprise_ouvrir">Ouvrir ma démonstration</a>
+          <a class="bouton" href="/demo/hotel/" id="repriseOuvrir" data-t="reprise_ouvrir">Accéder à ma démo</a>
           <button type="button" class="lien-discret" id="repriseNouvelle" data-t="reprise_nouvelle">Faire une demande pour un autre établissement</button>
         </div>
 
@@ -559,7 +604,7 @@
             <label for="fCtrl" data-t="f_piege">Ne pas remplir</label>
             <input type="text" id="fCtrl" name="ctrl_x9" tabindex="-1" autocomplete="off" value="">
           </div>
-          <button type="submit" class="envoyer" id="fEnvoyer" data-t="f_envoyer">Ouvrir ma démonstration</button>
+          <button type="submit" class="envoyer" id="fEnvoyer" data-t="f_envoyer">Accéder à ma démo</button>
           <p class="message" id="fMessage" role="alert" hidden></p>
           <p class="rgpd"><span data-t="f_rgpd">Vos coordonnées sont utilisées pour vous donner accès à la démonstration et vous recontacter au sujet des services Elatransfer. Vous pouvez vous y opposer à tout moment.</span>
             <a href="/?doc=privacy" data-t="f_rgpd_lien">Politique de confidentialité</a></p>
@@ -568,22 +613,22 @@
     </section>
 
     <section class="bloc faq" id="questions" aria-labelledby="t-faq">
-      <h2 id="t-faq" data-t="faq_titre">Les questions des professionnels</h2>
-      <details><summary data-t="q1">Combien ça coûte à l'établissement ?</summary><p data-t="r1">Rien. La mise en place est gratuite, et chaque client paie son trajet directement au chauffeur, avant le départ.</p></details>
+      <h2 id="t-faq" data-t="faq_titre">Questions fréquentes</h2>
+      <details><summary data-t="q1">Quel est le coût pour vous ?</summary><p data-t="r1">Rien. La mise en place est gratuite, et chaque client paie son trajet directement au chauffeur, avant le départ.</p></details>
       <details><summary data-t="q6">Y a-t-il un engagement ?</summary><p data-t="r6">Non. Sans engagement : vous arrêtez quand vous voulez, sans frais.</p></details>
-      <details><summary data-t="q2">Qui assure le transport ?</summary><p data-t="r2">Des chauffeurs professionnels indépendants, qui conduisent sous leur propre carte professionnelle et leur assurance. Elatransfer intervient comme centrale de réservation : nous cherchons le chauffeur, confirmons la course et la coordonnons jusqu'à la prise en charge. Votre établissement n'est jamais transporteur.</p></details>
+      <details><summary data-t="q2">Qui assure le transport ?</summary><p data-t="r2">Des chauffeurs professionnels indépendants, qui conduisent sous leur propre carte professionnelle et leur assurance. Elatransfer intervient comme centrale de réservation : nous cherchons le chauffeur, confirmons la course et la coordonnons jusqu'à la prise en charge. Vous n'êtes jamais transporteur.</p></details>
       <details><summary data-t="q9">Comment trouvez-vous le chauffeur ?</summary><p data-t="r9">Elatransfer s'appuie sur un large réseau de chauffeurs professionnels indépendants. À chaque demande, nous cherchons celui qui est disponible pour l'horaire, le lieu et le véhicule demandés, et la course n'est confirmée qu'une fois ce chauffeur attribué. S'il a ensuite un empêchement, nous cherchons un autre chauffeur, au même prix.</p></details>
-      <details><summary data-t="q8">Et si aucun chauffeur n'est disponible ?</summary><p data-t="r8">Une demande n'est confirmée qu'une fois un chauffeur affecté : le client reçoit alors son nom, son véhicule et l'heure. Si aucun chauffeur n'est disponible, nous le disons clairement, au client comme à votre réception, plutôt que de laisser attendre une voiture qui ne viendra pas.</p></details>
-      <details><summary data-t="q3">Peut-on avoir nos propres tarifs ?</summary><p data-t="r3">Oui. Les tarifs sont négociés pour votre établissement et affichés sur votre page : votre client voit le prix avant de réserver.</p></details>
+      <details><summary data-t="q8">Et si aucun chauffeur n'est disponible ?</summary><p data-t="r8">Une demande n'est confirmée qu'une fois un chauffeur affecté : le client reçoit alors son nom, son véhicule et l'heure. Si aucun chauffeur n'est disponible, nous le disons clairement, au client comme à votre équipe, plutôt que de laisser attendre une voiture qui ne viendra pas.</p></details>
+      <details><summary data-t="q3">Peut-on avoir nos propres tarifs ?</summary><p data-t="r3">Oui. Les tarifs sont négociés avec vous et affichés sur votre page : votre client voit le prix avant de réserver.</p></details>
       <details><summary data-t="q4">Et si le vol d'un client est en retard ?</summary><p data-t="r4">Votre client indique son numéro de vol : nous suivons son arrivée et le chauffeur l'attend jusqu'à 60 minutes après l'atterrissage réel, sans frais.</p></details>
-      <details><summary data-t="q5">Qui voit les données de nos clients ?</summary><p data-t="r5">Votre espace réception ne montre que les courses de votre établissement. Les informations nécessaires au trajet ne sont communiquées qu'au chauffeur retenu, et aucune donnée n'est vendue.</p></details>
-      <details><summary data-t="q7">Comment se passe la mise en place ?</summary><p data-t="r7">Nous convenons avec vous de vos destinations et de vos tarifs. Vous nous envoyez une photo de votre établissement, un contact à la réception et, si vous le souhaitez, votre logo. Nous préparons votre page, votre QR code et votre espace réception, puis nous montrons à votre équipe comment s'en servir.</p></details>
+      <details><summary data-t="q5">Qui voit les données de nos clients ?</summary><p data-t="r5">Votre espace équipe ne montre que vos courses. Les informations nécessaires au trajet ne sont communiquées qu'au chauffeur retenu, et aucune donnée n'est vendue.</p></details>
+      <details><summary data-t="q7">Comment se passe la mise en place ?</summary><p data-t="r7">Nous convenons avec vous de vos destinations et de vos tarifs. Vous nous envoyez une photo, un contact dans votre équipe et, si vous le souhaitez, votre logo. Nous préparons votre page, votre QR code et votre espace équipe, puis nous montrons à votre équipe comment s'en servir.</p></details>
     </section>
 
     <section class="contact" id="contact" aria-labelledby="t-contact">
       <div class="contact-in">
-        <h2 id="t-contact" data-t="contact_titre">Parlons de votre établissement</h2>
-        <p data-t="contact_texte">Vos destinations, vos tarifs, la mise en place : parlons-en. Téléphone et WhatsApp de 7&nbsp;h à 22&nbsp;h, e-mail à toute heure&nbsp;: nous vous recontactons.</p>
+        <h2 id="t-contact" data-t="contact_titre">Demandez votre proposition</h2>
+        <p data-t="contact_texte">Destinations, tarifs, mise en place&nbsp;: dites-nous ce dont vous avez besoin, nous vous faisons une proposition adaptée. Téléphone et WhatsApp de 7&nbsp;h à 22&nbsp;h, e-mail à toute heure.</p>
         <div class="moyens">
           <a class="moyen" href="tel:+33759312433"><b data-t="m_tel">Téléphone</b><span>+33 7 59 31 24 33</span></a>
           <a class="moyen" href="https://wa.me/33759312433" target="_blank" rel="noopener"><b>WhatsApp</b><span>+33 7 59 31 24 33</span></a>
@@ -601,101 +646,123 @@
   </footer>
 
   <script>
+  /* L'APERÇU SUR TROIS ÉCRANS : un bouton par écran, un seul groupe de
+     captures visible. On ouvre sur l'écran du visiteur ; les captures des
+     autres écrans ne se chargent qu'au choix (chargement différé). */
+  (function(){
+    var boutons = document.querySelectorAll('.ecrans button[data-ecran]');
+    var groupes = document.querySelectorAll('.apercu-grille[data-ecran]');
+    if (!boutons.length || !groupes.length) return;
+    function montrer(ecran){
+      boutons.forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-ecran') === ecran ? 'true' : 'false'); });
+      groupes.forEach(function(g){ g.hidden = g.getAttribute('data-ecran') !== ecran; });
+    }
+    boutons.forEach(function(b){ b.addEventListener('click', function(){ montrer(b.getAttribute('data-ecran')); }); });
+    var w = window.innerWidth || 0;
+    montrer(w >= 1024 ? 'ordinateur' : w >= 600 ? 'tablette' : 'telephone');
+  })();
+  </script>
+  <script>
   /* Deux langues, sans dépendance. Le français est écrit dans la page (c'est
      lui que lit Google) ; l'anglais remplace les textes à l'appui du bouton,
      et le choix se mémorise sous la même clé que le site (ela_langue). */
   (function(){
     var EN = {
       _titre_page:"Elatransfer — Transfers for hotels, agencies and businesses",
-      _description:"Your booking page, a QR code and a front-desk space, set up free of charge. Elatransfer finds the chauffeur and coordinates every transfer.",
+      _description:"Hotels, agencies, businesses: your booking page, a QR code and a team space. Elatransfer finds the chauffeur and coordinates every transfer.",
       aria_accueil:"Elatransfer — home", aria_nav:"Navigation", aria_langue:"Lire en français",
       nav_reserver:"Book a ride", nav_questions:"FAQ", nav_contact:"Contact",
-      surtitre:"Hotels · Agencies · Businesses",
-      titre:"Your front desk books. Elatransfer takes care of everything else.",
-      sous_titre:"Elatransfer books and coordinates your guests' transfers. You get your own booking page, QR code and front-desk space; we find the chauffeur in a wide network of professionals, confirm with the guest and coordinate every ride.",
-      cta_demo:"See the hotel demo", cta_parler:"Talk to us about your property",
-      points:"Free set-up · No commitment · Rates negotiated for your establishment",
+      surtitre:"Hotels · Agencies · Businesses · Events",
+      titre:"Your team books. Elatransfer takes care of everything else.",
+      sous_titre:"Your own booking page, QR code and team space, under your name. Your guests, colleagues and visitors book; Elatransfer searches a wide network of professionals for the chauffeur, then confirms and coordinates every transfer.",
+      cta_demo:"Try the demo", cta_parler:"Request a proposal",
+      points:"Free set-up · No commitment · Rates negotiated with you",
       reference:"Already in use in the hotel sector, in the Paris region.",
       chiffres_titre:"Elatransfer in numbers",
-      vecu_titre:"What your front desk goes through",
+      vecu_titre:"Your day-to-day challenges",
       vecu1:"A guest has to be at Roissy at 7 am. They ask at 5 am.",
       vecu2:"Someone looks for a number, calls back, and nobody knows whether the car will come.",
-      vecu3:"If the driver doesn't show up, it's the hotel that gets the blame.",
-      sans_titre:"What you no longer have to organise",
+      vecu3:"If the driver doesn't show up, you're the one who gets the blame.",
+      sans_titre:"What you no longer have to manage",
       sans1:"Finding an available chauffeur for every request.",
       sans2:"Calling several people back to get a confirmation.",
       sans3:"Following every ride by phone and by message.",
       sans4:"Handing over pending requests at every shift change.",
       sans5:"Buying a vehicle or employing a chauffeur.",
       sans6:"Taking payment for the ride: the guest pays their chauffeur before departure.",
-      sans_fin:"Your front desk passes on the request. Elatransfer coordinates the rest.",
-      cree_titre:"What we set up for you",
-      cree1_t:"Your page", cree1:"A page with your name and colours, with your photo and your logo if you would like to send it to us. Your guests open it from a link or a QR code and book by themselves, from their room, without taking up your team's time.",
-      cree2_t:"Your front-desk space", cree2:"Your team books by room number or guest name, sees where every request stands and finds the history. At each shift change, the next team picks up without starting from scratch.",
-      cree3_t:"Our coordination", cree3:"We check every request, find the right professional chauffeur in our network, assign them and confirm with the guest. Your front desk has a single point of contact: Elatransfer.",
-      apercu_titre:"What it looks like",
-      apercu_client:"Your guests' page, opened from a link or a QR code.",
-      apercu_client_alt:"Booking page of an example hotel: the hotel's name, then the destinations CDG Airport, Orly and Le Bourget, with prices to be set by the establishment.",
-      apercu_reception:"Your front-desk space: every request and where it stands.",
-      apercu_reception_alt:"Front-desk space of an example hotel: two upcoming rides, one pending, the other confirmed with its driver's name and number.",
+      sans_fin:"Your team passes on the request. Elatransfer coordinates the rest.",
+      cree_titre:"A turnkey service",
+      cree1_t:"Your booking page", cree1:"A page with your name and colours, with your photo and your logo if you would like to send it to us. Your guests or visitors open it from a link or a QR code and book by themselves from their phone, without taking up your team's time.",
+      cree2_t:"Your team space", cree2:"Your team books in a guest's name (or by room number, in a hotel), sees where every request stands and finds the history. At each shift change, the next team picks up without starting from scratch.",
+      cree3_t:"A single point of contact", cree3:"We check every request, find the right professional chauffeur in our network, assign them and confirm with the guest. A question or a last-minute change: your team calls one number.",
+      apercu_titre:"Preview on phone, tablet and computer",
+      aria_ecrans:"Choose the screen", ecran_telephone:"Phone", ecran_tablette:"Tablet", ecran_ordinateur:"Computer",
+      apercu_client:"Your booking page, opened from a link or a QR code.",
+      apercu_equipe:"Your team space: every request and where it stands.",
+      alt_client_telephone:"Booking page of an example hotel, on a phone: the hotel's name, then its destinations (CDG Airport, Orly, Le Bourget…), with prices to be set by the establishment.",
+      alt_client_tablette:"Booking page of an example hotel, on a tablet: the hotel's name, then its destinations (CDG Airport, Orly, Le Bourget…), with prices to be set by the establishment.",
+      alt_client_ordinateur:"Booking page of an example hotel, on a computer: the hotel's name, then its destinations (CDG Airport, Orly, Le Bourget…), with prices to be set by the establishment.",
+      alt_equipe_telephone:"Team space of an example hotel, on a phone: two upcoming rides, one pending, the other confirmed with its chauffeur's name and number.",
+      alt_equipe_tablette:"Team space of an example hotel, on a tablet: two upcoming rides, one pending, the other confirmed with its chauffeur's name and number.",
+      alt_equipe_ordinateur:"Team space of an example hotel, on a computer: two upcoming rides, one pending, the other confirmed with its chauffeur's name and number.",
       apercu_note:"Screenshots from the demonstration, with fictitious data.",
-      apercu_lien:"Try it with your establishment's name",
+      apercu_lien:"Try the personalised demo",
       comment_titre:"More than a driver's number",
       comment_intro:"Elatransfer doesn't replace the chauffeur: it organises everything around the ride.",
       vs_direct_t:"A driver you call directly",
       vs_direct1:"One number, and their own availability.",
-      vs_direct2:"If they can't make it, the front desk looks for someone else.",
+      vs_direct2:"If they can't make it, your team looks for someone else.",
       vs_ela_t:"With Elatransfer",
       vs_ela1:"A single point of contact, and a wide network of professional chauffeurs.",
       vs_ela2:"If the chauffeur can't make it, we look for another, at the same price.",
-      vs_ela3:"The status of every request, in your front-desk space.",
-      parcours_titre:"How a request is handled",
-      etape1_t:"The request", etape1:"The guest scans the QR code, or your front desk enters the request for them. It reaches Elatransfer.",
+      vs_ela3:"The status of every request, in your team space.",
+      parcours_titre:"How it works",
+      etape1_t:"The request", etape1:"The guest scans the QR code, or your team enters the request for them. It reaches Elatransfer.",
       etape2_t:"The search", etape2:"We check the request and look in our network for an available professional chauffeur.",
-      etape3_t:"The confirmation", etape3:"Once the chauffeur is assigned, the guest receives the confirmation; your front desk sees “booking confirmed”.",
+      etape3_t:"The confirmation", etape3:"Once the chauffeur is assigned, the guest receives the confirmation; your team sees “booking confirmed”.",
       etape4_t:"The pick-\u2060up", etape4:"Paid directly by the guest before departure, the chauffeur arrives at the agreed time. The ride moves to “completed”.",
-      dir_titre:"For management",
-      dir_intro:"A transfer service offered to your guests, under your name, without adding anything to your organisation.",
-      dir_etab_t:"Your establishment",
+      dir_titre:"Your benefits",
+      dir_intro:"A transfer service under your name for your guests, with no investment and no change to your organisation.",
+      dir_etab_t:"For your organisation",
       dir_etab1:"No vehicle to buy, no chauffeur to employ.",
-      dir_etab2:"Nothing to install: your page and the front-desk space open in a web browser.",
+      dir_etab2:"Nothing to install: your page and the team space open in a web browser.",
       dir_etab3:"Rates agreed with you, shown to your guests before they book.",
-      dir_etab4:"Your establishment is not the carrier: the chauffeur is responsible for the transport.",
-      dir_cli_t:"Your guests",
+      dir_etab4:"You are not the carrier: the chauffeur is responsible for the transport.",
+      dir_cli_t:"For your guests",
       dir_cli1:"A price given before booking.",
       dir_cli2:"A confirmation with the chauffeur's name, the vehicle and the time.",
       dir_cli3:"Payment directly to the chauffeur, before departure.",
       dir_cli4:"A page in French or in English.",
       part_titre:"Become an Elatransfer partner",
-      part1:"Remuneration may be provided for each completed transfer, under the terms agreed with your establishment.",
-      part2:"No subscription and no fees for your establishment.",
+      part1:"Remuneration may be provided for each completed transfer, under the terms agreed with you.",
+      part2:"No subscription and no fees for you.",
       part3:"The terms may evolve with your activity, quarter after quarter.",
       part_cta:"Get the partner terms",
-      demo_sur:"The hotel demo, with your name",
-      demo_titre:"See what your guests and your front desk would see",
-      demo_texte:"Enter your establishment's name: the demonstration opens straight away, under your name. Book as a guest would, then follow the request on the front-desk side through to “completed”. No real booking is made.",
+      demo_sur:"Free personalised demo",
+      demo_titre:"Try your booking page and team space, under your name",
+      demo_texte:"Enter your organisation's name: the demonstration opens straight away, under your name, on a phone, tablet or computer. Book as a guest would, then follow the request on the team side through to “completed”. No real booking is made.",
       demo_acces:"Instant access, valid for 7 days on this device.",
       demo_autres:"Would you rather talk to us? Live support 7\u00a0am–\u206010\u00a0pm (Paris time).",
       demo_appel:"Call +33 7 59 31 24 33", demo_wa:"Message us on WhatsApp",
-      reprise_titre:"Your demonstration is open", reprise_ouvrir:"Open my demonstration",
+      reprise_titre:"Your demonstration is open", reprise_ouvrir:"Access my demo",
       reprise_nouvelle:"Make a request for another establishment",
       f_type:"You are", f_hotel:"Hotel", f_agence:"Agency", f_entreprise:"Business",
       f_etablissement:"Establishment name", f_prenom:"First name", f_nom:"Last name", f_fonction:"Job title", f_facultatif:"(optional)",
-      f_email:"Business email", f_telephone:"Phone", f_envoyer:"Open my demonstration",
+      f_email:"Business email", f_telephone:"Phone", f_envoyer:"Access my demo",
       f_rgpd:"Your details are used to give you access to the demonstration and to contact you about Elatransfer's services. You can object at any time.",
       f_rgpd_lien:"Privacy policy", f_piege:"Leave empty", aria_fermer:"Close",
-      faq_titre:"Questions from businesses",
-      q1:"What does it cost the establishment?", r1:"Nothing. Set-up is free, and each guest pays the chauffeur directly for their ride, before departure.",
-      q2:"Who actually provides the transport?", r2:"Independent professional chauffeurs, driving under their own professional licence and insurance. Elatransfer acts as the booking intermediary: we find the chauffeur, confirm the ride and coordinate it until pick-\u2060up. Your establishment is never the carrier.",
+      faq_titre:"Frequently asked questions",
+      q1:"What does it cost you?", r1:"Nothing. Set-up is free, and each guest pays the chauffeur directly for their ride, before departure.",
+      q2:"Who actually provides the transport?", r2:"Independent professional chauffeurs, driving under their own professional licence and insurance. Elatransfer acts as the booking intermediary: we find the chauffeur, confirm the ride and coordinate it until pick-\u2060up. You are never the carrier.",
       q9:"How do you find the chauffeur?", r9:"Elatransfer relies on a wide network of independent professional chauffeurs. For each request, we look for one who is available for the time, place and vehicle requested, and the ride is only confirmed once that chauffeur is assigned. If they then can't make it, we look for another chauffeur, at the same price.",
-      q3:"Can we have our own rates?", r3:"Yes. Rates are negotiated for your establishment and shown on your page: your guest sees the price before booking.",
+      q3:"Can we have our own rates?", r3:"Yes. Rates are negotiated with you and shown on your page: your guest sees the price before booking.",
       q4:"What if a guest's flight is delayed?", r4:"Your guest gives their flight number: we track their arrival and the chauffeur waits up to 60 minutes after the actual landing, at no charge.",
-      q5:"Who sees our guests' data?", r5:"Your front-desk space only shows your establishment's rides. The information needed for the journey is shared only with the assigned chauffeur, and no data is sold.",
+      q5:"Who sees our guests' data?", r5:"Your team space only shows your rides. The information needed for the journey is shared only with the assigned chauffeur, and no data is sold.",
       q6:"Is there any commitment?", r6:"No. No commitment: you stop whenever you like, at no cost.",
-      q7:"How does the set-up work?", r7:"We agree your destinations and your rates with you. You send us a photo of your establishment, a front-desk contact and, if you wish, your logo. We prepare your page, your QR code and your front-desk space, then show your team how to use them.",
-      q8:"What if no chauffeur is available?", r8:"A request is only confirmed once a chauffeur is assigned: the guest then receives their name, vehicle and time. If no chauffeur is available, we say so clearly, to the guest and to your front desk, rather than leave anyone waiting for a car that won't come.",
-      contact_titre:"Let's talk about your establishment",
-      contact_texte:"Your destinations, your rates, the set-up: let's talk. Phone and WhatsApp 7\u00a0am–\u206010\u00a0pm (Paris time), email any time: we will get back to you.",
+      q7:"How does the set-up work?", r7:"We agree your destinations and your rates with you. You send us a photo, a contact in your team and, if you wish, your logo. We prepare your page, your QR code and your team space, then show your team how to use them.",
+      q8:"What if no chauffeur is available?", r8:"A request is only confirmed once a chauffeur is assigned: the guest then receives their name, vehicle and time. If no chauffeur is available, we say so clearly, to the guest and to your team, rather than leave anyone waiting for a car that won't come.",
+      contact_titre:"Request your proposal",
+      contact_texte:"Destinations, rates, set-up: tell us what you need and we will send you a tailored proposal. Phone and WhatsApp 7\u00a0am–\u206010\u00a0pm (Paris time), email any time.",
       m_tel:"Phone", m_mail:"Email",
       pied:"Elatransfer · Chauffeur transfers, for travellers and businesses",
       pied_accueil:"Home", pied_mentions:"Legal notice", pied_privacy:"Privacy policy"
@@ -818,7 +885,7 @@
       reprise.hidden = !montre;
       form.hidden = montre;
       if (e) $('repriseTexte').textContent = t('reprise').replace('{d}', dateCourte(e));
-      /* « Voir la démo hôtel » du haut : directement la démo si elle est ouverte. */
+      /* « Essayer la démo » du haut : directement la démo si elle est ouverte. */
       var cta = document.querySelector('.hero a.bouton');
       if (cta) cta.setAttribute('href', e ? DEMO : '#demo');
     }

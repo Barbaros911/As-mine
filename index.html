@@ -3542,9 +3542,9 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          d'un prospect ouvre directement) et l'e-mail. -->
     <div class="modele-pro">
       <h2 class="modele-pro-h" data-t="modele_pro_h">Vous êtes un hôtel, une agence ou une entreprise ?</h2>
-      <p class="modele-pro-s" data-t="modele_pro_s">Votre réception transmet la demande, Elatransfer trouve le chauffeur et coordonne le reste. Déjà en service dans l'hôtellerie.</p>
+      <p class="modele-pro-s" data-t="modele_pro_s">Votre équipe transmet la demande, Elatransfer trouve le chauffeur et coordonne le reste. Déjà en service dans l'hôtellerie.</p>
       <a class="modele-offre" href="/professionnels/" data-t="modele_offre">Découvrir l'offre professionnels</a>
-      <a class="modele-cta" href="/professionnels/#demo" data-t="modele_cta">Voir la démo hôtel</a>
+      <a class="modele-cta" href="/professionnels/#demo" data-t="modele_cta">Essayer la démo</a>
       <a class="modele-mail" href="mailto:contact@elatransfer.com">contact@elatransfer.com</a>
     </div>
   </section>
@@ -6634,10 +6634,10 @@ window.ELA_TEXTES = {
     modele_e2:"Nous confirmons", modele_e2s:"Par appel ou message, selon votre choix.",
     modele_e3:"Votre chauffeur vous conduit", modele_e3s:"À l'heure convenue, au prix annoncé, payé à l'avance par lien.",
     modele_pro_h:"Vous êtes un hôtel, une agence ou une entreprise ?",
-    modele_pro_s:"Votre réception transmet la demande, Elatransfer trouve le chauffeur et coordonne le reste. Déjà en service dans l'hôtellerie.",
+    modele_pro_s:"Votre équipe transmet la demande, Elatransfer trouve le chauffeur et coordonne le reste. Déjà en service dans l'hôtellerie.",
     modele_offre:"Découvrir l'offre professionnels",
     contact_mail_t:"E-mail · devis et partenariats",
-    modele_cta:"Voir la démo hôtel",
+    modele_cta:"Essayer la démo",
     tva_note:"Prix TTC, TVA 10 % incluse. Annoncé à l'avance : il n'est pas recalculé à l'arrivée.",
     choisir_gamme:"Choisissez une gamme", continuer:"Continuer",
     jusqua:"Jusqu'à", passagers_bas:"passagers", min:"min", arrivee_h:"arrivée",
@@ -6877,10 +6877,10 @@ window.ELA_TEXTES = {
     modele_e2:"We confirm", modele_e2s:"By call or message — your choice.",
     modele_e3:"Your chauffeur drives you", modele_e3s:"At the agreed time and the quoted price, paid in advance by link.",
     modele_pro_h:"Are you a hotel, an agency or a business?",
-    modele_pro_s:"Your front desk passes on the request; Elatransfer finds the chauffeur and coordinates the rest. Already in use in the hotel sector.",
+    modele_pro_s:"Your team passes on the request; Elatransfer finds the chauffeur and coordinates the rest. Already in use in the hotel sector.",
     modele_offre:"See what we offer businesses",
     contact_mail_t:"Email · quotes and partnerships",
-    modele_cta:"See the hotel demo",
+    modele_cta:"Try the demo",
     tva_note:"Prices include 10% VAT. Agreed in advance: it is not recalculated on arrival.",
     choisir_gamme:"Choose a vehicle", continuer:"Continue",
     jusqua:"Up to", passagers_bas:"passengers", min:"min", arrivee_h:"arrival",
@@ -10673,7 +10673,19 @@ window.ELA_TEXTES = {
         (r.estime ? "≈ " : "") + r.km.toLocaleString(locale(),{maximumFractionDigits:1})
         + " km · " + fourchetteDuree(dv)
         + (r.trafic ? " · " + T("trafic") : "");
+      /* AU COMPTOIR, LE VÉHICULE CHOISI SURVIT AU CALCUL (24/10/2026,
+         mesuré) : la destination lance le calcul 450 ms plus tard, et une
+         réception rapide touche le véhicule avant qu'il ne réponde. Le
+         redessin l'effaçait, « Valider » restait éteint (5 fois sur 6 sur un
+         poste lent). On le recoche comme au changement de langue ; le prix
+         à jour est sur sa carte et sur le bouton. Le client, lui, choisit
+         après le calcul : rien ne change pour lui. */
+      var gardeComptoir = surPlace ? course.gamme : null;
       dessinerGammes();
+      if(gardeComptoir){
+        var carteGardee = document.querySelector('#listeVehicules .veh-carte[data-cle="' + gardeComptoir.cle + '"]');
+        if(carteGardee) carteGardee.click();
+      }
       var lignePeages = document.getElementById("resumePeages");
       if(lignePeages){ var tp = texteMentionPeages(); lignePeages.textContent = tp; lignePeages.hidden = !tp; }
       if(surPlace){
