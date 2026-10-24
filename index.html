@@ -4574,6 +4574,22 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <h1 class="ecran-titre">Trafic</h1>
     </div>
     <div class="trf" id="trfZone"></div>
+    <!-- « NE PAS COMPTER CET APPAREIL » (24 octobre 2026). Le même refus que
+         « Ne plus me compter » de la politique (ela_mesure_non, lu par
+         mesure.js et le moteur) : écrit sur CE navigateur, jamais une liste
+         d'adresses IP, rien n'est envoyé au serveur. Hors de trfZone, que la
+         sonde redessine toutes les 10 s, et SOUS elle : à 390 px, le direct
+         et les six chiffres du jour doivent tenir dans l'écran. -->
+    <div class="trf-appareil" id="trfAppareil" role="group" aria-labelledby="trfAppareilTitre">
+      <h2 class="trf-h2" id="trfAppareilTitre">Vos propres visites</h2>
+      <p class="trf-appareil-etat" id="trfAppareilEtat" aria-live="polite">Cet appareil est compté dans les statistiques.</p>
+      <button class="bouton-fantome trf-appareil-exclure" type="button" id="btnTrfExclure">Ne pas compter cet appareil</button>
+      <button class="trf-appareil-recompter" type="button" id="btnTrfRecompter" hidden>Compter à nouveau cet appareil</button>
+      <p class="trf-appareil-aide" id="trfAppareilAide"></p>
+      <p class="trf-appareil-aide" id="trfAppareilIphone" hidden>Vous êtes dans l'application installée : sur
+        iPhone, elle ne partage pas ce réglage avec Safari. Pour vos tests dans Safari, ouvrez-y
+        elatransfer.com/ela-admin/, puis Trafic, et appuyez aussi.</p>
+    </div>
   </section>
 
   <section class="ecran" id="ecran-reglages">
@@ -17948,9 +17964,50 @@ window.ELA_TEXTES = {
   /* ═══ LE TRAFIC (15 octobre 2026) ═══
      Même règle : l'écran d'abord, la lecture ensuite, RIEN au chargement de
      l'admin. La sonde de l'écran s'arrête quand on le quitte (fermer). */
+  /* « NE PAS COMPTER CET APPAREIL » (24 octobre 2026). Barbaros ne veut
+     plus voir ses propres visites et ses tests dans le trafic. PAS UN SECOND
+     SYSTÈME : c'est le refus de la politique de confidentialité, la même
+     clé, que mesure.js et le moteur lisent déjà (mesureRefusee). Il vaut
+     pour CE navigateur — jamais une liste d'adresses IP —, et rien ne part
+     au serveur. Le choix est RELU après l'écriture : un navigateur qui
+     refuse d'écrire (navigation privée) le dit, l'écran ne ment pas.
+     Sur iPhone, l'application installée et Safari ne partagent pas leur
+     stockage : dans l'application (navigator.standalone), l'écran le dit. */
+  function dessinerAppareilTrafic(refus){
+    var etatTrf = document.getElementById("trfAppareilEtat");
+    if(!etatTrf) return;
+    var exclu = mesureRefusee();
+    var bloc = document.getElementById("trfAppareil");
+    if(bloc) bloc.classList.toggle("exclu", exclu);
+    etatTrf.textContent = refus ? "Ce navigateur n'a pas pu enregistrer le choix (navigation privée ?). Rien n'a changé."
+      : exclu ? "Cet appareil est exclu des statistiques" : "Cet appareil est compté dans les statistiques.";
+    etatTrf.classList.toggle("trf-erreur", !!refus);
+    var bExclure = document.getElementById("btnTrfExclure"), bRecompter = document.getElementById("btnTrfRecompter");
+    if(bExclure) bExclure.hidden = exclu;
+    if(bRecompter) bRecompter.hidden = !exclu;
+    var aide = document.getElementById("trfAppareilAide");
+    if(aide) aide.textContent = (exclu
+      ? "Vos visites du site depuis ce navigateur ne comptent plus. Les autres visiteurs sont toujours comptés. "
+      : "Pour que vos visites et vos tests ne se mélangent pas aux vrais clients. ")
+      + "Le réglage vaut pour ce navigateur seulement, sur " + location.hostname
+      + " ; une fenêtre de navigation privée est toujours comptée.";
+    var iphone = document.getElementById("trfAppareilIphone");
+    if(iphone) iphone.hidden = window.navigator.standalone !== true;
+  }
+  var btnTrfExclure = document.getElementById("btnTrfExclure");
+  if(btnTrfExclure) btnTrfExclure.addEventListener("click", function(){
+    try{ localStorage.setItem("ela_mesure_non", "1"); }catch(e){}
+    dessinerAppareilTrafic(!mesureRefusee());
+  });
+  var btnTrfRecompter = document.getElementById("btnTrfRecompter");
+  if(btnTrfRecompter) btnTrfRecompter.addEventListener("click", function(){
+    try{ localStorage.removeItem("ela_mesure_non"); }catch(e){}
+    dessinerAppareilTrafic(mesureRefusee());
+  });
   function ouvrirTrafic(){
     ecran("ecran-trafic");
     allumerAdmin(document.getElementById("btnTrafic"));
+    dessinerAppareilTrafic();
     var zoneTrf = document.getElementById("trfZone");
     if(window.ELA_TRAFIC) window.ELA_TRAFIC.ouvrir(zoneTrf);
     else if(zoneTrf) zoneTrf.textContent = "L'écran Trafic n'a pas pu se charger : rechargez la page avec du réseau.";

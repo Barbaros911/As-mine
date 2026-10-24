@@ -843,11 +843,11 @@ une couleur par sujet, jamais le bleu des boutons (`test-public-icones.mjs`).
   jamais la production** (CSP, `verifier-demo.mjs`, `deposer-course` refuse tout
   « demo ») ; elle ne promet que le vrai, jamais « nos partenaires » ; ni robot
   ni humain bloqué sans Turnstile ; l'accès dure 7 jours. `memoire/demo-pro.md`.
-- **La mesure du trafic** : rien sur l'appareil, aucun identifiant envoyé
-  (adresse et navigateur hachés avec une clé du jour détruite le lendemain) ;
-  jamais nom, téléphone, adresse, prix ni IP ; conservée 90 jours ; lecture
-  réservée à l'admin ; une réservation ne compte que si sa course existe ;
-  jamais une étape sous 5 personnes. `memoire/trafic.md`.
+- **La mesure du trafic** : IP et navigateur hachés, clé du jour détruite ;
+  ni nom, téléphone, adresse ni prix ; 90 jours ; admin seul ; une
+  réservation exige sa course ; aucune étape sous 5 personnes. **Seul le
+  refus s'écrit sur l'appareil** (`ela_mesure_non`, par navigateur, pas par
+  IP) : « Ne plus me compter », Admin → Trafic. `memoire/trafic.md`.
 
 ## Tests
 
