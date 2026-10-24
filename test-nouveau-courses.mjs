@@ -172,8 +172,8 @@ check('la course réservée apparaît dans la liste',
 check('l\'écriteau « aucune course » a disparu', await p.locator('#videCourses').isHidden());
 const ref = await p.locator('.course-ref').textContent();
 check('elle porte sa référence', /^ELA-\d{2}-\d{2}-[2-9A-HJKMNP-Z]{5}$/.test(ref), ref);
-/* 24,3 km × 2,35 € = 57,11 → le reste 7,11 dépasse 5, on MONTE à 60. */
-check('et son prix', (await p.locator('.course-prix').textContent()).replace(/\s/g,'')==='70,00€',
+/* 24,3 km : la tranche « jusqu'à 27 km » du site public, 60 €. */
+check('et son prix', (await p.locator('.course-prix').textContent()).replace(/\s/g,'')==='60,00€',
   await p.locator('.course-prix').textContent());
 /* Ici le réseau est coupé : le dépôt n'a reçu aucun accusé, et la liste le
    dit — « Envoi à vérifier » (22/10/2026) — plutôt que « En attente », qui
@@ -206,7 +206,7 @@ check('la liste se réécrit en anglais',
   /^(Awaiting|Submission to verify)$/.test(await p.locator('.course-etat').textContent()),
   await p.locator('.course-etat').textContent());
 check('et son prix repasse au format anglais',
-  (await p.locator('.course-prix').textContent()).replace(/\s/g,'')==='70.00€',
+  (await p.locator('.course-prix').textContent()).replace(/\s/g,'')==='60.00€',
   await p.locator('.course-prix').textContent());
 
 
