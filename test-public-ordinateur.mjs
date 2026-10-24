@@ -361,15 +361,17 @@ for (const [w, h] of [[900, 700], [1024, 768], [1366, 657], [1920, 1080]]) {
 // appuie pour vérifier qu'on y arrive.
 {
   const source = (await import('node:fs')).readFileSync('index.html', 'utf8');
-  const pancarte = Number((source.match(/var OPTION_PANCARTE_EUR\s*=\s*(\d+(?:\.\d+)?)/) || [])[1]);
+  /* Depuis le 23 octobre 2026, l'accueil est COMPRIS au départ d'un aéroport ou
+     d'une grande gare : la carte dit son montant (ACCUEIL_EUR), sans « + ». */
+  const accueil = Number((source.match(/var ACCUEIL_EUR\s*=\s*(\d+(?:\.\d+)?)/) || [])[1]);
   for (const langue of ['fr', 'en']) {
     const p = await ouvrir(1366, 768, langue);
     const resume = await p.locator('.hero-prix').textContent();
     check(`${langue.toUpperCase()} : la ligne de résumé nomme les salons et ne promet plus de conciergerie`,
       /Salons|Trade fairs/.test(resume) && !/oncierge/i.test(resume), resume);
     const prixAff = (await p.evaluate(() => (document.querySelector('.plus-prix') || {}).textContent || 'absent')).replace(/\s/g, ' ');
-    const attendu = '+' + pancarte.toLocaleString(langue === 'en' ? 'en-GB' : 'fr-FR', { minimumFractionDigits: 2 }) + ' €';
-    check(`${langue.toUpperCase()} : le prix de l'accueil personnalisé est celui de l'option pancarte (${pancarte} €), au format de la langue`,
+    const attendu = accueil.toLocaleString(langue === 'en' ? 'en-GB' : 'fr-FR', { minimumFractionDigits: 2 }) + ' €';
+    check(`${langue.toUpperCase()} : le prix de l'accueil personnalisé est celui de l'accueil compris (${accueil} €), au format de la langue`,
       prixAff.replace(/[  ]/g, ' ') === attendu.replace(/[  ]/g, ' '), `affiché « ${prixAff} », attendu « ${attendu} »`);
     await p.context().close();
   }

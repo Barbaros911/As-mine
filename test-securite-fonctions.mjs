@@ -272,6 +272,8 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
     if(url.includes('/rpc/consommer_quota_reservation')){appels.push('quota:'+init.body);return new Response('true');}
     if(url.includes('/rest/v1/partenaires')) return new Response('[]');
     if(url.includes('/rest/v1/courses?ref=eq.')) return new Response('[]');
+    /* Depuis le 23/10/2026, le site public est jugé sur la ligne « grille_publique ». */
+    if(url.includes('/rest/v1/parametres_commerciaux?cle=eq.grille_publique')) return new Response('[{"valeur":{"tranches_km":[12,22,32,42],"berline":{"tranches_centimes":[3500,5000,7000,9000],"au_dela_km_centimes":250},"van":{"tranches_centimes":[5000,8000,11000,13000],"au_dela_km_centimes":380}}}]');
     if(url.includes('/rest/v1/parametres_commerciaux')) return new Response('[{"valeur":{"par_km_centimes":290,"minimum_centimes":3500}}]');
     if(url.includes('/rest/v1/journal_depots')) return new Response('',{status:201});
     if(url.includes('/rpc/ela_deposer_course_serveur')) return new Response('"ok"');
@@ -291,7 +293,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   const heure=new Date().toISOString().slice(0,13);
   ok(appels.some(u=>u.startsWith('quota:')&&u.includes(createHash('sha256').update('sonde|10.0.0.7|'+heure).digest('hex'))),'sonde : son compteur est le sien, jamais celui des clients');
   r=await envoyer({sonde:true,bon:bon('SONDE-MONITOR-0002',5)}); j=await r.json();
-  ok(r.status===200&&j.prixAVerifier===true,'sonde : le contrôle du prix au kilomètre tourne (5 € sur Paris → CDG signalé)');
+  ok(r.status===200&&j.prixAVerifier===true,'sonde : le contrôle du prix tourne (5 € sur Paris → CDG signalé)');
   appels.length=0;
   r=await envoyer({bon:bon('SONDE-MONITOR-0003',80)});
   ok(r.status===400&&!appels.some(u=>u.includes('ela_deposer_course_serveur')),'sonde : une référence « SONDE- » sans le drapeau est refusée, jamais écrite');
@@ -348,13 +350,15 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
     if(url.includes('/rest/v1/partenaires')) return new Response('[]');
     if(url.includes('/rest/v1/courses?ref=eq.')) return new Response('[]');
     if(url.includes('parametres_commerciaux?cle=eq.tarif_general_berline')) return new Response(JSON.stringify([{valeur:{par_km_centimes:290,minimum_centimes:3000}}]));
+    if(url.includes('parametres_commerciaux?cle=eq.grille_publique')) return new Response('[{"valeur":{"tranches_km":[12,22,32,42],"berline":{"tranches_centimes":[3500,5000,7000,9000],"au_dela_km_centimes":250},"van":{"tranches_centimes":[5000,8000,11000,13000],"au_dela_km_centimes":380}}}]');
     if(url.includes('/rpc/ela_deposer_course_serveur')){deposes.push(JSON.parse(init.body).p_bon);return new Response('"ok"');}
     return fetchAvant(url,init);
   };
   const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
-  /* Place Vendôme → Terminal 2E de Roissy : 23,2 km en ligne droite, donc
-     au moins 2,90 × 23,2 = 67,3 → 60 € (dizaine INFÉRIEURE) avant même de
-     prendre la route. Calculé à la main, pas relu dans la sortie. */
+  /* Place Vendôme → Terminal 2E de Roissy : 23,2 km en ligne droite. Le site
+     public est jugé sur sa grille (23 octobre 2026) : la tranche de la ligne
+     droite, « jusqu'à 32 km », donc au moins 70 € avant même de prendre la
+     route. Calculé à la main, pas relu dans la sortie. */
   const vendome={nom:'Place Vendôme',adresse:'Place Vendôme, 75001 Paris',latitude:48.8675,longitude:2.3292,provider:'photon',providerId:'N1',categorie:'culture'};
   const cdg={nom:'Terminal 2E',adresse:'Terminal 2E — Aéroport Roissy-Charles de Gaulle',latitude:48.9998,longitude:2.5740,provider:'elatransfer',providerId:'aeroport:cdg:Terminal 2E',categorie:'aeroport'};
   const bonKm=(ref,total,extra={})=>({ref,course:Object.assign({depart:'Place Vendôme',arrivee:'Terminal 2E',date:'2026-10-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:31,departLieu:vendome,arriveeLieu:cdg,itineraireSource:'ors'},extra),
@@ -369,8 +373,8 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   const b2=await dep(bonKm('ELA-26-10-LB2BB',5));
   const bb=deposes[1]||{};
   ok(b2.status===201,'deposer-course : un prix trop bas est SIGNALÉ, pas refusé ('+b2.status+')');
-  ok(bb.securite?.prixSousLigneDroite?.minimum===60&&bb.securite.prixSousLigneDroite.ligneDroiteKm===23.2,
-     'deposer-course : « Vendôme → Roissy à 5 € » porte le signalement, minimum 60 € sur 23,2 km ('+JSON.stringify(bb.securite?.prixSousLigneDroite)+')');
+  ok(bb.securite?.prixSousLigneDroite?.minimum===70&&bb.securite.prixSousLigneDroite.ligneDroiteKm===23.2,
+     'deposer-course : « Vendôme → Roissy à 5 € » porte le signalement, minimum 70 € sur 23,2 km ('+JSON.stringify(bb.securite?.prixSousLigneDroite)+')');
   const c3=await dep(bonKm('ELA-26-10-LC3CC',5,{destinationCle:'cdg'}));
   ok(c3.status===201&&!(deposes[2]||{}).securite?.prixSousLigneDroite,'deposer-course : un forfait partenaire n\'est pas jugé au kilomètre (prix d\'appel voulu)');
   const d4=await dep(bonKm('ELA-26-10-LD4DD',90,{departLieu:{latitude:200,longitude:2,adresse:'x'},arriveeLieu:{latitude:'48.9',longitude:2.5,adresse:'<b>'.repeat(200),provider:'pirate'},itineraireSource:'google'}));

@@ -129,6 +129,47 @@ verifier("le tableau de la grille est lisible dans CLAUDE.md", lignesLues >= 2,
   "aucune ligne Berline/Van trouvée : la grille n'est plus documentée, ou sa forme a changé " +
   "et ce contrôle est devenu aveugle — ce qui est pire qu'un contrôle absent");
 
+/* ═══ 1 bis. LA GRILLE DU SITE PUBLIC (23 octobre 2026) ═══
+   Depuis cette date, le tableau ci-dessus ne vaut plus que pour les pages des
+   hôtels. Le site public facture par tranches, forfaits Paris et accueil :
+   le tableau « Site public » de CLAUDE.md doit dire ce que la page facture
+   (GRILLE_PUBLIQUE, FORFAITS_PUBLICS, ACCUEIL_EUR) — c'est ce chiffre-là
+   qu'on annonce au téléphone. */
+{
+  const bloc = (page.match(/var GRILLE_PUBLIQUE\s*=\s*\{([\s\S]*?)\n\s*\};/) || [])[1] || "";
+  const gamme = cle => {
+    const m = bloc.match(new RegExp(cle + ":\\s*\\{\\s*tranches:\\[([^\\]]*)\\],\\s*auDela:([0-9.]+)"));
+    return m ? { km: [...m[1].matchAll(/km:(\d+(?:\.\d+)?)/g)].map(x => x[1]).join(" / "),
+                 prix: [...m[1].matchAll(/prix:(\d+)/g)].map(x => x[1]).join(" / "),
+                 auDela: Number(m[2]) } : null;
+  };
+  const gb = gamme("berline"), gv = gamme("van");
+  const forfaits = {};
+  for (const m of page.matchAll(/\{ cle:"(orly|cdg|disney)"[^}]*?prix:\{ berline:(\d+), van:(\d+) \}/g)) forfaits[m[1]] = [m[2], m[3]];
+  if (verifier("le code déclare la grille du site public (GRILLE_PUBLIQUE, FORFAITS_PUBLICS)",
+        !!gb && !!gv && Object.keys(forfaits).length === 3)) {
+    const sp = s => (s || "").replace(/\s+/g, " ").trim();
+    const t1 = courant.match(/^\|\s*Jusqu'à ([0-9 /]+?) km\s*\|\s*([0-9 /]+?) €\s*\|\s*([0-9 /]+?) €\s*\|/m);
+    verifier("CLAUDE.md : les tranches du site public sont celles du code",
+      !!t1 && sp(t1[1]) === gb.km && sp(t1[2]) === gb.prix && sp(t1[3]) === gv.prix && gb.km === gv.km,
+      t1 ? "CLAUDE.md dit " + t1[1] + " km → " + t1[2] + " € / " + t1[3] + " €, le code " + gb.km + " km → " + gb.prix + " € / " + gv.prix + " €"
+         : "la ligne « Jusqu'à … km » du tableau « Site public » a disparu");
+    const t2 = courant.match(/^\|\s*Au-delà, par km\s*\|\s*\+([0-9]+,[0-9]+) €\s*\|\s*\+([0-9]+,[0-9]+) €\s*\|/m);
+    verifier("CLAUDE.md : le prix par km au-delà est celui du code",
+      !!t2 && Number(t2[1].replace(",", ".")) === gb.auDela && Number(t2[2].replace(",", ".")) === gv.auDela,
+      t2 ? "CLAUDE.md dit " + t2[1] + " / " + t2[2] + ", le code " + gb.auDela + " / " + gv.auDela : "la ligne « Au-delà, par km » a disparu");
+    const t3 = courant.match(/^\|\s*Paris ↔ Orly \/ Roissy-CDG \/ Disneyland\s*\|\s*([0-9 /]+?) €\s*\|\s*([0-9 /]+?) €\s*\|/m);
+    const fb = ["orly", "cdg", "disney"].map(k => forfaits[k][0]).join(" / "), fv = ["orly", "cdg", "disney"].map(k => forfaits[k][1]).join(" / ");
+    verifier("CLAUDE.md : les forfaits Paris sont ceux du code",
+      !!t3 && sp(t3[1]) === fb && sp(t3[2]) === fv,
+      t3 ? "CLAUDE.md dit " + t3[1] + " / " + t3[2] + ", le code " + fb + " / " + fv : "la ligne des forfaits Paris a disparu");
+    const t4 = courant.match(/^\|\s*Accueil[^|]*\|\s*\+(\d+) €\s*\|/m);
+    verifier("CLAUDE.md : l'accueil est celui du code (ACCUEIL_EUR)",
+      !!t4 && Number(t4[1]) === constante("ACCUEIL_EUR"),
+      t4 ? "CLAUDE.md dit " + t4[1] + " €, le code " + constante("ACCUEIL_EUR") + " €" : "la ligne « Accueil » a disparu");
+  }
+}
+
 /* ═══ 2. LES CONSTANTES QUE LA DOC CHIFFRE ═══
    Chaque entrée nomme la constante ET la phrase qui l'annonce. Une
    constante qui bouge sans que la phrase suive, c'est le site qui applique
@@ -300,7 +341,7 @@ if(refs){
    du sujet qu'on touche vers memoire/, dans la même PR, et il repasse.
    Il DESCEND à chaque rangement, jamais l'inverse. Il tourne sur chaque
    PR (quality-gate) : c'est là qu'il doit mordre, pas à la publication. */
-const PLAFOND_MEMO = 55269; // octets — ne monte jamais, descend à chaque rangement (319000 → 316200 le 11/10/2026, rangement de l'itinéraire ; → 315950 le 14/10/2026, hébergement ; → 314950 le 14/10/2026, marque et Google ; → 311050 le 14/10/2026, tarif ; → 311045 le 15/10/2026, indexation ; → 309590 le 15/10/2026, avis et liens des partenaires ; → 309415 le 15/10/2026, programme partenaire ; → 308798 le 17/10/2026, branches ; → 303355 le 17/10/2026, sites vitrines et phrases périmées ; → 303086 le 18/10/2026, hébergement et vraie 404 ; → 303029 le 18/10/2026, trafic ; → 300524 le 18/10/2026, positionnement, programme partenaire, documents légaux et note Google ; → 299646 le 19/10/2026, prix à toutes les distances et péages ; → 299511 le 19/10/2026, réconciliation avec main : partenaire au conditionnel, lanceur des suites ; → 296017 le 19/10/2026, cinq services archivés, finition visuelle ; → 296002 le 19/10/2026, trafic : l'entonnoir dit où l'on perd ; → 295141 le 19/10/2026, registre et délai de confirmation ; → 295138 le 19/10/2026, référence : collision au dépôt ; → 294011 le 19/10/2026, voyant archivé, erreurs du site ; → 293603 le 19/10/2026, limite du registre, synchronisation archivée ; → 293588 le 19/10/2026, page client hôtel : le premier dessin est le bon ; → 293535 le 19/10/2026, secret de la relance, mesure du 29/09 archivée ; → 292115 le 20/10/2026, rôle agent archivé, accès agent suspendu ; → 288725 le 20/10/2026, accès de la réception archivé, seul Barbaros supprime ; → 285057 le 21/10/2026, thème du partenaire archivé, réception V2 ; → 285051 le 21/10/2026, la carte de la réception après une réservation ; → 284972 le 21/10/2026, réception 10/10 : rien de vert d'office, bon sans boutons sur PC ; → 284959 le 22/10/2026, marque et Google : pages françaises d'acquisition ; → 55308 le 22/10/2026, rangement général : toute l'histoire dans memoire/, ne restent que les règles vraies aujourd'hui ; → 55304 le 23/10/2026, courses de l'admin au départ de l'hôtel, détails du comptoir archivés ; → 55286 le 23/10/2026, arrivée à l'hôtel et rattachement à la main, quota partenaire archivé ; → 55281 le 23/10/2026, une centrale et un large réseau, textes publics resserrés ; → 55269 le 24/10/2026, double vérification de l'admin, connexion archivée)
+const PLAFOND_MEMO = 55139; // octets — ne monte jamais, descend à chaque rangement (319000 → 316200 le 11/10/2026, rangement de l'itinéraire ; → 315950 le 14/10/2026, hébergement ; → 314950 le 14/10/2026, marque et Google ; → 311050 le 14/10/2026, tarif ; → 311045 le 15/10/2026, indexation ; → 309590 le 15/10/2026, avis et liens des partenaires ; → 309415 le 15/10/2026, programme partenaire ; → 308798 le 17/10/2026, branches ; → 303355 le 17/10/2026, sites vitrines et phrases périmées ; → 303086 le 18/10/2026, hébergement et vraie 404 ; → 303029 le 18/10/2026, trafic ; → 300524 le 18/10/2026, positionnement, programme partenaire, documents légaux et note Google ; → 299646 le 19/10/2026, prix à toutes les distances et péages ; → 299511 le 19/10/2026, réconciliation avec main : partenaire au conditionnel, lanceur des suites ; → 296017 le 19/10/2026, cinq services archivés, finition visuelle ; → 296002 le 19/10/2026, trafic : l'entonnoir dit où l'on perd ; → 295141 le 19/10/2026, registre et délai de confirmation ; → 295138 le 19/10/2026, référence : collision au dépôt ; → 294011 le 19/10/2026, voyant archivé, erreurs du site ; → 293603 le 19/10/2026, limite du registre, synchronisation archivée ; → 293588 le 19/10/2026, page client hôtel : le premier dessin est le bon ; → 293535 le 19/10/2026, secret de la relance, mesure du 29/09 archivée ; → 292115 le 20/10/2026, rôle agent archivé, accès agent suspendu ; → 288725 le 20/10/2026, accès de la réception archivé, seul Barbaros supprime ; → 285057 le 21/10/2026, thème du partenaire archivé, réception V2 ; → 285051 le 21/10/2026, la carte de la réception après une réservation ; → 284972 le 21/10/2026, réception 10/10 : rien de vert d'office, bon sans boutons sur PC ; → 284959 le 22/10/2026, marque et Google : pages françaises d'acquisition ; → 55308 le 22/10/2026, rangement général : toute l'histoire dans memoire/, ne restent que les règles vraies aujourd'hui ; → 55304 le 23/10/2026, courses de l'admin au départ de l'hôtel, détails du comptoir archivés ; → 55286 le 23/10/2026, arrivée à l'hôtel et rattachement à la main, quota partenaire archivé ; → 55281 le 23/10/2026, une centrale et un large réseau, textes publics resserrés ; → 55269 le 24/10/2026, double vérification de l'admin, connexion archivée ; → 55139 le 24/10/2026, grille par tranches, forfaits Paris et accueil, prix des pages retiré, fusion avec la double vérification)
 {
   const taille = Buffer.byteLength(doc, "utf8");
   verifier("CLAUDE.md tient sous son plafond (" + Math.round(PLAFOND_MEMO / 1000) + " Ko)",
