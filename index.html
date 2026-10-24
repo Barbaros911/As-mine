@@ -4788,6 +4788,9 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
     <div class="bloc" id="blocNuage">
       <h2 class="bloc-titre" id="nuageTitre">Serveur</h2>
       <p class="bloc-note" id="nuageEtat">Non connecté : vous ne voyez que les courses de cet appareil.</p>
+      <!-- Où en sont le carnet, les règlements et les factures sur le serveur
+           (« LES DONNÉES MÉTIER VIVENT SUR LE SERVEUR »). Caché quand tout va bien. -->
+      <p class="bloc-note" id="metierEtat" hidden></p>
       <div id="nuageFormulaire">
         <label class="champ" for="nuageEmail">
           <span class="champ-corps">
@@ -16621,6 +16624,7 @@ window.ELA_TEXTES = {
     try{ champ.value = lienAvis(); }catch(e){}
     champ.addEventListener("input", function(){
       try{ localStorage.setItem(CLE_LIEN_AVIS, champ.value.trim()); }catch(e){}
+      metier.lienAvis(champ.value.trim());
       /* L'avertissement disparaît dès qu'il y a quelque chose à envoyer :
          le laisser sous un champ rempli ferait douter de ce qui est
          enregistré. */
@@ -17451,8 +17455,9 @@ window.ELA_TEXTES = {
    plus anciennes (comme un relevé bancaire). Ce qui reste dû sur une
    course de plus de 30 jours est « en retard » — le délai de paiement par
    défaut entre professionnels (L441-10 Code de commerce).
-   LES PAIEMENTS VIVENT SUR CET APPAREIL, comme le carnet et les factures,
-   et partent dans la sauvegarde. Le dire plutôt que le cacher.
+   LES PAIEMENTS VIVENT SUR LE SERVEUR depuis le 24 octobre 2026, comme le
+   carnet et les factures (« LES DONNÉES MÉTIER VIVENT SUR LE SERVEUR ») ;
+   l'appareil en garde une copie, qui part aussi dans la sauvegarde.
    ===================================================================== */
   var DELAI_COMMISSION_J = 30;
   var CLE_PAIEMENTS = "ela_paiements_chauffeurs";
@@ -17542,7 +17547,9 @@ window.ELA_TEXTES = {
     document.getElementById("bordSauvegardeTexte").textContent =
       (jours === null ? "Aucune sauvegarde sur ce téléphone."
                       : "Dernière sauvegarde il y a " + jours + " jours.")
-      + " Chauffeurs, paiements et factures ne vivent qu'ici.";
+      /* Une fois l'appareil basculé, la phrase d'avant mentirait. */
+      + (metierActif() ? " Vos chauffeurs, paiements et factures sont sur le serveur ; la sauvegarde en garde un double hors ligne."
+                       : " Chauffeurs, paiements et factures ne vivent qu'ici.");
   }
   document.getElementById("btnBordSauver").addEventListener("click", function(){
     document.getElementById("btnSauver").click();
@@ -17649,6 +17656,7 @@ window.ELA_TEXTES = {
       b.addEventListener("click", function(){
         if(b.dataset.arme !== "1"){ b.dataset.arme = "1"; b.textContent = "Confirmer"; setTimeout(function(){ b.dataset.arme = ""; b.textContent = "Retirer"; }, 6000); return; }
         ecrirePaiements(paiementsChauffeurs().filter(function(x){ return x.id !== pmt.id; }));
+        metier.retirerReglement(pmt.id);
         dessinerDettes(); dessinerDettesBord();
       });
       zp.appendChild(ligneCc([{ t: pmt.nom + " · " + euros(+pmt.montant), aide: (pmt.date || "").split("-").reverse().join("/") + " · " + (pmt.mode || "") }, b], "", 1));
@@ -17672,10 +17680,14 @@ window.ELA_TEXTES = {
     var m = document.getElementById("ccPaiementMontant").value.trim().replace(",", ".");
     if(m === "" || !isFinite(m) || +m <= 0){ direDettes("Indiquez le montant reçu.", true); return; }
     var l = paiementsChauffeurs();
-    l.push({ id: "P-" + Date.now().toString(36), cle: paiementPour.cle, nom: paiementPour.nom, tel: paiementPour.tel,
+    /* L'identifiant est tiré une fois par saisie : c'est lui qui fait
+       qu'un envoi rejoué ne crée jamais un second règlement sur le serveur. */
+    var reglement = { id: nouvelId("P-"), cle: paiementPour.cle, nom: paiementPour.nom, tel: paiementPour.tel,
              montant: Math.round(+m * 100) / 100, date: document.getElementById("ccPaiementDate").value || dateLocale(new Date()),
-             mode: document.getElementById("ccPaiementMode").value, cree: new Date().toISOString() });
+             mode: document.getElementById("ccPaiementMode").value, cree: new Date().toISOString() };
+    l.push(reglement);
     ecrirePaiements(l);
+    metier.reglement(reglement);
     var nom = paiementPour.nom; paiementPour = null;
     document.getElementById("ccPaiement").hidden = true;
     dessinerDettes(); dessinerDettesBord();
@@ -18904,8 +18916,13 @@ window.ELA_TEXTES = {
     };
     var i = -1, k;
     for(k = 0; k < l.length; k++) if(l[k].id === fiche.id) i = k;
+    /* LA VERSION LUE SUR LE SERVEUR part avec la fiche : si un autre
+       appareil l'a changée entre-temps, le serveur refuse au lieu
+       d'écraser (voir « LES DONNÉES MÉTIER VIVENT SUR LE SERVEUR »). */
+    if(i >= 0 && l[i].version) fiche.version = l[i].version;
     if(i >= 0) l[i] = fiche; else l.push(fiche);
     ecrireChauffeurs(l);
+    metier.chauffeur(fiche);
     videChampsChauffeur();
     dessinerChauffeurs();
     dessinerBord();
@@ -18921,6 +18938,7 @@ window.ELA_TEXTES = {
   document.getElementById("btnChSupprimer").addEventListener("click", function(){
     if(!chEnCours) return;
     ecrireChauffeurs(chauffeurs().filter(function(c){ return c.id !== chEnCours; }));
+    metier.retirerChauffeur(chEnCours);
     videChampsChauffeur();
     dessinerChauffeurs();
     dessinerBord();
@@ -19203,6 +19221,7 @@ window.ELA_TEXTES = {
     };
     try{ localStorage.setItem(CLE_ENTREPRISE, JSON.stringify(e)); }catch(err){}
     document.getElementById("entEtat").hidden = entreprisePrete(e);
+    metier.entreprise(e);
   }
   ["entNom","entSiret","entAdresse","entContact","entTva"].forEach(function(id){
     document.getElementById(id).addEventListener("input", ecrireEntreprise);
@@ -19243,6 +19262,9 @@ window.ELA_TEXTES = {
       return;
     }
     factureBrouillon.refs = courses.map(function(c){ return c.ref; });
+    /* Tirée à la préparation, gardée jusqu'à l'émission : un double appui
+       ou un nouvel essai rendent la MÊME facture sur le serveur. */
+    factureBrouillon.cle = uuid();
     dessinerFacture(factureBrouillon);
     apercu.hidden = false;
     document.getElementById("btnFacEmettre").hidden = false;
@@ -19252,9 +19274,52 @@ window.ELA_TEXTES = {
       + " à facturer. Relisez avant d'émettre : une facture émise ne se modifie plus.";
   });
 
+  /* La facture affichée une fois émise, d'où qu'elle vienne. */
+  function factureEmise(f){
+    var refs = f.refs || [];
+    var l = registre();
+    l.forEach(function(c){ if(refs.indexOf(c.ref) >= 0) c.factureNum = f.num; });
+    ecrireRegistre(l);
+    var toutes = factures().filter(function(x){ return x.num !== f.num; });
+    toutes.push(f);
+    try{ localStorage.setItem(CLE_FACTURES, JSON.stringify(toutes)); }catch(e){}
+    factureBrouillon = null;
+    dessinerFacture(f);
+    dessinerFacturesEmises();
+    dessinerBord();
+    document.getElementById("btnFacEmettre").hidden = true;
+    document.getElementById("btnFacImprimer").hidden = false;
+    document.getElementById("facEmiseEtat").hidden = false;
+    document.getElementById("facEmiseEtat").textContent =
+      "Facture " + f.num + " émise. Ces courses ne repartiront pas dans une autre facture.";
+  }
+  var emissionEnCours = false;
   document.getElementById("btnFacEmettre").addEventListener("click", function(){
-    if(!factureBrouillon) return;
+    if(!factureBrouillon || emissionEnCours) return;
     var f = factureBrouillon;
+    /* LE SERVEUR DONNE LE NUMÉRO dès que l'appareil a basculé : il marque
+       aussi les courses, dans la même transaction (la relecture des courses
+       ramène la marque). Le bouton reste bloqué pendant l'appel. */
+    if(metierActif()){
+      var b = this, etatEm = document.getElementById("facEmiseEtat");
+      emissionEnCours = true; b.disabled = true;
+      etatEm.hidden = false; etatEm.textContent = "Émission en cours…";
+      metier.emettreFacture(f).then(function(doc){
+        emissionEnCours = false; b.disabled = false;
+        factureEmise(doc);
+      }, function(e){
+        emissionEnCours = false; b.disabled = false;
+        etatEm.hidden = false; etatEm.textContent = (e && e.message) || "La facture n'est pas émise.";
+      });
+      return;
+    }
+    if(metier.pret === true && nuage.connecte()){
+      document.getElementById("facEmiseEtat").hidden = false;
+      document.getElementById("facEmiseEtat").textContent =
+        "Vos données sont en cours d'envoi au serveur : réessayez dans un instant.";
+      metier.demarrer();
+      return;
+    }
     f.num = numeroFactureSuivant();
     var refs = f.refs || [];
     /* On écrit le registre EN UNE FOIS : passer par « majCourse » course par
@@ -19351,7 +19416,8 @@ window.ELA_TEXTES = {
                                  chauffeurs: chauffeurs(), factures: factures(),
                                  rangFacture: rang, entreprise: entreprise(),
                                  paiementsChauffeurs: paiementsChauffeurs(),
-                                 lienAvis: lienAvis() }, null, 1),
+                                 lienAvis: lienAvis(),
+                                 nonImportes: lireJson(CLE_METIER_RESTE, null) }, null, 1),
                 "application/json");
     document.getElementById("regSauvEtat").textContent =
       "Sauvegarde téléchargée — courses, chauffeurs et factures. "
@@ -19468,6 +19534,11 @@ window.ELA_TEXTES = {
         dessinerSauvegardeBord();
         etat.textContent = n + (n > 1 ? " courses ajoutées." : " course ajoutée.")
           + " Celles déjà présentes n'ont pas été touchées." + sup;
+        /* CE QUI VIENT D'ÊTRE RESTAURÉ PART AUSSI SUR LE SERVEUR : l'import
+           ajoute ce qui lui manque et ne remplace rien (rejouer une même
+           sauvegarde n'ajoute rien). */
+        if(nuage.connecte() && metier.pret !== false && estAdmin())
+          importerAppareil(true).then(function(ok){ if(ok) relireMetier(); });
       }catch(err){
         etat.textContent = "Ce fichier n'est pas une sauvegarde du registre.";
       }
@@ -19475,6 +19546,357 @@ window.ELA_TEXTES = {
     };
     lecteur.readAsText(f);
   });
+
+/* =====================================================================
+   LES DONNÉES MÉTIER VIVENT SUR LE SERVEUR (24 octobre 2026, P1)
+   ---------------------------------------------------------------------
+   Le carnet, les règlements des chauffeurs, les factures (et leur
+   numéro), l'émetteur et le lien d'avis ne vivaient QUE dans ce
+   téléphone : perdu, changé ou vidé par Safari, tout partait, et un
+   second appareil ne voyait rien. Ils vivent désormais sur le serveur
+   (20261024010000_donnees_metier_serveur.sql) ; le téléphone n'en garde
+   qu'une COPIE, lue par les mêmes fonctions qu'avant (chauffeurs(),
+   paiementsChauffeurs(), factures()) — d'où l'absence de changement
+   ailleurs dans l'écran.
+   - ÉCRIRE : la copie d'abord (l'écran répond tout de suite), puis une
+     FILE d'envoi gardée sur l'appareil (« ela_metier_file »), rejouée
+     jusqu'à ce que le serveur dise oui. Chaque fiche porte son
+     identifiant d'appareil : rejouer ne crée jamais de doublon. Une
+     fiche porte aussi sa version : un autre appareil passé avant gagne,
+     et l'écran le dit.
+   - LIRE : le serveur remplace la copie, sauf ce qui attend encore dans
+     la file.
+   - LA BASCULE D'UN APPAREIL, une fois par compte : ses données sont
+     ENVOYÉES (import qui ajoute, ne remplace rien), RELUES sur le
+     serveur, VÉRIFIÉES une à une, et seulement alors le serveur devient
+     la source. Rien n'est effacé : la copie d'avant est gardée
+     (« ela_metier_avant_import »), et ce que le serveur n'a pas pu
+     prendre (conflit, fiche illisible) reste dans
+     « ela_metier_non_importes » et part dans la sauvegarde.
+   - LA FACTURE prend son numéro sur le serveur, en une instruction :
+     deux appareils ne peuvent plus émettre le même. Tant que le serveur
+     n'est pas prêt (migration non appliquée), l'ancien chemin reste.
+   ===================================================================== */
+  var CLE_FILE_METIER = "ela_metier_file";
+  var CLE_METIER_SERVEUR = "ela_metier_serveur";
+  var CLE_METIER_AVANT = "ela_metier_avant_import";
+  var CLE_METIER_RESTE = "ela_metier_non_importes";
+  /* « pret » : null tant qu'on ne sait pas, false si le serveur n'a pas
+     ces fonctions (ou refuse ce compte), true sinon. */
+  var metier = { pret: null, envoi: null, lecture: null, minuterie: null };
+
+  function lireJson(cle, defaut){
+    try{ var v = JSON.parse(localStorage.getItem(cle) || "null"); return v === null ? defaut : v; }
+    catch(e){ return defaut; }
+  }
+  function ecrireJson(cle, v){ try{ localStorage.setItem(cle, JSON.stringify(v)); }catch(e){} }
+  function fileMetier(){ var l = lireJson(CLE_FILE_METIER, []); return Array.isArray(l) ? l : []; }
+  function compteSession(){ return nuage.idSession ? nuage.idSession() : ""; }
+  function metierBascule(){
+    var m = lireJson(CLE_METIER_SERVEUR, null), id = compteSession();
+    return !!(m && id && m.id === id);
+  }
+  function metierActif(){ return metier.pret === true && nuage.connecte() && metierBascule(); }
+  function nouvelId(prefixe){
+    var r = "";
+    try{ r = crypto.randomUUID().replace(/-/g, "").slice(0, 10); }
+    catch(e){ r = Math.random().toString(36).slice(2, 12); }
+    return prefixe + Date.now().toString(36) + "-" + r;
+  }
+  function uuid(){
+    try{ return crypto.randomUUID(); }catch(e){}
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c){
+      var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16);
+    });
+  }
+  function direMetier(t, erreur, deLaFile){
+    var e = document.getElementById("metierEtat");
+    if(!e) return;
+    /* La file n'efface que ce qu'elle a dit elle-même : le compte rendu de
+       l'import reste lisible. */
+    if(!t && deLaFile && e.dataset.file !== "1") return;
+    e.dataset.file = deLaFile ? "1" : "";
+    e.hidden = !t; e.textContent = t || "";
+    e.style.color = erreur ? "#C9302F" : "";
+  }
+
+  /* L'APPEL AU SERVEUR, AVEC SA RÉPONSE : « nuage.appel » ne rend que le
+     code (« nuage 400 »), et ici le motif décide du geste (une version
+     dépassée n'est pas une panne). Un 401 renouvelle la session une fois. */
+  function appelMetier(nom, corps, reessai){
+    var ctrl = new AbortController();
+    var minuteur = setTimeout(function(){ ctrl.abort(); }, 12000);
+    var entetes = { apikey: SUPABASE_CLE, "Content-Type": "application/json" };
+    if(nuage.connecte()) entetes.Authorization = "Bearer " + nuage.session.access_token;
+    return fetch(SUPABASE_URL + "/rest/v1/rpc/" + nom, {
+      method: "POST", headers: entetes, signal: ctrl.signal, body: JSON.stringify(corps || {})
+    }).then(function(r){
+      clearTimeout(minuteur);
+      return r.text().then(function(t){
+        var j = null;
+        try{ j = t ? JSON.parse(t) : null; }catch(e){ j = null; }
+        if(r.status === 401 && !reessai && nuage.session && nuage.session.refresh_token)
+          return nuage.rafraichir().then(function(ok){
+            return ok ? appelMetier(nom, corps, true) : { ok:false, status:401, j:j, motif:"" };
+          });
+        var motif = j && !r.ok ? String(j.message || j.msg || "") : "";
+        return { ok: r.ok, status: r.status, j: j, motif: motif };
+      });
+    }, function(){
+      clearTimeout(minuteur);
+      return { ok:false, status:0, j:null, motif:"" };
+    });
+  }
+  /* Une panne (réseau, 5xx, 401/403 d'une session à refaire) se rejoue ;
+     un refus motivé du serveur (400) ne se rejouera jamais mieux. */
+  function panneMetier(r){ return r.status === 0 || r.status >= 500 || r.status === 401 || r.status === 403 || r.status === 429; }
+  function estAdmin(){ return window.ELA_ROLE !== "agent_reservation"; }
+
+  /* ── LA FILE ── */
+  function mettreEnFileMetier(op){
+    /* Rien ne se met en file tant que l'appareil n'a pas basculé : avant,
+       c'est sa copie qui sera envoyée en bloc par l'import. L'agent n'écrit
+       ni le carnet ni l'argent (le serveur le refuserait). */
+    if(!metierActif() || !estAdmin()) return;
+    var l = fileMetier().filter(function(x){
+      /* La dernière écriture d'une même fiche remplace la précédente. */
+      return !(x.cle === op.cle);
+    });
+    l.push(op);
+    ecrireJson(CLE_FILE_METIER, l);
+    viderFileMetier();
+  }
+  metier.chauffeur = function(fiche){
+    mettreEnFileMetier({ cle: "ch:" + fiche.id, fn: "ela_chauffeur_ecrire", corps: { p: fiche } });
+  };
+  metier.retirerChauffeur = function(id){
+    mettreEnFileMetier({ cle: "ch:" + id, fn: "ela_chauffeur_retirer", corps: { p_id: id } });
+  };
+  metier.reglement = function(p){
+    mettreEnFileMetier({ cle: "rg:" + p.id, fn: "ela_reglement_ecrire", corps: { p: p } });
+  };
+  metier.retirerReglement = function(id){
+    mettreEnFileMetier({ cle: "rg:" + id, fn: "ela_reglement_retirer", corps: { p_id: id } });
+  };
+  function viderFileMetier(){
+    if(!metierActif()) return Promise.resolve(false);
+    if(metier.envoi) return metier.envoi;
+    var conflits = [];
+    function suivant(){
+      var op = fileMetier()[0];
+      if(!op) return Promise.resolve(true);
+      return appelMetier(op.fn, op.corps).then(function(r){
+        if(!r.ok && panneMetier(r)) return false;
+        /* Accepté, ou refusé pour de bon : l'opération quitte la file. Un
+           conflit de version est DIT, et la relecture qui suit montre la
+           fiche du serveur. */
+        ecrireJson(CLE_FILE_METIER, fileMetier().filter(function(x){ return x.cle !== op.cle || x.fn !== op.fn; }));
+        if(r.ok && op.fn === "ela_chauffeur_ecrire" && r.j && r.j.id){
+          var l = chauffeurs();
+          l.forEach(function(c, i){ if(c.id === r.j.id) l[i].version = r.j.version; });
+          ecrireChauffeurs(l);
+        }
+        if(!r.ok) conflits.push(r.motif.indexOf("conflit_version") >= 0
+          ? "une fiche a été modifiée sur un autre appareil : c'est sa version qui est affichée"
+          : "une modification a été refusée par le serveur (" + (r.motif || r.status) + ")");
+        return suivant();
+      });
+    }
+    metier.envoi = suivant().then(function(fini){
+      metier.envoi = null;
+      if(conflits.length){ direMetier("Attention : " + conflits.join(" ; ") + ".", true, true); relireMetier(); }
+      else if(!fini) direMetier("Pas encore envoyé au serveur : " + fileMetier().length + " modification(s) en attente, renvoyée(s) dès que possible.", true, true);
+      else direMetier("", false, true);
+      return fini;
+    });
+    return metier.envoi;
+  }
+
+  /* ── LA LECTURE ── le serveur remplace la copie, sauf ce qui attend. */
+  function surcouche(liste, prefixe, fnEcrire){
+    var l = liste.slice(), file = fileMetier();
+    file.forEach(function(op){
+      if(op.cle.indexOf(prefixe) !== 0) return;
+      var id = op.cle.slice(prefixe.length);
+      l = l.filter(function(x){ return x.id !== id; });
+      if(op.fn === fnEcrire) l.push(op.corps.p);
+    });
+    return l;
+  }
+  function relireMetier(){
+    if(!metierActif()) return Promise.resolve(false);
+    if(metier.lecture) return metier.lecture;
+    var admin = estAdmin();
+    metier.lecture = Promise.all([
+      appelMetier("ela_chauffeurs_lister", {}),
+      admin ? appelMetier("ela_reglements_lister", {}) : Promise.resolve(null),
+      admin ? appelMetier("ela_factures_lister", {}) : Promise.resolve(null),
+      admin ? nuage.lireParametre("entreprise_emettrice").catch(function(){ return undefined; }) : Promise.resolve(undefined),
+      nuage.lireParametre("lien_avis").catch(function(){ return undefined; })
+    ]).then(function(rs){
+      var ch = rs[0], rg = rs[1], fa = rs[2];
+      if(ch && ch.ok && Array.isArray(ch.j)){
+        /* L'agent ne reçoit pas les taux : il garde ceux de sa copie. */
+        var avant = {};
+        chauffeurs().forEach(function(c){ avant[c.id] = c; });
+        ecrireChauffeurs(surcouche(ch.j, "ch:", "ela_chauffeur_ecrire").map(function(c){
+          if(!admin && avant[c.id]){ c.taux = avant[c.id].taux; c.tauxMode = avant[c.id].tauxMode; }
+          return c;
+        }));
+      }
+      if(rg && rg.ok && Array.isArray(rg.j)) ecrirePaiements(surcouche(rg.j, "rg:", "ela_reglement_ecrire"));
+      if(fa && fa.ok && Array.isArray(fa.j)){
+        /* Une facture ne disparaît jamais d'ici : l'union par numéro. */
+        var vues = {}, l = fa.j.slice();
+        l.forEach(function(f){ vues[f.num] = true; });
+        factures().forEach(function(f){ if(f && f.num && !vues[f.num]) l.push(f); });
+        l.sort(function(a, b){ return String(a.num).localeCompare(String(b.num)); });
+        try{ localStorage.setItem(CLE_FACTURES, JSON.stringify(l)); }catch(e){}
+      }
+      var em = rs[3];
+      if(em && typeof em === "object" && !metier.entrepriseEnAttente){
+        try{ localStorage.setItem(CLE_ENTREPRISE, JSON.stringify({ nom: em.nom || "", siret: em.siret || "",
+          adresse: em.adresse || "", contact: em.contact || "", tva: +em.taux_tva || 0 })); }catch(e){}
+        var bloc = document.getElementById("blocEntreprise");
+        if(!(bloc && bloc.contains(document.activeElement))) lireEntreprise();
+      }
+      var av = rs[4];
+      if(av && typeof av.url === "string" && !metier.avisEnAttente){
+        try{ localStorage.setItem(CLE_LIEN_AVIS, av.url); }catch(e){}
+        var champ = document.getElementById("lienAvis");
+        if(champ && document.activeElement !== champ) champ.value = av.url;
+      }
+      dessinerChauffeurs(); dessinerFacturesEmises();
+      dessinerDettes(); dessinerDettesBord();
+      return true;
+    }).then(function(v){ metier.lecture = null; return v; }, function(){ metier.lecture = null; return false; });
+    return metier.lecture;
+  }
+
+  /* ── LA BASCULE : envoyer → relire → vérifier → seulement alors ── */
+  function sauvegardeAppareil(){
+    return { format: "elatransfer-1", chauffeurs: chauffeurs(), paiementsChauffeurs: paiementsChauffeurs(),
+             factures: factures(), rangFacture: localStorage.getItem(CLE_RANG_FAC),
+             entreprise: entreprise(), lienAvis: lienAvis() };
+  }
+  function importerAppareil(force){
+    if(!nuage.connecte() || !compteSession()) return Promise.resolve(false);
+    if(metierBascule() && !force){ metier.pret = true; return Promise.resolve(true); }
+    var donnees = sauvegardeAppareil();
+    return appelMetier("ela_importer_appareil", { p: donnees }).then(function(r){
+      /* Le serveur n'a pas ces fonctions (404), refuse ce compte (403), ou
+         rend autre chose qu'un compte rendu : l'appareil reste la source,
+         exactement comme avant. */
+      if(!r.ok || !r.j || typeof r.j.chauffeurs !== "object"){
+        if(r.status === 404 || r.status === 403 || (r.ok && (!r.j || typeof r.j.chauffeurs !== "object"))) metier.pret = false;
+        return false;
+      }
+      var cr = r.j;
+      return Promise.all([
+        appelMetier("ela_chauffeurs_lister", { p_tous: true }),
+        appelMetier("ela_reglements_lister", { p_tous: true }),
+        appelMetier("ela_factures_lister", {})
+      ]).then(function(rs){
+        if(!rs.every(function(x){ return x.ok && Array.isArray(x.j); })) return false;
+        var surServeur = function(liste, cle){ var v = {}; liste.forEach(function(x){ v[x[cle]] = true; }); return v; };
+        var ch = surServeur(rs[0].j, "id"), rg = surServeur(rs[1].j, "id"), fa = surServeur(rs[2].j, "num");
+        var aPart = function(liste){ var v = {}; (liste || []).forEach(function(x){ v[String(x).split(" ")[0]] = true; }); return v; };
+        var chAPart = aPart(cr.chauffeurs.conflits.concat(cr.chauffeurs.refuses));
+        var rgAPart = aPart(cr.reglements.conflits.concat(cr.reglements.refuses));
+        var faAPart = aPart(cr.factures.conflits.concat(cr.factures.refuses));
+        var reste = { chauffeurs: [], paiementsChauffeurs: [], factures: [] }, manque = 0;
+        /* Chaque élément envoyé est soit RELU sur le serveur, soit mis à
+           part par le compte rendu (conflit, illisible) et gardé ici. */
+        function trier(liste, cle, surS, aPartS, garde){
+          liste.forEach(function(x){
+            var k = x && x[cle];
+            if(k && aPartS[k]){ garde.push(x); return; }
+            if(!k){ garde.push(x); return; }
+            if(!surS[k]) manque++;
+          });
+        }
+        trier(donnees.chauffeurs, "id", ch, chAPart, reste.chauffeurs);
+        trier(donnees.paiementsChauffeurs, "id", rg, rgAPart, reste.paiementsChauffeurs);
+        trier(donnees.factures, "num", fa, faAPart, reste.factures);
+        /* UN ÉLÉMENT ENVOYÉ QUI N'EST PAS RELU SUR LE SERVEUR : on ne
+           bascule pas. L'appareil reste la source, rien n'est touché, on
+           réessaiera au prochain passage. */
+        if(manque) { direMetier("Envoi au serveur incomplet (" + manque + " élément(s) non relus) : vos données restent sur cet appareil, nouvel essai bientôt.", true); return false; }
+        if(!lireJson(CLE_METIER_AVANT, null)) ecrireJson(CLE_METIER_AVANT, { le: new Date().toISOString(), donnees: donnees });
+        var garde = lireJson(CLE_METIER_RESTE, null) || { chauffeurs: [], paiementsChauffeurs: [], factures: [] };
+        ["chauffeurs", "paiementsChauffeurs", "factures"].forEach(function(k){ garde[k] = (garde[k] || []).concat(reste[k]); });
+        var nReste = reste.chauffeurs.length + reste.paiementsChauffeurs.length + reste.factures.length;
+        if(nReste) ecrireJson(CLE_METIER_RESTE, garde);
+        ecrireJson(CLE_METIER_SERVEUR, { id: compteSession(), le: new Date().toISOString(), compteRendu: cr });
+        metier.pret = true;
+        var aj = cr.chauffeurs.ajoutes + cr.reglements.ajoutes + cr.factures.ajoutes;
+        direMetier("Vos chauffeurs, règlements et factures sont sur le serveur"
+          + (aj ? " (" + aj + " élément(s) envoyé(s) depuis cet appareil)" : "")
+          + (nReste ? ". " + nReste + " élément(s) en conflit avec le serveur restent gardés sur cet appareil et dans la sauvegarde." : "."), !!nReste);
+        return true;
+      });
+    });
+  }
+  metier.demarrer = function(){
+    if(!nuage.connecte()) return Promise.resolve(false);
+    return importerAppareil(false).then(function(ok){
+      if(!ok) return false;
+      return viderFileMetier().then(relireMetier);
+    });
+  };
+  document.addEventListener("ela:espace", function(){ metier.demarrer(); });
+  document.addEventListener("ela:acces", function(){ metier.demarrer(); });
+  window.addEventListener("online", function(){ if(metierActif()) viderFileMetier().then(relireMetier); });
+  metier.minuterie = setInterval(function(){
+    if(document.hidden || !document.body.classList.contains("espace")) return;
+    if(metier.pret === null || (metier.pret === true && !metierBascule())) { metier.demarrer(); return; }
+    if(metierActif()) viderFileMetier().then(relireMetier);
+  }, 60000);
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden && metierActif() && document.body.classList.contains("espace")) viderFileMetier().then(relireMetier);
+  });
+
+  /* L'émetteur et le lien d'avis : écrits sur le serveur un instant après
+     la dernière frappe (un envoi par lettre serait absurde). */
+  var minuteurEntreprise = null, minuteurAvis = null;
+  metier.entreprise = function(e){
+    if(!metierActif() || !estAdmin()) return;
+    metier.entrepriseEnAttente = true;
+    clearTimeout(minuteurEntreprise);
+    minuteurEntreprise = setTimeout(function(){
+      nuage.majParametre("entreprise_emettrice", { nom: e.nom, siret: e.siret, adresse: e.adresse,
+        contact: e.contact, taux_tva: +e.tva || 0 }).then(function(){ metier.entrepriseEnAttente = false; },
+        function(){ metier.entrepriseEnAttente = false; direMetier("L'identité de l'émetteur n'a pas pu être enregistrée sur le serveur : elle reste sur cet appareil.", true); });
+    }, 800);
+  };
+  metier.lienAvis = function(url){
+    if(!metierActif() || !estAdmin()) return;
+    metier.avisEnAttente = true;
+    clearTimeout(minuteurAvis);
+    minuteurAvis = setTimeout(function(){
+      nuage.majParametre("lien_avis", { url: url }).then(function(){ metier.avisEnAttente = false; },
+        function(){ metier.avisEnAttente = false; direMetier("Le lien d'avis n'a pas pu être enregistré sur le serveur.", true); });
+    }, 800);
+  };
+
+  /* LA FACTURE, SUR LE SERVEUR. Le numéro est pris par le serveur ; la clé
+     tirée à la préparation fait qu'un double appui, ou un nouvel essai
+     après une coupure, rendent la MÊME facture. */
+  metier.emettreFacture = function(f){
+    return viderFileMetier().then(function(){
+      return appelMetier("ela_facture_emettre", { p: f });
+    }).then(function(r){
+      if(r.ok && r.j && r.j.num) return r.j;
+      var m = r.motif || "";
+      throw new Error(r.status === 0 ? "Le serveur n'a pas répondu : la facture n'est pas émise. Réessayez — si elle l'avait été, c'est la même qui reviendra."
+        : m.indexOf("chauffeur_inconnu") >= 0 ? "Ce chauffeur n'est pas encore enregistré sur le serveur : ouvrez sa fiche, enregistrez-la, puis réessayez."
+        : m.indexOf("course_non_facturable") >= 0 ? "Une de ces courses n'est plus à facturer (facturée sur un autre appareil ?). Préparez à nouveau la facture."
+        : m.indexOf("emetteur_incomplet") >= 0 ? "Il manque vos informations d'entreprise (nom, SIRET, adresse)."
+        : m.indexOf("montants_incoherents") >= 0 ? "Les montants ne tombent pas juste : préparez à nouveau la facture."
+        : "Le serveur a refusé la facture (" + (m || r.status) + "). Elle n'est pas émise.");
+    });
+  };
+  window.ELA_METIER = metier;
 
 /* =====================================================================
    L'AFFICHE DES HÔTELS — L'ENCODEUR QR A DÉMÉNAGÉ

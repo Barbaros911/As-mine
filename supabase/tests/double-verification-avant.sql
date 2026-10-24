@@ -114,7 +114,7 @@ do $$ begin
   if not public.est_exploitant() then
     raise exception 'DÉCOR FAUX : avant la migration, le mot de passe seul devrait suffire';
   end if;
-  if (select count(*) from public.courses) <> 1 then
+  if (select count(*) from public.courses) is distinct from 1 then
     raise exception 'DÉCOR FAUX : avant la migration, la course devrait être lisible au mot de passe seul';
   end if;
 end $$;

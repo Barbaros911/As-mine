@@ -498,6 +498,20 @@ jobs:
         shell: bash
         env: {PGPASSWORD: postgres, PGHOST: 127.0.0.1, PGUSER: postgres}
         run: sh supabase/tests/double-verification.sh
+      # LES DONNÉES MÉTIER DE L'ADMIN SUR LE SERVEUR (24 octobre 2026, P1).
+      # Le décor reproduit d'abord la part serveur du trou (l'agent écrit le
+      # carnet), puis exige : anon, non-opérateur et admin en aal1 refusés ;
+      # carnet versionné (rejeu sans doublon, conflit refusé), lu par l'agent
+      # sans les taux ; règlement unique par identifiant ; facture numérotée
+      # après le compteur existant, rejouée sans doublon, aucun refus qui
+      # brûle un numéro ; DEUX SESSIONS RÉELLES (dblink) qui émettent en même
+      # temps ; l'import d'une ancienne sauvegarde qui ajoute, ne remplace
+      # rien, dit les conflits et se rejoue sans doublon ; la relecture dans
+      # une autre session ; une base sans les tables d'Admin v2.
+      - name: Les données métier, exécutées et non relues
+        shell: bash
+        env: {PGPASSWORD: postgres, PGHOST: 127.0.0.1, PGUSER: postgres}
+        run: sh supabase/tests/donnees-metier.sh
       - name: Le Pilotage en HTTP (PostgREST)
         shell: bash
         env: {PGHOST: 127.0.0.1, PGPORT: '5432', PGUSER: postgres, PGPASSWORD: postgres}
