@@ -69,7 +69,8 @@ dernier main → une branche courte par tâche → PR vers main
   agents et `main` : `ai-dev` est retirée (17/10/2026), ne pas la recréer.
 
 **Avant de commencer quoi que ce soit :** lire le dernier `main`, les PR
-ouvertes, les Issues `[TEAM]` et les branches actives sur la zone.
+ouvertes, les Issues `[TEAM]`, les branches actives sur la zone et les
+priorités actives (§11).
 
 *(15/09 — Claude a travaillé 83 commits en retard. Fusionner à l'aveugle
 aurait supprimé le travail de sécurité de ChatGPT.)*
@@ -166,6 +167,57 @@ logo · l'identité visuelle · le design validé · l'organisation du produit.
 **Et ne jamais recréer une interface déjà unifiée** : on la corrige là où elle
 est.
 
+## 11. Les priorités : finir l'important avant de polir
+
+**Avant d'engager une nouvelle tâche qui produira du code**, l'agent — Claude,
+ChatGPT ou un autre — la classe :
+
+| | Ce qui en relève |
+|---|---|
+| **P0** critique | sécurité · données · réservation cassée ou peu fiable · paiement · juridique, conformité · production indisponible · commandes qui peuvent se perdre |
+| **P1** business | acquisition (clients, hôtels) · conversion · chiffre d'affaires · exploitation · un problème opérationnel important |
+| **P2** utile | UX · clarté commerciale · performance non critique · un vrai progrès, non bloquant |
+| **P3** parking | esthétique · micro-texte · détail graphique · optimisation sans problème mesuré · perfectionner ce qui est déjà bon |
+
+**L'état se lit sur GitHub, jamais dans un fichier.** La priorité d'une tâche
+est l'**étiquette** `P0`, `P1`, `P2` ou `P3` de son Issue ; celui qui ouvre
+l'Issue la pose, Barbaros la change quand il veut. **Active** = Issue ouverte
+étiquetée P0, P1 ou P2 : **trois au plus**. **Parking** = Issue ouverte
+étiquetée P3 : hors plafond, rien ne se perd. Une Issue sans étiquette (le
+canal #164) ne compte pas ; une tâche faite sur-le-champ n'a pas besoin
+d'Issue, sa PR dit sa priorité. Claude les lit par `/etat` (et au début de
+chaque session) ; ChatGPT, dans la liste des Issues filtrée par étiquette.
+
+**L'agent l'annonce en quatre lignes, puis :**
+
+```
+Priorité : P0 / P1 / P2 / P3 — raison concrète
+Impact : ce que ça change pour un client, un hôtel ou Barbaros
+Conflit avec une priorité supérieure : oui (#numéro) / non
+Recommandation : faire maintenant / après le P0-P1 / parking
+```
+
+- « Faire maintenant » : il commence, **sans attendre de réponse**.
+- Sinon, il **attend la décision de Barbaros**. S'il confirme, on le fait :
+  c'est lui qui décide, et il peut changer d'avis. Au-delà de trois actives,
+  la nouvelle en remplace une (l'agent dit laquelle) ou va au parking.
+- Une tâche moins prioritaire ne prend jamais **en silence** la place d'un P0
+  ou d'un P1 actif.
+- **Pas d'annonce** pour une question, une correction à l'intérieur d'une
+  tâche déjà classée, une faute de frappe. **Un P0 s'annonce en une ligne et
+  part aussitôt** : cette règle ne retarde jamais une urgence.
+
+**La règle du 8/10.** Ce qui n'est pas critique, fonctionne et ne présente
+aucun problème mesuré ne se retravaille pas pour viser 10/10. On ne le rouvre
+que sur au moins un de ces motifs : un problème observé chez un utilisateur ·
+une anomalie mesurée · un impact commercial plausible et nommé · une dette
+technique au coût concret · un risque sécurité, juridique ou données · une
+nouvelle décision de Barbaros. Elle ne s'applique pas aux domaines du P0.
+
+*(24/10/2026 — 122 commits sur `main` en trois jours, surtout des icônes et des
+couleurs, pendant que le P0 #399, fiabilité de la réservation, n'avait plus
+ni branche ni PR.)*
+
 ---
 
 ## Ce qui reste hors de ce fichier
@@ -174,7 +226,8 @@ est.
   lignes chacune. Leur histoire est dans `memoire/`, un fichier par sujet. Un
   plafond tenu par `test-doc.mjs` l'empêche de regrossir.
 - **`AGENTS.md`** : les zones critiques et les statuts de tâche.
-- **`PROJECT_STATE.md`** : ce qui est décidé, prévu, bloqué.
+- **`PROJECT_STATE.md`** : ce qui est décidé, prévu, bloqué — jamais les
+  priorités du moment, qui sont des étiquettes d'Issue (§11).
 - **`.ai/README.md`** : comment les agents IA exécutent ces règles.
 
 **Une règle peut vieillir. Vérifier avant de s'en servir pour refuser quelque
