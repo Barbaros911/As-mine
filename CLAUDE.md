@@ -320,26 +320,26 @@ Histoire : `memoire/tunnel-client.md`, `memoire/formulaire-public.md`.
   sont biaisés vers Paris ; le classement (`note()`, `bonusDistance()` :
   ≤ 90 km +3, ≤ 200 +1, ≤ 400 0, au-delà −2) **rapproche, n'exclut jamais**.
   L'étranger apparaît, pays écrit, et se juge au **choix**, pas à la recherche.
-  « œ » se ramène à « oe » ; un monument ou une rue nommés passent devant un
-  bar qui porte leur nom.
 - **Mapbox Search Box n'est PAS branché, c'est une décision** : résultats
-  « temporaires », carte Mapbox imposée, carte bancaire. Conditions lues dans
-  des citations : les relire avant de rouvrir.
+  « temporaires », carte Mapbox imposée, carte bancaire.
 - **Une panne n'est jamais mise en cache** comme « aucune adresse » ; la liste
   dit « Recherche momentanément indisponible ».
+- **La liste n'attend pas le plus lent** (24/10) : elle s'affiche dès que le
+  service qui fait autorité répond (`partiel`), se complète **sans déplacer
+  une ligne visible**, et ne bouge plus une fois touchée.
 - **`brancher()` rend une prise `poser(item)`** : toute écriture venue de
   l'extérieur passe par elle, sinon on part avec les coordonnées d'un lieu et
-  le nom d'un autre. L'admin choisit ses lieux par le même `brancher()`.
+  le nom d'un autre ; l'admin aussi.
 - **Le lieu structuré** (`departLieu`, `arriveeLieu`, `lieuStructure()`) vient
   d'un élément **choisi** ; « Modifier la course » efface celui d'une adresse
   retapée.
 - **« Me localiser » rend une ADRESSE, pas une position** : au départ
-  seulement (il remplace le chevron), relue par la BAN (`/reverse/`), avec les
-  coordonnées **de l'adresse** ; trois messages distincts (refus, pas
-  d'adresse, panne) ; on invite à vérifier ; **rien n'est conservé** (la
-  politique de confidentialité le dit). 44 px, aucun `position:relative`.
+  seulement, relue par la BAN (`/reverse/`), avec les coordonnées **de
+  l'adresse** ; position rapide d'abord, satellites au-delà de
+  `PRECISION_GEO_M` ; trois messages (refus, pas d'adresse, panne) ; **rien
+  n'est conservé**. 44 px, aucun `position:relative`.
 
-Histoire : `memoire/recherche-adresse.md`.
+Histoire : `memoire/recherche-adresse.md`, `test-recherche-rapide.mjs`.
 
 ## L'itinéraire et la carte
 

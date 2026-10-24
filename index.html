@@ -6589,6 +6589,7 @@ window.ELA_TEXTES = {
     geo_recherche:"Localisation en cours…",
     geo_verifiez:"Vérifiez l'adresse : le GPS se trompe souvent de numéro.",
     geo_sans_adresse:"Aucune adresse trouvée à cet endroit. Saisissez-la à la main.",
+    geo_panne:"Recherche d'adresse momentanément indisponible. Réessayez, ou saisissez l'adresse.",
     geo_refus:"Localisation refusée. Autorisez-la dans les réglages de votre navigateur, ou saisissez l'adresse.",
     geo_echec:"Impossible de vous localiser. Saisissez l'adresse.",
     geo_indispo:"Votre navigateur ne sait pas vous localiser. Saisissez l'adresse.",
@@ -6841,6 +6842,7 @@ window.ELA_TEXTES = {
     geo_recherche:"Locating…",
     geo_verifiez:"Check the address: GPS often gets the street number wrong.",
     geo_sans_adresse:"No address found at this spot. Please type it in.",
+    geo_panne:"Address lookup is temporarily unavailable. Try again, or type the address.",
     geo_refus:"Location denied. Allow it in your browser settings, or type the address.",
     geo_echec:"Could not locate you. Please type the address.",
     geo_indispo:"Your browser cannot locate you. Please type the address.",
@@ -7487,7 +7489,22 @@ window.ELA_TEXTES = {
      liste — servir l'une pour l'autre serait servir la réponse d'une autre
      question. Et UNE PANNE N'EST JAMAIS GARDÉE : voir plus bas. */
   var cache = {};
-  function chercher(q, ctx){
+  /* ═══ LA LISTE N'ATTEND PLUS LE PLUS LENT (24 octobre 2026) ═══
+     Barbaros : « la recherche prend trop de temps ». Mesuré : la liste
+     n'apparaissait qu'une fois TOUS les appels revenus (la BAN et un ou
+     deux Photon) ; un Photon à 3 s faisait attendre 3 s une adresse que la
+     BAN avait rendue en 0,15 s, un Photon muet 6 s. Photon est un serveur
+     public gratuit, sans garantie de vitesse.
+     Désormais, « partiel » reçoit une première liste dès que le service qui
+     FAIT AUTORITÉ a répondu (la BAN pour une saisie qui commence par un
+     chiffre, le premier Photon pour un nom de lieu), après une courte
+     patience pour laisser les autres arriver ensemble ; et au plus tard à
+     PATIENCE_MAX_MS si un service quelconque a déjà des résultats. La
+     promesse rend toujours la liste complète, mise en cache comme avant :
+     un appelant qui ne passe pas « partiel » (l'admin) ne voit aucune
+     différence. Le classement est le même : c'est « assembler ». */
+  var PATIENCE_MS = 350, PATIENCE_MAX_MS = 1200;
+  function chercher(q, ctx, partiel){
     if(!q || q.trim().length < 2) return Promise.resolve([]);
     var contexte = { lang:LANGUE,
       lat:ctx && typeof ctx.lat === "number" ? ctx.lat : undefined,
@@ -7497,24 +7514,18 @@ window.ELA_TEXTES = {
     if(cache[clef]) return Promise.resolve(cache[clef]);
     var terminaux = terminauxPourSaisie(q);
     var formes = variantes(q);
-    return Promise.all([depuisBAN(q, contexte)].concat(formes.map(function(f){ return depuisPhoton(f, contexte); })))
-      .then(function(res){
-        /* UN SERVICE MUET N'EST PAS UN SERVICE QUI N'A RIEN TROUVÉ. Avant,
-           une seconde de réseau perdue faisait garder une liste VIDE pour
-           cette saisie : le client retapait son adresse et lisait « Aucune
-           adresse trouvée » jusqu'au rechargement de la page. On ne garde
-           donc rien quand un service n'a pas répondu, et une liste vide due
-           à une panne le DIT (« echec ») pour que l'écran propose de
-           réessayer plutôt que de déclarer l'adresse introuvable. */
-        var panne = res.some(function(r){ return r && r.echec; });
-        var ban = res[0];
-        var photon = res.slice(1).reduce(function(a,b){ return a.concat(b); }, []);
+    /* La saisie dit ce que le client cherche : commencer par un chiffre,
+       c'est une adresse postale, et la BAN fait autorité. Sinon c'est un
+       nom de lieu, et seul OpenStreetMap sait le situer. */
+    var chercheAdresse = /^\s*\d/.test(q);
+    var appels = [depuisBAN(q, contexte)].concat(formes.map(function(f){ return depuisPhoton(f, contexte); }));
+    /* Une réponse pas encore arrivée compte pour une liste vide : la même
+       fonction classe la liste partielle et la liste complète. */
+    var assembler = function(res){
+        var ban = res[0] || [];
+        var photon = res.slice(1).reduce(function(a,b){ return a.concat(b || []); }, []);
         var nommes = photon.filter(function(r){ return r.lieuNomme; });
         var simples = photon.filter(function(r){ return !r.lieuNomme; });
-        /* La saisie dit ce que le client cherche : commencer par un chiffre,
-           c'est une adresse postale, et la BAN fait autorité. Sinon c'est un
-           nom de lieu, et seul OpenStreetMap sait le situer. */
-        var chercheAdresse = /^\s*\d/.test(q);
         var mots = sansAccents(q).split(/[^a-z0-9]+/).filter(Boolean);
         var classer = function(l){
           return l.map(function(it,i){ return { it:it, i:i, s:note(it,mots) }; })
@@ -7544,7 +7555,32 @@ window.ELA_TEXTES = {
           reste = reste.filter(function(it){ return devant.indexOf(it) === -1; });
         }
         var ordre = devant.concat(terminaux, reste);
-        var sortie = dedoublonner(ordre).slice(0, terminaux.length ? terminaux.length+devant.length+3 : 8);
+        return dedoublonner(ordre).slice(0, terminaux.length ? terminaux.length+devant.length+3 : 8);
+    };
+    var fini = false;
+    if(typeof partiel === "function"){
+      var recus = [];
+      appels.forEach(function(a, i){ a.then(function(r){ recus[i] = r; }); });
+      var montrer = function(){
+        if(fini) return;
+        var l = assembler(recus);
+        if(l.length) partiel(l);
+      };
+      appels[chercheAdresse ? 0 : 1].then(function(){ setTimeout(montrer, PATIENCE_MS); });
+      setTimeout(montrer, PATIENCE_MAX_MS);
+    }
+    return Promise.all(appels)
+      .then(function(res){
+        fini = true;
+        /* UN SERVICE MUET N'EST PAS UN SERVICE QUI N'A RIEN TROUVÉ. Avant,
+           une seconde de réseau perdue faisait garder une liste VIDE pour
+           cette saisie : le client retapait son adresse et lisait « Aucune
+           adresse trouvée » jusqu'au rechargement de la page. On ne garde
+           donc rien quand un service n'a pas répondu, et une liste vide due
+           à une panne le DIT (« echec ») pour que l'écran propose de
+           réessayer plutôt que de déclarer l'adresse introuvable. */
+        var panne = res.some(function(r){ return r && r.echec; });
+        var sortie = assembler(res);
         if(panne){
           if(!sortie.length) sortie.echec = true;
           return sortie;
@@ -7731,21 +7767,42 @@ window.ELA_TEXTES = {
       jugerBouton();
     }
 
+    /* ═══ UNE LIGNE VISIBLE NE BOUGE PLUS (24 octobre 2026) ═══
+       « chercher » rend d'abord une liste partielle, puis la complète. Une
+       ligne qui glisse au moment où le doigt descend, c'est l'adresse
+       d'à côté qui est choisie — et le prix qui va avec. Donc : la liste
+       complétée GARDE les lignes déjà montrées, à leur place, et ajoute
+       les nouvelles en dessous ; et dès que le client a touché la liste
+       (doigt, molette, flèches), on ne la redessine plus du tout. */
+    var montre = null;   // la liste à l'écran pour la saisie en cours
+    var touche = false;  // le client a commencé à s'en servir
+    function recevoir(items, mien){
+      if(mien !== rang) return;   // une frappe plus récente a pris la main
+      if(montre){
+        if(touche) return;
+        items = dedoublonner(montre.concat(items)).slice(0, Math.max(10, montre.length));
+      }
+      montre = items.length ? items : null;
+      actif = -1;
+      dessiner(items);
+    }
+    ["pointerdown", "touchstart", "wheel", "scroll"].forEach(function(t){
+      liste.addEventListener(t, function(){ if(montre) touche = true; }, { passive:true });
+    });
+
     var lancer = retarder(function(){
       if(ferme) return;
       var q = champ.value;
       if(q.trim().length < 2){ fermer(); return; }
       var mien = ++rang;
+      montre = null; touche = false;
       liste.innerHTML = '<div class="suggest-vide" role="status"></div>';
       liste.firstChild.textContent = T("recherche");
       liste.hidden = false;
       champ.setAttribute("aria-expanded","true");
       jugerBouton();
-      chercher(q, contexte ? contexte() : null).then(function(items){
-        if(mien !== rang) return;   // une frappe plus récente a pris la main
-        actif = -1;
-        dessiner(items);
-      });
+      chercher(q, contexte ? contexte() : null, function(items){ recevoir(items, mien); })
+        .then(function(items){ recevoir(items, mien); });
     }, 250);
 
     champ.addEventListener("input", function(){
@@ -7765,9 +7822,10 @@ window.ELA_TEXTES = {
       if(e.key === "ArrowDown"){
         e.preventDefault();
         if(!ouverte){ ferme = false; lancer(); return; }
+        if(montre) touche = true;
         surligner(actif+1);
       } else if(e.key === "ArrowUp"){
-        e.preventDefault(); if(ouverte) surligner(actif-1);
+        e.preventDefault(); if(ouverte){ if(montre) touche = true; surligner(actif-1); }
       } else if(e.key === "Enter"){
         if(ouverte && actif >= 0){ e.preventDefault(); lignes()[actif].click(); }
       } else if(e.key === "Escape"){ fermer(); }
@@ -9230,6 +9288,8 @@ window.ELA_TEXTES = {
    ===================================================================== */
   var btnGeoloc = document.getElementById("btnGeoloc");
   var geoEtat = document.getElementById("geoEtat");
+  /* Au-delà, la position ne situe plus un numéro dans la rue. */
+  var PRECISION_GEO_M = 100;
 
   function direGeo(cle, raté){
     geoEtat.textContent = T(cle);
@@ -9248,7 +9308,10 @@ window.ELA_TEXTES = {
   function adresseDuPoint(lat, lon){
     return appeler("https://api-adresse.data.gouv.fr/reverse/?lon=" + lon + "&lat=" + lat)
       .then(function(d){
-        var f = d && Array.isArray(d.features) && d.features[0];
+        /* UNE PANNE N'EST PAS « AUCUNE ADRESSE ICI » : le service muet
+           rend « false », un endroit sans adresse rend « null ». */
+        if(!d) return false;
+        var f = Array.isArray(d.features) && d.features[0];
         if(!f || !f.properties || !f.geometry) return null;
         return { label:f.properties.label,
                  lat:f.geometry.coordinates[1], lon:f.geometry.coordinates[0],
@@ -9269,10 +9332,11 @@ window.ELA_TEXTES = {
     btnGeoloc.classList.add("cherche");
     direGeo("geo_recherche");
 
-    navigator.geolocation.getCurrentPosition(function(pos){
+    function adresser(pos){
       positionClient = { lat:pos.coords.latitude, lon:pos.coords.longitude };
       adresseDuPoint(pos.coords.latitude, pos.coords.longitude).then(function(item){
         finGeo();
+        if(item === false){ direGeo("geo_panne", true); return; }
         /* PAS D'ADRESSE TROUVÉE ≠ ÉCHEC DE LA LOCALISATION. Le client est
            peut-être sur une bretelle d'autoroute ou dans un champ. On le
            dit pour ce que c'est, et on le renvoie à la saisie — un VTC ne
@@ -9284,12 +9348,35 @@ window.ELA_TEXTES = {
            la rue — et le chauffeur, lui, va à l'adresse écrite. */
         direGeo("geo_verifiez");
       });
-    }, function(err){
+    }
+    function rate(err){
       finGeo();
       /* Un refus n'est pas une panne : le message doit dire quoi faire,
          pas seulement que ça n'a pas marché. */
       direGeo(err && err.code === 1 ? "geo_refus" : "geo_echec", true);
-    }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
+    }
+    /* ═══ D'ABORD LA POSITION RAPIDE, LES SATELLITES SEULEMENT S'IL LE FAUT
+       (24 octobre 2026, Barbaros : « la géolocalisation prend trop de
+       temps »). On demandait d'emblée la position la plus précise : le
+       téléphone attend alors les satellites, plusieurs secondes à
+       l'intérieur, jusqu'à 10. On demande d'abord celle qu'il a déjà ou
+       qu'il trouve vite (Wi-Fi, antennes, une position de moins de deux
+       minutes). Si elle est assez précise pour une adresse
+       (PRECISION_GEO_M), on la garde ; sinon on demande les satellites,
+       et s'ils ne répondent pas, la position rapide sert quand même — le
+       client est invité à vérifier l'adresse dans tous les cas. Un refus
+       arrête tout de suite : on ne redemande pas. */
+    navigator.geolocation.getCurrentPosition(function(rapide){
+      if(rapide.coords.accuracy <= PRECISION_GEO_M){ adresser(rapide); return; }
+      navigator.geolocation.getCurrentPosition(adresser, function(err){
+        if(err && err.code === 1){ rate(err); return; }
+        adresser(rapide);
+      }, { enableHighAccuracy:true, timeout:10000, maximumAge:0 });
+    }, function(err){
+      if(err && err.code === 1){ rate(err); return; }
+      navigator.geolocation.getCurrentPosition(adresser, rate,
+        { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
+    }, { enableHighAccuracy:false, timeout:4000, maximumAge:120000 });
   });
 
 /* =====================================================================

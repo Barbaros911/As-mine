@@ -70,7 +70,7 @@ jobs:
           # l'autre ne tournait ici — la façade pouvait casser « Voir mon prix »
           # sans que rien ne tombe. Toute suite « test-public-* » est prise.
           for f in test-public-*.mjs; do suites="$suites ${f%.mjs}"; done
-          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-contact test-nouveau-whatsapp test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-bascule test-nouveau-lieux test-nouveau-recherche test-nouveau-sans-blocage test-nouveau-preavis test-securite-fonctions test-relance-alertes test-cloisonnement-hotel test-nouveau-reception test-easyhotel-client"
+          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-contact test-nouveau-whatsapp test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-bascule test-nouveau-lieux test-nouveau-recherche test-recherche-rapide test-nouveau-sans-blocage test-nouveau-preavis test-securite-fonctions test-relance-alertes test-cloisonnement-hotel test-nouveau-reception test-easyhotel-client"
           # LES SUITES QUI GARDENT LE PRIX ET LE TUNNEL (audit du 9 octobre 2026) :
           # elles ne tournaient qu'en local, donc pas du tout le jour où l'on
           # oublie. Le prix est ferme donc opposable ; ce qui le calcule et ce

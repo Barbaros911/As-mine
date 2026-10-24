@@ -178,3 +178,45 @@ texte (mapbox.com est bloqué d'ici) : à relire avant de rouvrir le sujet.
   `test-nouveau-serveur.mjs` et `test-securite-fonctions.mjs`.
 - Reste (P2, à lui) : clé Mapbox Directions ; un second fournisseur de lieux
   qui autorise le stockage ; validation serveur complète ; lien GPS sur le bon.
+
+## LA LISTE ET « ME LOCALISER » N'ATTENDENT PLUS LE PLUS LENT (24 octobre 2026)
+
+Barbaros, capture à l'appui : « quand on clique sur la géolocalisation ça
+prend trop de temps, et quand on met une adresse la recherche prend trop de
+temps ». Les services réels n'étaient pas joignables depuis le poste de
+travail (réseau fermé) : on a mesuré la PAGE, services simulés plus ou moins
+lents, sur le site construit.
+
+- **Avant** : `chercher()` attendait `Promise.all` de la BAN et d'un ou deux
+  Photon (`variantes()` en ajoute un sans les mots courants). Photon à 3 s :
+  liste à 3,1 s, alors que la BAN avait l'adresse en 0,15 s ; Photon muet :
+  6,1 s (le délai d'`appeler`) ; BAN muette : 6,1 s. Photon est un serveur
+  public gratuit, sans garantie de vitesse.
+- **Après** : `chercher(q, ctx, partiel)` rend une liste partielle dès que le
+  service qui fait autorité a répondu (la BAN si la saisie commence par un
+  chiffre, le premier Photon sinon), après `PATIENCE_MS` (350 ms) pour que
+  les autres arrivent ensemble, et au plus tard à `PATIENCE_MAX_MS` (1,2 s)
+  si un service a déjà des résultats. Mesuré : 0,6 s dans les trois premiers
+  cas, 1,3 s quand la BAN est muette. La promesse rend toujours la liste
+  complète, mise en cache comme avant ; l'admin, qui ne passe pas `partiel`,
+  ne voit aucune différence.
+- **Une ligne visible ne bouge plus** (`recevoir()` dans `brancher()`) : la
+  liste complétée garde les lignes déjà montrées, à leur place, et ajoute les
+  nouvelles en dessous (`dedoublonner` garde la première occurrence). Dès que
+  le client a touché la liste (doigt, molette, défilement, flèches), elle
+  n'est plus redessinée. Écarté : redessiner la liste complète par-dessus —
+  une ligne qui glisse au moment où le doigt descend, c'est l'adresse d'à
+  côté qui est choisie.
+- **« Me localiser »** demandait d'emblée les satellites
+  (`enableHighAccuracy:true`, jusqu'à 10 s). Il demande d'abord la position
+  rapide (Wi-Fi, antennes, une position de moins de deux minutes, 4 s au
+  plus) ; il la garde si elle est à `PRECISION_GEO_M` (100 m) près, sinon il
+  demande les satellites, et si ceux-ci échouent la position rapide sert
+  quand même — le client est invité à vérifier dans tous les cas. Un refus
+  arrête tout, sans seconde demande. Le temps des satellites ne se mesure pas
+  dans un navigateur simulé : c'est le téléphone de Barbaros qui dira le gain.
+- **Une BAN muette se dit panne** (`geo_panne`) : `adresseDuPoint()` rend
+  `false` pour une panne et `null` pour un endroit sans adresse. Avant, les
+  deux disaient « Aucune adresse trouvée à cet endroit ».
+- Suite : `test-recherche-rapide.mjs` (22 contrôles, faux GPS qui note chaque
+  demande). Elle tombe sur l'ancien code : 8 échecs.
