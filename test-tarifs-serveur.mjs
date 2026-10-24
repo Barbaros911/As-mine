@@ -11,8 +11,9 @@
    Depuis le 23 octobre 2026, le site public facture par TRANCHES (la ligne
    « grille_publique » du serveur) ; le tarif au km ne sert plus qu'aux pages
    des hôtels. Les prix attendus, À LA MAIN, Place Vendôme → Argenteuil,
-   24,3 km (tranche « jusqu'à 32 km ») :
-     grille du serveur, tranche à 90 €  →  90 €   |   repli de la page  →  70 €
+   24,3 km (tranche « jusqu'à 32 km » de la grille servie ici, « jusqu'à
+   27 km » du repli depuis le 24 octobre) :
+     grille du serveur, tranche à 90 €  →  90 €   |   repli de la page  →  60 €
 
    Lancer :  node test-tarifs-serveur.mjs
    ===================================================================== */
@@ -91,9 +92,9 @@ check('grille du serveur : la tranche de 24,3 km à 90 € → 90 €', /Berline
 /* Le vrai risque : un serveur LENT. On le ralentit exprès au-delà du temps
    que met un client à remplir le formulaire dans ce test. */
 r = await client(true, 3500);
-check('serveur lent (3,5 s) : le prix attend la grille, 90 € et pas 70', /Berline=90,00\s€/.test(r.prix), r.prix);
+check('serveur lent (3,5 s) : le prix attend la grille, 90 € et pas 60', /Berline=90,00\s€/.test(r.prix), r.prix);
 r = await client(false, 0);
-check('serveur muet : le site donne quand même un prix (repli 70 €)', /Berline=70,00\s€/.test(r.prix), r.prix);
+check('serveur muet : le site donne quand même un prix (repli 60 €)', /Berline=60,00\s€/.test(r.prix), r.prix);
 check('aucune erreur JavaScript', r.erreurs.length === 0, r.erreurs.join(' | '));
 
 /* La page du QR easyHotel */
