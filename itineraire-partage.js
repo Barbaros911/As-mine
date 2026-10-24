@@ -187,7 +187,12 @@ function depuisBAN(q, ctx){
                  /* D'où vient le lieu, et son identifiant chez la source :
                     c'est ce qui permet, plus tard, de dire quel point exact
                     a servi au prix. */
-                 source:"ban", sourceId:String(f.properties.id || "") };
+                 source:"ban", sourceId:String(f.properties.id || ""),
+                 /* La commune, lue dans les CHAMPS de la source et jamais
+                    dans le libellé : c'est elle qui dit « Paris » pour les
+                    forfaits du site public (voir « estParis »). */
+                 codePostal:String(f.properties.postcode || ""),
+                 ville:String(f.properties.city || ""), pays:"FR" };
       });
     });
 }
@@ -222,6 +227,7 @@ function depuisPhoton(q, ctx){
                  source:"photon",
                  sourceId:(p.osm_type && p.osm_id) ? String(p.osm_type) + p.osm_id : "",
                  pays:String(p.countrycode || "").toUpperCase(),
+                 codePostal:String(p.postcode || ""), ville:String(p.city || ""),
                  nom:r.lieuNomme ? p.name : "" };
       }).filter(function(r){ return r.label; });
     });
@@ -531,6 +537,28 @@ function arrondiDizaine(p){
 function prix(gamme, km){
   return Math.max(arrondiDizaine(gamme.parKm * km), gamme.mini);
 }
+
+/* ═══ LA GRILLE PAR TRANCHES DU SITE PUBLIC (23 octobre 2026) ═══
+   Barbaros : quatre prix ronds selon la distance (35 / 50 / 70 / 90 € en
+   berline jusqu'à 12 / 22 / 32 / 42 km), puis la dernière tranche plus un
+   montant par kilomètre au-delà. Les pages des hôtels gardent « prix »,
+   au kilomètre : c'est sa décision, elles ne bougent pas.
+   LA DISTANCE JUGÉE EST CELLE QUE LE CLIENT LIT, au dixième (« 12,0 km ») :
+   un trajet de 12,04 km s'affiche « 12 km » et doit coûter le prix de
+   « jusqu'à 12 km ». Même règle que l'heure « passée », jugée sur l'heure
+   affichée.
+   AU-DELÀ DE LA DERNIÈRE TRANCHE, on repart de son prix : sans cela, 42,1 km
+   retomberait au kilométrage plein et sauterait de 90 à 120 €. Le montant
+   passe par les CENTIMES avant l'arrondi de Barbaros : « 2,5 × 1,3 » rend
+   3,2499999… en virgule flottante, et un 5 pile tomberait du mauvais côté.
+   La grille est un PARAMÈTRE, comme pour « prix » : ce fichier n'en écrit
+   aucune. */
+function prixTranches(grille, km){
+  var d = Math.round(km * 10) / 10, t = grille.tranches;
+  for(var i = 0; i < t.length; i++) if(d <= t[i].km) return t[i].prix;
+  var der = t[t.length - 1];
+  return arrondiDizaine(Math.round((der.prix + grille.auDela * (d - der.km)) * 100) / 100);
+}
   /* ═══ RÉSOUDRE UN TEXTE EN UN LIEU ═══
      Admin v2 n'a pas d'autocomplétion : il a un champ et un bouton. On
      interroge donc les deux mêmes services que le site, dans le même
@@ -556,6 +584,7 @@ function prix(gamme, km){
     itineraire: itineraire,
     lieu: lieu,
     prix: prix,
+    prixTranches: prixTranches,
     arrondiDizaine: arrondiDizaine,
     volDoiseauKm: volDoiseauKm,
     choisirRoute: choisirRoute,
