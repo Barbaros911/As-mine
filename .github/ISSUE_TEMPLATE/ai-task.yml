@@ -3,13 +3,16 @@ description: Tâche bornée pour Claude, ChatGPT ou l'agent local ELA
 title: "[TEAM] "
 labels: []
 body:
-  - type: dropdown
-    id: priority
+  # LA PRIORITÉ EST L'ÉTIQUETTE P0…P3, PAS UN CHAMP DU FORMULAIRE
+  # (TEAM_RULES.md §11). Un menu ici écrivait la priorité dans le texte de
+  # l'Issue, où rien ne peut la compter : /etat et ChatGPT lisent les
+  # étiquettes, et deux sources finissent toujours par se contredire.
+  - type: markdown
     attributes:
-      label: Priorité
-      options: [P0 critique, P1 importante, P2 normale, P3 amélioration]
-    validations:
-      required: true
+      value: >-
+        **Priorité** : poser l'étiquette `P0`, `P1`, `P2` ou `P3` sur cette
+        Issue (TEAM_RULES.md §11). Trois priorités actives au plus ; P3 =
+        parking.
   - type: dropdown
     id: status
     attributes:
