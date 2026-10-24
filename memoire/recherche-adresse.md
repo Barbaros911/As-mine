@@ -220,3 +220,40 @@ lents, sur le site construit.
   deux disaient « Aucune adresse trouvée à cet endroit ».
 - Suite : `test-recherche-rapide.mjs` (22 contrôles, faux GPS qui note chaque
   demande). Elle tombe sur l'ancien code : 8 échecs.
+
+## LA LISTE DES LIEUX : UNE PASTILLE, LE NOM, L'ADRESSE DESSOUS (24 octobre 2026)
+
+Barbaros, trois captures (« Gare », « Easyhotel », « Hotel ») : « améliore mes
+logos des hôtels, aéroports, gares… je trouve que ce n'est pas joli ». Relevé
+sur ses captures et sur le site construit :
+
+- **Les pictogrammes** (façade, `--ico-*`) flottaient seuls, 20 px au trait de
+  1,75 : pâles, sans rythme d'une ligne à l'autre. Ils sont posés dans une
+  pastille de 38 px (fond cyan à 13 %, liseré léger), dessin de 22 px au trait
+  de 1,9. Même pastille pour tous les lieux : le DESSIN dit hôtel, gare ou
+  aéroport, pas la couleur. Redessinés : le lit (un oreiller lisible) et la
+  gare ; la rue n'est plus une route (refusée dans les icônes) mais un panneau
+  de direction. La ligne « Mon adresse n'est pas dans la liste » a une pastille
+  vide, au liseré.
+  **Remplacé le même jour** (voir `memoire/palette.md`, « Les icônes ») : les
+  dessins faits main ont laissé place à ceux de Material Symbols, et la
+  pastille neutre à un carré pastel, une couleur par type de lieu.
+- **Le nom et l'adresse étaient collés sur une ligne.** `deuxLignes()` coupe le
+  libellé au tiret long des terminaux, puis au code postal et à la ville de la
+  BAN, puis à la première virgule : le nom en gras, l'adresse dessous, plus
+  petite. Le séparateur coupé reste dans un `suggest-sep` invisible : le texte
+  de la ligne EST le libellé, caractère pour caractère — celui qu'on écrit
+  dans le champ, sur le bon et dans le message, et que les suites lisent.
+  Hors du site public (admin, pages d'hôtel), sans la façade, la ligne se lit
+  comme avant.
+- **Le nom d'un lieu posé sur une adresse était jeté.** `libellePhoton()`
+  écartait le nom de tout objet de type « house » ; or Photon y range aussi un
+  hôtel ou une gare qui a une adresse. Sa capture : « easyHotel » s'affichait
+  « 10 Rue de la Belle Borne ». Seul le simple numéro de rue (osm_key
+  « place ») est désormais sans nom. Ces lieux redeviennent des « lieux
+  nommés » et remontent dans le classement d'une recherche par nom.
+- Suite : `test-public-suggestions.mjs` (14 contrôles, site construit) ; sur
+  l'ancien code, 10 échecs.
+- **Vu sur ses captures, pas encore traité** : « Gare » propose d'abord des
+  rues nommées « Gare » en banlieue (la BAN) plutôt que les grandes gares de
+  Paris ; « Easyhotel » met un hôtel de Malaisie en deuxième.

@@ -317,9 +317,9 @@ Histoire : `memoire/tunnel-client.md`, `memoire/formulaire-public.md`.
 ## La recherche d'adresse et « Me localiser »
 
 - **BAN + Photon, et on les fait évoluer, on ne les remplace pas.** Les deux
-  sont biaisés vers Paris ; le classement (`note()`, `bonusDistance()` :
-  ≤ 90 km +3, ≤ 200 +1, ≤ 400 0, au-delà −2) **rapproche, n'exclut jamais**.
-  L'étranger apparaît, pays écrit, et se juge au **choix**, pas à la recherche.
+  sont biaisés vers Paris ; le classement (`note()`, `bonusDistance()`)
+  **rapproche, n'exclut jamais**. L'étranger apparaît, pays écrit ; il se
+  juge au **choix**.
 - **Mapbox Search Box n'est PAS branché, c'est une décision** : résultats
   « temporaires », carte Mapbox imposée, carte bancaire.
 - **Une panne n'est jamais mise en cache** comme « aucune adresse » ; la liste
@@ -327,19 +327,21 @@ Histoire : `memoire/tunnel-client.md`, `memoire/formulaire-public.md`.
 - **La liste n'attend pas le plus lent** (24/10) : elle s'affiche dès que le
   service qui fait autorité répond (`partiel`), se complète **sans déplacer
   une ligne visible**, et ne bouge plus une fois touchée.
+- **Une ligne : un carré coloré par type de lieu, le nom, l'adresse dessous**
+  (`deuxLignes()`) ; son texte reste le libellé exact. Un lieu sur une
+  adresse garde son nom.
 - **`brancher()` rend une prise `poser(item)`** : toute écriture venue de
   l'extérieur passe par elle, sinon on part avec les coordonnées d'un lieu et
   le nom d'un autre ; l'admin aussi.
-- **Le lieu structuré** (`departLieu`, `arriveeLieu`, `lieuStructure()`) vient
-  d'un élément **choisi** ; « Modifier la course » efface celui d'une adresse
-  retapée.
+- **Le lieu structuré** (`lieuStructure()`) vient d'un élément **choisi** ;
+  une adresse retapée l'efface.
 - **« Me localiser » rend une ADRESSE, pas une position** : au départ
   seulement, relue par la BAN (`/reverse/`), avec les coordonnées **de
   l'adresse** ; position rapide d'abord, satellites au-delà de
   `PRECISION_GEO_M` ; trois messages (refus, pas d'adresse, panne) ; **rien
   n'est conservé**. 44 px, aucun `position:relative`.
 
-Histoire : `memoire/recherche-adresse.md`, `test-recherche-rapide.mjs`.
+Histoire : `memoire/recherche-adresse.md`.
 
 ## L'itinéraire et la carte
 
@@ -771,19 +773,18 @@ leur nom ; **ne jamais renommer une variable d'après la teinte du jour**.
 
 Restent, parce que ce sont des états ou des marques : le rouge de l'attente
 (`#C9302F`), le vert WhatsApp, le vert « confirmée », l'orange d'un
-partenaire. `memoire/palette.md`.
+partenaire. **Les icônes** : une seule famille, Material Symbols ;
+une couleur par sujet, jamais le bleu des boutons (`test-public-icones.mjs`).
+`memoire/palette.md`.
 
 - **Regarder le site publié avant de choisir une couleur** : la façade
-  (`application-facade.css`) habille le site public, sous
-  `html[data-ela-space="public"]`. Une seconde feuille qui habille le même
-  écran finit toujours par le casser.
+  (`application-facade.css`) habille le site public. Une seconde feuille sur
+  le même écran finit par le casser.
 - **Le logo** est le fichier officiel (`brand-logo.webp`, et sa version
   négative `brand-logo-negatif.webp` sur fond bleu nuit) : jamais redessiné,
   jamais remplacé par une image générée, jamais recoloré sans demande. Les
-  icônes se refont **ensemble** (un jeu à moitié changé est pire qu'un ancien
-  cohérent) ; chaque espace a son manifeste et sa couleur d'icône ; iOS ignore
-  un `apple-touch-icon` en SVG ; pas deux tirets de suite dans un commentaire
-  XML. Refusés : le E seul, toute voiture, roue ou route.
+  icônes se refont **ensemble** (un jeu à moitié changé est pire) ; chaque espace a son manifeste et sa couleur d'icône. Refusés :
+  le E seul, toute voiture, roue ou route.
   `memoire/icones-et-logo.md`.
 - **Les photos de l'accueil** : rien ne se supprime dans `photos/` sans lui ;
   les vignettes publiées sont des copies allégées. La photo est « Paris la
