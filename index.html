@@ -10440,7 +10440,19 @@ window.ELA_TEXTES = {
         (r.estime ? "≈ " : "") + r.km.toLocaleString(locale(),{maximumFractionDigits:1})
         + " km · " + fourchetteDuree(dv)
         + (r.trafic ? " · " + T("trafic") : "");
+      /* AU COMPTOIR, LE VÉHICULE CHOISI SURVIT AU CALCUL (24/10/2026,
+         mesuré) : la destination lance le calcul 450 ms plus tard, et une
+         réception rapide touche le véhicule avant qu'il ne réponde. Le
+         redessin l'effaçait, « Valider » restait éteint (5 fois sur 6 sur un
+         poste lent). On le recoche comme au changement de langue ; le prix
+         à jour est sur sa carte et sur le bouton. Le client, lui, choisit
+         après le calcul : rien ne change pour lui. */
+      var gardeComptoir = surPlace ? course.gamme : null;
       dessinerGammes();
+      if(gardeComptoir){
+        var carteGardee = document.querySelector('#listeVehicules .veh-carte[data-cle="' + gardeComptoir.cle + '"]');
+        if(carteGardee) carteGardee.click();
+      }
       var lignePeages = document.getElementById("resumePeages");
       if(lignePeages){ var tp = texteMentionPeages(); lignePeages.textContent = tp; lignePeages.hidden = !tp; }
       if(surPlace){
