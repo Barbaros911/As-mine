@@ -194,7 +194,9 @@ try {
   /* Chaque entrée a SA couleur (29/09/2026) : réception orange sur blanc,
      client noir sur orange. Le logo générique du site ne doit plus y revenir. */
   for (const [chemin, nom, dossier] of [['/easyhotel-reception/', 'Réception', '/icones/reception-'],
-    ['/easyhotel-client/', 'easyHotel', '/easyhotel-client/icon-'],
+    /* Elle ne s'appelle plus « easyHotel » (24/10/2026) : sous ce nom, l'icône
+       passait pour l'application de l'hôtel, qui refuse d'être cité. */
+    ['/easyhotel-client/', 'Elatransfer', '/easyhotel-client/icon-'],
     ['/ela-admin/', 'ELA Espace', '/icones/admin-']]) {
     const m = await lireManifeste(chemin);
     check(`Icône ${nom} : un seul manifeste déclaré`, m.nb === 1, `trouvé : ${m.nb}`);

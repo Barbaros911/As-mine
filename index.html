@@ -2858,7 +2858,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          Ici le voile est opaque à 62 %, donc le texte reste lisible quelle
          que soit l'image qu'easyHotel enverra. -->
     <div class="hotel-photo" id="hotelPhoto" hidden aria-hidden="true"></div>
-    <p class="hotel-sur" data-t="hotel_sur">Tarifs partenaires</p>
+    <p class="hotel-sur" data-t="hotel_sur_prix">Prix fixes</p>
     <p class="hotel-nom" id="hotelTeteNom"></p>
     <p class="hotel-adresse" id="hotelTeteAdresse"></p>
     <div class="hotel-sens" role="group" data-t-aria="hotel_sens_aria" aria-label="Sens du trajet">
@@ -6552,7 +6552,7 @@ window.ELA_TEXTES = {
     ph_note:"Facultatif — siège bébé, bagages volumineux, retard annoncé…",
     note_court:"Précision",
     /* ---- LE MODE HÔTEL ---- */
-    hotel_sur:"Tarifs partenaires", hotel_destination:"Destination",
+    hotel_sur:"Tarifs partenaires", hotel_sur_prix:"Prix fixes", hotel_destination:"Destination",
     hotel_terminal:"Terminal", hotel_sens_aria:"Sens du trajet",
     hotel_depuis:"Départ de l'hôtel", hotel_vers:"Arrivée à l'hôtel",
     hotel_autre:"Autre destination…",
@@ -6797,7 +6797,7 @@ window.ELA_TEXTES = {
     ph_note:"Optional — child seat, bulky luggage, expected delay…",
     note_court:"Note",
     /* ---- HOTEL MODE ---- */
-    hotel_sur:"Partner rates", hotel_destination:"Destination",
+    hotel_sur:"Partner rates", hotel_sur_prix:"Fixed prices", hotel_destination:"Destination",
     hotel_terminal:"Terminal", hotel_sens_aria:"Direction of travel",
     hotel_depuis:"From the hotel", hotel_vers:"To the hotel",
     hotel_autre:"Other destination…",
@@ -8854,7 +8854,7 @@ window.ELA_TEXTES = {
     if(!hotel) return null;
     return { cle:hotel.cle, nom:hotel.nom, court:hotel.court || hotel.nom,
              adresse:hotel.adresse || "", pageClient:hotel.pageClient || "",
-             photoEntete:!!hotel.photoEntete };
+             photoEntete:!!hotel.photoEntete, coMarquage:!!hotel.coMarquage };
   };
 
   function ouvrirModeHotel(h){
@@ -8885,6 +8885,16 @@ window.ELA_TEXTES = {
     if(h.photo){ photo.style.backgroundImage = "url(" + h.photo + ")"; photo.hidden = false; }
     else { photo.hidden = true; }
     hotelTete.hidden = false;
+    /* « TARIFS PARTENAIRES » SEULEMENT AVEC SON ACCORD ÉCRIT (24/10/2026) :
+       sans lui, la page ne dit pas qu'il y a un partenariat, elle dit ce que
+       sont ces prix. Le comptoir réécrit ce titre à sa façon (finition) et
+       lui retire sa clé : on ne la repose pas. */
+    var sur = hotelTete.querySelector(".hotel-sur");
+    if(sur && sur.hasAttribute("data-t")){
+      var cleSur = h.coMarquage ? "hotel_sur" : "hotel_sur_prix";
+      sur.setAttribute("data-t", cleSur);
+      sur.textContent = T(cleSur);
+    }
     blocDest.hidden = false;
     /* La case de précision n'existe que sur la page d'un partenaire.
        Ouverte sur le site public, elle ramènerait des demandes qu'on ne
@@ -9383,6 +9393,12 @@ window.ELA_TEXTES = {
        découper du nom complet : « Hôtel du Parc » donnerait « Hôtel », qui
        ne distingue rien le jour où il y a deux partenaires. */
     court:"easyHotel",
+      /* AUCUN CO-MARQUAGE SANS SON ACCORD ÉCRIT (24/10/2026). « coMarquage »
+         dit si l'hôtel a accepté qu'on associe sa marque à la nôtre : sa
+         pastille dans l'en-tête, « Tarifs partenaires ». easyHotel a refusé
+         d'être cité pour l'instant : ses pages disent d'où l'on part, pas
+         avec qui l'on travaille. Le passer à true demande cet accord. */
+      coMarquage:false,
       /* ═══ LES COULEURS DU PARTENAIRE, RANGÉES AVEC LUI ═══
          À sa demande : « fais les couleurs orange comme easyHotel ». Elles
          vivent sur l'hôtel et pas dans le CSS, exactement comme sa grille :
