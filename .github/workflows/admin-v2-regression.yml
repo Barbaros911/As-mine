@@ -459,6 +459,17 @@ jobs:
       # EMPREINTE FIGÉES (celle du binaire éprouvé le 6 octobre 2026) : un
       # fichier qui changerait sous nos pieds arrête l'étape au lieu de
       # tourner. Il ne sert qu'ici : rien n'en part en ligne.
+      # LA DOUBLE VÉRIFICATION DE L'ADMIN (24 octobre 2026, P1 sécurité). Le
+      # décor reproduit d'abord le trou (un admin qui a un code entre au mot
+      # de passe seul), puis exige après la migration : refus en aal1, accès
+      # en aal2, une ancienne session refusée dès l'activation, anon et
+      # non-opérateur refusés, le cliquet qui refuse de se lever tant qu'un
+      # opérateur actif n'a pas de code, le retour arrière, et la garde qui
+      # n'écrase jamais une porte inconnue. Voir le script.
+      - name: La double vérification, exécutée et non relue
+        shell: bash
+        env: {PGPASSWORD: postgres, PGHOST: 127.0.0.1, PGUSER: postgres}
+        run: sh supabase/tests/double-verification.sh
       - name: Le Pilotage en HTTP (PostgREST)
         shell: bash
         env: {PGHOST: 127.0.0.1, PGPORT: '5432', PGUSER: postgres, PGPASSWORD: postgres}

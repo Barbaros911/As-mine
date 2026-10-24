@@ -556,13 +556,12 @@ Histoire : `memoire/affiche-qr.md`.
   mènent ; ne jamais dupliquer `index.html`. **Admin v2 n'est plus publié**
   (3/10) : `ELA_AVEC_ADMIN_V2=1` est réservé aux suites qui l'éprouvent.
   `memoire/admin-v2.md`.
-- **Connexion Supabase** (e-mail, mot de passe, puis `est_exploitant()`).
-  `raisonConnexion()` nomme la panne et recopie le message brut sinon ; piège
-  le plus probable : « Auto Confirm User ». Le mot de passe se change dans
-  Réglages (les autres appareils sont déconnectés). **NE JAMAIS CONSEILLER DE
-  SUPPRIMER ET RECRÉER LE COMPTE** : `operateurs` le désigne par son
-  `user_id`. Ni « Reset password » de Supabase : le site ne sait pas recevoir
-  ce lien.
+- **Connexion : e-mail, mot de passe, code à 6 chiffres** (24/10). Un compte
+  qui a un code n'est exploitant qu'en session `aal2`, jugé à chaque requête
+  dans `est_exploitant()`/`est_admin()` ; le cliquet `securite_admin` l'exige
+  de tous. Téléphone perdu : `SECURITE-ADMIN-MFA.md`. Piège : « Auto Confirm
+  User ». **NE JAMAIS CONSEILLER DE SUPPRIMER ET RECRÉER LE COMPTE**
+  (`operateurs` le désigne par son `user_id`), ni « Reset password ».
 - **`body.espace`, jamais `body.exploitant`**, pour tout ce qui est admin.
   Colonne au-delà de 900 px, tuiles sur téléphone, même HTML. Seul le logo est
   en blanc ; les couleurs restent.
