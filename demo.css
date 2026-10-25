@@ -35,6 +35,13 @@ html[data-ela-space="demo"] .entete-nav{display:none !important}
 .demo-onglet.actif{background:#fff;color:var(--demo-nuit)}
 .demo-onglet:focus-visible,.demo-suivant:focus-visible,.demo-fin-bouton:focus-visible{outline:3px solid var(--demo-cyan);outline-offset:2px}
 
+/* ═══ LE FIL DE LA DÉMO : 1 LE QR CODE · 2 LA RÉSERVATION · 3 LA RÉCEPTION ═══ */
+.demo-guide{display:flex;align-items:flex-start;gap:10px;max-width:1180px;margin:0 auto;padding:2px 14px 10px;
+  color:#fff;font-size:14.5px;font-weight:600;line-height:1.4}
+.demo-guide-num{flex:0 0 26px;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;
+  background:var(--demo-cyan);color:var(--demo-nuit);font-size:14px;font-weight:800}
+@media (min-width:900px){.demo-guide{justify-content:center;text-align:left}.demo-guide-texte{max-width:760px}}
+
 /* ═══ LE SUIVI DE LA COURSE D'ESSAI ═══ */
 .demo-suivi{max-width:1180px;margin:0 auto;padding:4px 12px 12px;color:#fff}
 .demo-suivi[hidden]{display:none}
@@ -141,7 +148,6 @@ html[data-ela-space="demo"] .langues button[aria-pressed="true"]{background:var(
 .demo-nuancier{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .demo-pastille{width:40px;height:40px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--demo-filet);cursor:pointer;padding:0}
 .demo-pastille[aria-pressed="true"]{box-shadow:0 0 0 3px #151C22}
-.demo-couleur-libre{width:52px;height:42px;padding:2px;border:1px solid var(--demo-filet);border-radius:10px;background:#fff;cursor:pointer}
 .demo-dest-bloc{margin:0 0 12px;padding:0;border:0;min-width:0}
 .demo-dest-saisie{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .demo-dest-saisie #demoDestNom{grid-column:1/-1}
@@ -191,6 +197,11 @@ body:not(.demo-choix) #demoArrivee{display:none}
 html[data-ela-space="demo"][data-demo-vue="client"] body.demo-choix nav.barre{display:none}
 html[data-ela-space="demo"][data-demo-vue="client"] body.demo-choix{padding-bottom:0}
 #ecran-accueil > #demoArrivee{grid-column:1/-1}
+/* L'en-tête est celui de la vraie page du QR, blanc : celui du formulaire
+   attend le formulaire. Il ne colle pas en haut ici : le bandeau de la démo
+   y est déjà. */
+html[data-ela-space="demo"][data-demo-vue="client"] body.demo-choix header.entete{display:none!important}
+html #demoArrivee .qr-top{position:relative}
 /* La couleur du partenaire réel devient celle de l'hôtel du prospect. */
 #demoArrivee{--demo-o:var(--h-bouton,var(--demo-bleu));--demo-otexte:var(--h-paleEncre,var(--demo-encre));
   --demo-opale:var(--h-pale,var(--demo-pale));

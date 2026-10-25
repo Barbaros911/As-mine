@@ -195,11 +195,14 @@ function remplacerUnMotif(texte, motif, par, quoi) {
 function arriveeDepuisPageQr(source) {
   const page = lireSortie(PAGE_QR);
   const style = /<style>([\s\S]*?)<\/style>/.exec(page);
+  const tete = /<header class="top">[\s\S]*?<\/header>/.exec(page);
   const main = /<main>([\s\S]*?)<\/main>/.exec(page);
   const pied = /<footer class="pied">[\s\S]*?<\/footer>/.exec(page);
-  if (!style || !main || !pied) throw new Error('construire-demo : la page du QR n\'a plus son style, son <main> ou son pied');
+  if (!style || !tete || !main || !pied) throw new Error('construire-demo : la page du QR n\'a plus son style, son en-tête, son <main> ou son pied');
 
-  let corps = (main[1] + pied[0]).replace(/<!--[\s\S]*?-->/g, '');
+  /* Son en-tête blanc aussi (logo, FR/EN) : celui du formulaire, en couleur,
+     ajoutait une barre que la vraie page n'a pas. */
+  let corps = (tete[0] + main[1] + pied[0]).replace(/<!--[\s\S]*?-->/g, '');
   corps = remplacerUnMotif(corps, /(<h1>[\s\S]*?<br>)[^<]+(<\/h1>)/, '$1<span data-demo-arrivee="nom"></span>$2', 'nom du titre');
   corps = remplacerUnMotif(corps, /(class="adresse">[\s\S]*?<div>)<b>[^<]*<\/b><span>[^<]*<\/span>/,
     '$1<b data-demo-arrivee="nom"></b><span data-demo-arrivee="adresse"></span>', 'adresse');
@@ -237,7 +240,7 @@ function arriveeDepuisPageQr(source) {
   return {
     style: `<style id="demoArriveeStyle">
 #demoArrivee{display:block;font-size:16px;line-height:normal;font-weight:400;font-style:normal;letter-spacing:normal;word-spacing:normal;text-align:start;text-transform:none;text-indent:0;white-space:normal}
-#demoArrivee :where(h1,h2,p,ul,ol,li,a,b,small,i,em,span,div,section,img,nav,footer){all:revert}
+#demoArrivee :where(h1,h2,p,ul,ol,li,a,b,small,i,em,span,div,section,img,nav,header,footer,button){all:revert}
 ${css}</style>\n`,
     contenu: `<div id="demoArrivee" class="demo-arrivee">${corps}</div>\n`
       + `<template id="demoArriveeModeles">${modeles}</template>\n`,
@@ -371,6 +374,17 @@ const PERSO = `
         document.body.classList.add("demo-choix");
       }
       document.getElementById("demoRetourCartes").textContent = en ? "← All destinations" : "← Toutes les destinations";
+      /* Les boutons FR/EN de la page du QR font ce que font ceux du moteur. */
+      page.querySelectorAll(".qr-lang[data-lang]").forEach(function(btn){
+        var l = btn.getAttribute("data-lang") === "en" ? "en" : "fr";
+        if(btn.getAttribute("aria-pressed") !== String(l === LANGUE)) btn.setAttribute("aria-pressed", String(l === LANGUE));
+        if(btn.getAttribute("data-demo-branche")) return;
+        btn.setAttribute("data-demo-branche", "1");
+        btn.addEventListener("click", function(){
+          var moteur = document.querySelector('.langues [data-langue="' + l + '"]');
+          if(moteur) moteur.click();
+        });
+      });
       page.querySelectorAll('[data-demo-arrivee="nom"]').forEach(function(e){ e.textContent = h.nom; });
       page.querySelectorAll('[data-demo-arrivee="adresse"]').forEach(function(e){ e.textContent = h.adresse || ""; });
 
@@ -426,9 +440,11 @@ const PERSO = `
       var aucunPrix = h.destinations.every(function(d){ return !d.forfait; });
       document.getElementById("demoCartesAide").textContent = en ? "Tap a destination to make a test booking, just like your guests."
                                                              : "Touchez une destination pour faire une réservation d’essai, comme vos clients.";
+      /* Le lien QR code → cette page est dit au-dessus, dans le fil de la
+         démo (demoGuide) ; ici, seulement ce que sont ces prix. */
       document.getElementById("demoCartesFlyer").textContent = en
-        ? "These are the prices on your flyer: your guests scan its QR code and land on this page." + (aucunPrix ? " Set them in “Customise my page”." : "")
-        : "Ces prix sont ceux de votre flyer : vos clients scannent son QR code et arrivent sur cette page." + (aucunPrix ? " Fixez-les dans « Personnaliser ma page »." : "");
+        ? "These are the prices on your flyer." + (aucunPrix ? " Set them in “Customise my page”." : "")
+        : "Ces prix sont ceux de votre flyer." + (aucunPrix ? " Fixez-les dans « Personnaliser ma page »." : "");
     }
   };
 `;

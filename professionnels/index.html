@@ -237,10 +237,11 @@
     /* Petit téléphone : les trois boutons se partagent la largeur, sur une seule ligne. */
     @media (max-width:420px){ .ecrans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;} .ecrans button{padding:0 4px;font-size:14px;} }
     .ecrans button:focus-visible{outline:3px solid #12C4EE;outline-offset:2px;}
-    .apercu-grille{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,4vw,40px);align-items:start;margin-top:22px;}
+    .apercu-grille{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(14px,3vw,32px);align-items:start;margin-top:22px;}
     .apercu-grille[hidden]{display:none;}
-    .apercu-grille.ecran-telephone{grid-template-columns:repeat(2,minmax(0,270px));}
-    .apercu-grille.ecran-tablette{grid-template-columns:repeat(2,minmax(0,380px));}
+    .apercu-grille.ecran-telephone{grid-template-columns:repeat(3,minmax(0,250px));}
+    .apercu-grille.ecran-tablette{grid-template-columns:repeat(3,minmax(0,320px));}
+    .apercu-grille:focus-visible{outline:3px solid #12C4EE;outline-offset:4px;border-radius:12px;}
     .apercu figure{margin:0;min-width:0;}
     .apercu img{display:block;width:100%;height:auto;background:var(--fond);
       box-shadow:0 1px 2px rgba(6,47,85,.05),0 14px 36px rgba(6,47,85,.12);}
@@ -253,6 +254,12 @@
     @media (max-width:700px){
       .sans-liste,.grille.deux,.apercu-grille.ecran-ordinateur,.apercu-grille.ecran-tablette{grid-template-columns:1fr;}
       .apercu-tab{width:min(340px,88%);margin:0 auto;}
+      /* SUR UN TÉLÉPHONE, LES TROIS ÉTAPES SE FONT GLISSER, DANS L'ORDRE : trois
+         captures côte à côte n'y feraient plus que 110 px de large. La
+         suivante dépasse au bord : on voit qu'il y a une suite. */
+      .apercu-grille.ecran-telephone{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:min(66%,250px);
+        overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 14px;}
+      .apercu-grille.ecran-telephone > figure{scroll-snap-align:start;}
       .apercu-tel figcaption{font-size:13.5px;}
       .sans-liste li{font-size:16px;}
     }
@@ -392,7 +399,13 @@
          version ordinateur, téléphone, tablette ») : six captures par langue,
          page client et espace équipe sur téléphone (390 px), tablette (820 px)
          et ordinateur (1280 px). Un seul écran visible à la fois ; les autres
-         ne se chargent qu'au choix. La page s'ouvre sur l'écran du visiteur. -->
+         ne se chargent qu'au choix. La page s'ouvre sur l'écran du visiteur.
+         TROIS ÉTAPES (25 octobre 2026, Barbaros : « bien expliquer que la
+         landing page est associée au QR code […] et montrer aussi la page où
+         les réservations se font ») : 1 la page du QR code, 2 la page de
+         réservation, 3 l'espace équipe, numérotées dans leur légende. Sur un
+         téléphone, elles se font glisser. Fabriquées par
+         .claude/outils/captures-pro.mjs. -->
     <section class="bloc apercu" aria-labelledby="t-apercu">
       <h2 id="t-apercu" data-t="apercu_titre">Aperçu sur téléphone, tablette et ordinateur</h2>
       <div class="ecrans" role="group" aria-label="Choisir l'écran" data-t-aria="aria_ecrans">
@@ -400,40 +413,55 @@
         <button type="button" data-ecran="tablette" aria-pressed="false" data-t="ecran_tablette">Tablette</button>
         <button type="button" data-ecran="ordinateur" aria-pressed="false" data-t="ecran_ordinateur">Ordinateur</button>
       </div>
-      <div class="apercu-grille ecran-telephone" data-ecran="telephone">
+      <div class="apercu-grille ecran-telephone" data-ecran="telephone" role="region" tabindex="0" aria-label="Les trois étapes" data-t-aria="aria_etapes">
         <figure class="apercu-tel">
           <img src="/professionnels/apercu-client-telephone-fr.webp" data-src-en="/professionnels/apercu-client-telephone-en.webp" width="540" height="1052" loading="lazy" decoding="async"
-            alt="Page de réservation d'un hôtel d'exemple, sur téléphone : le nom de l'hôtel, puis ses destinations (Aéroport CDG, Orly, Le Bourget…), avec des prix à fixer par l'établissement." data-t-alt="alt_client_telephone">
-          <figcaption data-t="apercu_client">Votre page de réservation, ouverte par un lien ou un QR code.</figcaption>
+            alt="Page du QR code d'un hôtel d'exemple, sur téléphone : « Votre transfert depuis », le nom et l'adresse de l'hôtel, puis ses destinations (Aéroport CDG, Orly, Le Bourget…), avec des prix à fixer par l'établissement." data-t-alt="alt_client_telephone">
+          <figcaption data-t="apercu_client">1. Votre client scanne le QR code posé à l'accueil ou imprimé sur votre flyer : cette page s'ouvre, à votre nom.</figcaption>
+        </figure>
+        <figure class="apercu-tel">
+          <img src="/professionnels/apercu-reservation-telephone-fr.webp" data-src-en="/professionnels/apercu-reservation-telephone-en.webp" width="540" height="1052" loading="lazy" decoding="async"
+            alt="Page de réservation d'un hôtel d'exemple, sur téléphone : le départ de l'hôtel déjà rempli, la destination Orly, le terminal, la date, l'heure et le nombre de passagers." data-t-alt="alt_reservation_telephone">
+          <figcaption data-t="apercu_reservation">2. Il touche sa destination et réserve sur la page suivante : date, heure, nom et téléphone.</figcaption>
         </figure>
         <figure class="apercu-tel">
           <img src="/professionnels/apercu-equipe-telephone-fr.webp" data-src-en="/professionnels/apercu-equipe-telephone-en.webp" width="540" height="1052" loading="lazy" decoding="async"
-            alt="Espace équipe d'un hôtel d'exemple, sur téléphone : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="alt_equipe_telephone">
-          <figcaption data-t="apercu_equipe">Votre espace équipe : chaque demande et où elle en est.</figcaption>
+            alt="Espace équipe d'un hôtel d'exemple, sur téléphone : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="alt_equipe_telephone">
+          <figcaption data-t="apercu_equipe">3. Votre équipe voit chaque demande, et où elle en est.</figcaption>
         </figure>
       </div>
       <div class="apercu-grille ecran-tablette" data-ecran="tablette" hidden>
         <figure class="apercu-tab">
           <img src="/professionnels/apercu-client-tablette-fr.webp" data-src-en="/professionnels/apercu-client-tablette-en.webp" width="820" height="1100" loading="lazy" decoding="async"
-            alt="Page de réservation d'un hôtel d'exemple, sur tablette : le nom de l'hôtel, puis ses destinations (Aéroport CDG, Orly, Le Bourget…), avec des prix à fixer par l'établissement." data-t-alt="alt_client_tablette">
-          <figcaption data-t="apercu_client">Votre page de réservation, ouverte par un lien ou un QR code.</figcaption>
+            alt="Page du QR code d'un hôtel d'exemple, sur tablette : « Votre transfert depuis », le nom et l'adresse de l'hôtel, puis ses destinations (Aéroport CDG, Orly, Le Bourget…), avec des prix à fixer par l'établissement." data-t-alt="alt_client_tablette">
+          <figcaption data-t="apercu_client">1. Votre client scanne le QR code posé à l'accueil ou imprimé sur votre flyer : cette page s'ouvre, à votre nom.</figcaption>
+        </figure>
+        <figure class="apercu-tab">
+          <img src="/professionnels/apercu-reservation-tablette-fr.webp" data-src-en="/professionnels/apercu-reservation-tablette-en.webp" width="820" height="1100" loading="lazy" decoding="async"
+            alt="Page de réservation d'un hôtel d'exemple, sur tablette : le départ de l'hôtel déjà rempli, la destination Orly, le terminal, la date, l'heure et le nombre de passagers." data-t-alt="alt_reservation_tablette">
+          <figcaption data-t="apercu_reservation">2. Il touche sa destination et réserve sur la page suivante : date, heure, nom et téléphone.</figcaption>
         </figure>
         <figure class="apercu-tab">
           <img src="/professionnels/apercu-equipe-tablette-fr.webp" data-src-en="/professionnels/apercu-equipe-tablette-en.webp" width="820" height="1100" loading="lazy" decoding="async"
-            alt="Espace équipe d'un hôtel d'exemple, sur tablette : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="alt_equipe_tablette">
-          <figcaption data-t="apercu_equipe">Votre espace équipe : chaque demande et où elle en est.</figcaption>
+            alt="Espace équipe d'un hôtel d'exemple, sur tablette : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="alt_equipe_tablette">
+          <figcaption data-t="apercu_equipe">3. Votre équipe voit chaque demande, et où elle en est.</figcaption>
         </figure>
       </div>
       <div class="apercu-grille ecran-ordinateur" data-ecran="ordinateur" hidden>
         <figure class="apercu-ecran">
           <img src="/professionnels/apercu-client-ordinateur-fr.webp" data-src-en="/professionnels/apercu-client-ordinateur-en.webp" width="1280" height="760" loading="lazy" decoding="async"
-            alt="Page de réservation d'un hôtel d'exemple, sur ordinateur : le nom de l'hôtel, puis ses destinations (Aéroport CDG, Orly, Le Bourget…), avec des prix à fixer par l'établissement." data-t-alt="alt_client_ordinateur">
-          <figcaption data-t="apercu_client">Votre page de réservation, ouverte par un lien ou un QR code.</figcaption>
+            alt="Page du QR code d'un hôtel d'exemple, sur ordinateur : « Votre transfert depuis », le nom et l'adresse de l'hôtel, puis ses destinations (Aéroport CDG, Orly, Le Bourget…), avec des prix à fixer par l'établissement." data-t-alt="alt_client_ordinateur">
+          <figcaption data-t="apercu_client">1. Votre client scanne le QR code posé à l'accueil ou imprimé sur votre flyer : cette page s'ouvre, à votre nom.</figcaption>
+        </figure>
+        <figure class="apercu-ecran">
+          <img src="/professionnels/apercu-reservation-ordinateur-fr.webp" data-src-en="/professionnels/apercu-reservation-ordinateur-en.webp" width="1280" height="760" loading="lazy" decoding="async"
+            alt="Page de réservation d'un hôtel d'exemple, sur ordinateur : le départ de l'hôtel déjà rempli, la destination Orly, le terminal, la date, l'heure et le nombre de passagers." data-t-alt="alt_reservation_ordinateur">
+          <figcaption data-t="apercu_reservation">2. Il touche sa destination et réserve sur la page suivante : date, heure, nom et téléphone.</figcaption>
         </figure>
         <figure class="apercu-ecran">
           <img src="/professionnels/apercu-equipe-ordinateur-fr.webp" data-src-en="/professionnels/apercu-equipe-ordinateur-en.webp" width="1280" height="760" loading="lazy" decoding="async"
-            alt="Espace équipe d'un hôtel d'exemple, sur ordinateur : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="alt_equipe_ordinateur">
-          <figcaption data-t="apercu_equipe">Votre espace équipe : chaque demande et où elle en est.</figcaption>
+            alt="Espace équipe d'un hôtel d'exemple, sur ordinateur : deux courses à venir, l'une en attente, l'autre validée avec le nom et le numéro de son chauffeur." data-t-alt="alt_equipe_ordinateur">
+          <figcaption data-t="apercu_equipe">3. Votre équipe voit chaque demande, et où elle en est.</figcaption>
         </figure>
       </div>
       <p class="apercu-note"><span data-t="apercu_note">Captures de la démonstration, avec des données fictives.</span>
@@ -697,11 +725,16 @@
       cree3_t:"A single point of contact", cree3:"We check every request, find the right professional chauffeur in our network, assign them and confirm with the guest. A question or a last-minute change: your team calls one number.",
       apercu_titre:"Preview on phone, tablet and computer",
       aria_ecrans:"Choose the screen", ecran_telephone:"Phone", ecran_tablette:"Tablet", ecran_ordinateur:"Computer",
-      apercu_client:"Your booking page, opened from a link or a QR code.",
-      apercu_equipe:"Your team space: every request and where it stands.",
-      alt_client_telephone:"Booking page of an example hotel, on a phone: the hotel's name, then its destinations (CDG Airport, Orly, Le Bourget…), with prices to be set by the establishment.",
-      alt_client_tablette:"Booking page of an example hotel, on a tablet: the hotel's name, then its destinations (CDG Airport, Orly, Le Bourget…), with prices to be set by the establishment.",
-      alt_client_ordinateur:"Booking page of an example hotel, on a computer: the hotel's name, then its destinations (CDG Airport, Orly, Le Bourget…), with prices to be set by the establishment.",
+      aria_etapes:"The three steps",
+      apercu_client:"1. Your guest scans the QR code at your reception desk or on your flyer: this page opens, in your name.",
+      apercu_reservation:"2. They tap their destination and book on the next page: date, time, name and phone number.",
+      apercu_equipe:"3. Your team sees every request, and where it stands.",
+      alt_client_telephone:"QR code page of an example hotel, on a phone: “Your transfer from”, the hotel's name and address, then its destinations (CDG Airport, Orly, Le Bourget…), with prices to be set by the establishment.",
+      alt_client_tablette:"QR code page of an example hotel, on a tablet: “Your transfer from”, the hotel's name and address, then its destinations (CDG Airport, Orly, Le Bourget…), with prices to be set by the establishment.",
+      alt_client_ordinateur:"QR code page of an example hotel, on a computer: “Your transfer from”, the hotel's name and address, then its destinations (CDG Airport, Orly, Le Bourget…), with prices to be set by the establishment.",
+      alt_reservation_telephone:"Booking page of an example hotel, on a phone: hotel pickup already filled in, Orly as the destination, the terminal, date, time and number of passengers.",
+      alt_reservation_tablette:"Booking page of an example hotel, on a tablet: hotel pickup already filled in, Orly as the destination, the terminal, date, time and number of passengers.",
+      alt_reservation_ordinateur:"Booking page of an example hotel, on a computer: hotel pickup already filled in, Orly as the destination, the terminal, date, time and number of passengers.",
       alt_equipe_telephone:"Team space of an example hotel, on a phone: two upcoming rides, one pending, the other confirmed with its chauffeur's name and number.",
       alt_equipe_tablette:"Team space of an example hotel, on a tablet: two upcoming rides, one pending, the other confirmed with its chauffeur's name and number.",
       alt_equipe_ordinateur:"Team space of an example hotel, on a computer: two upcoming rides, one pending, the other confirmed with its chauffeur's name and number.",

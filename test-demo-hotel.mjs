@@ -178,7 +178,7 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
    silence, ou la feuille du moteur déborde sur elle. */
 const versDemo = sel => '#demoArrivee ' + sel.replace(/\.([a-z][\w-]*)/g, '.qr-$1');
 const DESSIN = ['.hero h1', '.adresse', '.fixe', '.cta', '.note', '.dest h2', '.carte[data-dest="cdg"]', '.carte[data-dest="cdg"] .pict',
-  '.carte[data-dest="cdg"] .nom b', '.carte[data-dest="cdg"] .nom small', '.carte[data-dest="cdg"] .px i', '.autre', '.etapes', '.etapes em', '.aide h2', '.btns a', '.pied img', '.pied nav a'];
+  '.carte[data-dest="cdg"] .nom b', '.carte[data-dest="cdg"] .nom small', '.carte[data-dest="cdg"] .px i', '.autre', '.etapes', '.etapes em', '.aide h2', '.btns a', '.pied img', '.pied nav a', '.top .ela', '.top .lang'];
 const PROPRIETES = ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'textAlign', 'display', 'paddingTop', 'paddingLeft',
   'borderTopLeftRadius', 'borderTopWidth', 'gridTemplateColumns', 'marginTop', 'marginBottom'];
 for (const w of [390, 1280]) {
@@ -187,7 +187,7 @@ for (const w of [390, 1280]) {
   const reel = await ctxReel.newPage();
   await reel.goto(BASE + '/easyhotel-client/'); await reel.waitForTimeout(400);
   const { ctx, p } = await ouvrir({ w });
-  const blocs = await reel.evaluate(() => [...new Set([...document.querySelectorAll('main [class], footer')].filter(e => {
+  const blocs = await reel.evaluate(() => [...new Set([...document.querySelectorAll('header, header [class], main [class], footer')].filter(e => {
     const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden'; }).flatMap(e => [...e.classList]))]);
   const manquent = await p.evaluate(cs => cs.filter(c => ![...document.querySelectorAll('#demoArrivee .qr-' + c)].some(e => {
     const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; })), blocs);
@@ -228,6 +228,18 @@ for (const w of [390, 1280]) {
   await ctx.close(); await ctxReel.close();
 }
 
+/* Une couleur gardée d'avant le 25/10/2026 (l'or, un choix libre) n'est plus
+   appliquée : le prospect revenu voit le bleu, pas une page moutarde. */
+{
+  const { ctx, p } = await ouvrir();
+  await p.evaluate(() => localStorage.setItem('ela_demo__ela_demo_perso', JSON.stringify({ couleur: '#9A6A1F' })));
+  await p.reload(); await p.waitForTimeout(1200);
+  check('perso : une couleur hors du nuancier, gardée d\'avant, n\'est plus appliquée',
+    (await p.evaluate(() => getComputedStyle(document.querySelector('#demoArrivee .qr-cta')).backgroundColor)) === 'rgb(14, 111, 199)',
+    await p.evaluate(() => getComputedStyle(document.querySelector('#demoArrivee .qr-cta')).backgroundColor));
+  await ctx.close();
+}
+
 /* ═══ 3. LE PARCOURS CLIENT → RÉCEPTION ═══ */
 {
   const { ctx, p } = await ouvrir();
@@ -248,10 +260,18 @@ for (const w of [390, 1280]) {
   check('arrivée : à 390 px, cet en-tête tient sur une ligne', await p.evaluate(() => {
     const e = document.querySelector('#demoArrivee .qr-cap'); if (!e) return false; const lh = parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.3;
     return e.getBoundingClientRect().height < lh * 1.5; }));
-  check('arrivée : la page dit que ces prix sont ceux du flyer et de son QR code', /ceux de votre flyer[\s\S]*QR code/.test(await texte(p, '#demoCartesFlyer')));
+  check('arrivée : la page dit que ces prix sont ceux du flyer', /ceux de votre flyer/.test(await texte(p, '#demoCartesFlyer')));
+  /* LE LIEN QR CODE → CETTE PAGE EST DIT AVANT ELLE (25/10/2026, Barbaros :
+     « il faut bien expliquer que la landing page est associée au QR code
+     installé ou celui du flyer »), et l'étape suit la page. */
+  check('arrivée : le fil de la démo dit « 1 », le QR code de l\'accueil ou du flyer, et qu\'on arrive ici',
+    (await texte(p, '#demoGuide .demo-guide-num')) === '1' && /QR code[\s\S]*accueil[\s\S]*flyer[\s\S]*ici/.test(await texte(p, '#demoGuide'))
+    && await p.evaluate(() => document.getElementById('demoGuide').getBoundingClientRect().bottom < document.getElementById('demoArrivee').getBoundingClientRect().top),
+    await texte(p, '#demoGuide'));
   check('arrivée : aucun prix proposé dans « Vos prix »', await p.evaluate(() => [...document.querySelectorAll('#demoPrixTable input')].every(i => i.value === '')));
   await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(400);
   check('arrivée : une carte ouvre le formulaire sur SA destination', (await p.inputValue('#hotelDest')) === 'orly' && await visible(p, '#btnVoirPrix'));
+  check('formulaire : le fil passe à « 2 », la réservation', (await texte(p, '#demoGuide .demo-guide-num')) === '2' && /réservation/i.test(await texte(p, '#demoGuide')), await texte(p, '#demoGuide'));
   check('arrivée : « Toutes les destinations » est à l\'écran après le choix', await p.evaluate(() => { const r = document.getElementById('demoRetourCartes').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.height > 0; }));
   await p.click('#demoRetourCartes'); await p.waitForTimeout(300);
   check('arrivée : « Toutes les destinations » ramène aux cartes', await visible(p, '.demo-carte[data-dest="cdg"]') && !(await visible(p, '#btnVoirPrix')));
@@ -329,7 +349,8 @@ for (const w of [390, 1280]) {
   await p.click('#demoOngletClient'); await p.waitForURL(/\/demo\/hotel\/$/); await p.waitForTimeout(800);
   check('retour à la vue client par l\'onglet', await visible(p, '#demoArrivee'));
   /* EN ANGLAIS */
-  await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(300);
+  /* Sur l'arrivée, les boutons FR/EN sont ceux de la vraie page du QR ; ils pilotent ceux du moteur. */
+  await p.click('#demoArrivee .qr-lang[data-lang="en"]'); await p.waitForTimeout(300);
   check('en anglais, les cartes suivent', /Tap a destination/.test(await texte(p, '#demoCartesAide')) && /Where would you like to go/.test(await texte(p, '#demoArrivee')) && /Sedan/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
   check('en anglais, l\'échéance suit', /^Access valid until \d\d\/\d\d on this device$/.test(await texte(p, '#demoAcces')), await texte(p, '#demoAcces'));
   check('en anglais, le cadre de la démo suit', (await bandeau(p)) === 'Demo — no real booking' && (await texte(p, '#demoOngletClient')) === 'What your guest sees');
@@ -372,19 +393,25 @@ for (const w of [390, 1280]) {
   check('perso : le nom saisi remplace celui de l\'en-tête, en texte', (await texte(p, '#hotelTeteNom')) === piege && await p.evaluate(() => !window.__pirate && !document.querySelector('#hotelTete img')));
   check('perso : les initiales sautent les articles', (await texte(p, '.demo-initiales')) === 'RI', await texte(p, '.demo-initiales'));
   check('perso : le départ du formulaire porte le nouveau nom', (await p.inputValue('#depart')).startsWith(piege));
-  /* Un jaune pâle : le bouton doit rester lisible (blanc à 4,5:1 au moins). */
-  await p.evaluate(() => { const c = document.getElementById('demoPersoCouleur'); c.value = '#ffe14d'; c.dispatchEvent(new Event('input', { bubbles: true })); });
-  /* LA COULEUR PEINTE, PAS LA SEULE « backgroundColor » : sous la finition
-     commune (11/10/2026), le bouton est un dégradé, et sa couleur de fond
-     est transparente — lue seule, elle rendait un rapport de 21 et ce
-     contrôle passait sans rien vérifier. */
-  const ratio = await p.evaluate(() => {
+  /* QUELQUES COULEURS, AUCUNE AUTRE (25/10/2026, Barbaros : « pas de
+     démonstration avec des couleurs moches ») : pas de choix libre, et chaque
+     pastille donne un bouton lisible. LA COULEUR PEINTE, PAS LA SEULE
+     « backgroundColor » : sous la finition commune (11/10/2026), le bouton
+     est un dégradé, et sa couleur de fond est transparente — lue seule, elle
+     rendait un rapport de 21 et ce contrôle passait sans rien vérifier. */
+  check('perso : pas de couleur au choix libre, seulement le nuancier', await p.evaluate(() =>
+    !document.querySelector('#demoPerso input[type="color"]') && document.querySelectorAll('#demoPerso .demo-pastille').length >= 2));
+  const lisible = () => p.evaluate(() => {
     const s = getComputedStyle(document.getElementById('btnVoirPrix'));
     const rvb = (/rgb\([^)]*\)/.exec(s.backgroundImage) || [s.backgroundColor])[0].match(/\d+/g).slice(0, 3).map(Number);
     const l = c => { const t = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; };
     return 1.05 / (l(rvb) + .05);
   });
-  check('perso : un jaune pâle donne un bouton lisible (≥ 4,5:1 avec le blanc)', ratio >= 4.5, ratio.toFixed(2));
+  const illisibles = [];
+  for (const c of await p.$$eval('#demoPerso .demo-pastille', l => l.map(b => b.getAttribute('data-couleur')))) {
+    await p.click(`.demo-pastille[data-couleur="${c}"]`); const r = await lisible(); if (r < 4.5) illisibles.push(`${c} ${r.toFixed(2)}`);
+  }
+  check('perso : chaque couleur du nuancier donne un bouton lisible (≥ 4,5:1 avec le blanc)', illisibles.length === 0, illisibles.join(', '));
   await p.click('.demo-pastille[data-couleur="#8B1E3F"]');
   check('perso : une pastille du nuancier repeint le bouton', (await peinte(p, '#btnVoirPrix')) === 'rgb(139, 30, 63)', await peinte(p, '#btnVoirPrix'));
   check('perso : le cadre de la démo garde le bleu Elatransfer', (await p.evaluate(() => getComputedStyle(document.querySelector('.demo-cadre')).backgroundColor)) === 'rgb(6, 47, 85)');
@@ -432,6 +459,7 @@ for (const w of [390, 1280]) {
   check('perso : le vrai stockage du site n\'a rien reçu', await p.evaluate(() => Object.keys(localStorage).every(k => k === 'ela_demo_session' || k.startsWith('ela_demo__'))));
   check('perso : aucune connexion interdite tentée', p.violations.length === 0 && p.supabase.length === 0, p.violations.concat(p.supabase).join(' | '));
   await p.click('#demoOngletReception'); await p.waitForURL(/reception\/$/); await p.waitForTimeout(1200);
+  check('réception : le fil de la démo passe à « 3 »', (await texte(p, '#demoGuide .demo-guide-num')) === '3' && /réception/i.test(await texte(p, '#demoGuide')), await texte(p, '#demoGuide'));
   check('perso : la réception porte le même nom', (await texte(p, '#recHotel')) === piege);
   check('perso : … et la même couleur', (await peinte(p, '#btnRecReserver')) === 'rgb(139, 30, 63)', await peinte(p, '#btnRecReserver'));
   await p.click('#demoPerso summary'); await p.click('#demoPersoRaz'); await p.waitForTimeout(300);

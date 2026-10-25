@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /* =====================================================================
-   CAPTURES-PRO.MJS — les douze captures de la démo pour /professionnels/
+   CAPTURES-PRO.MJS — les captures de la démo pour /professionnels/
    ---------------------------------------------------------------------
-   « À quoi ça ressemble » (page des professionnels) montre la démo, page
-   client et espace équipe, sur téléphone, tablette et ordinateur, en
-   français et en anglais. Ces images ne se refont pas toutes seules : la
+   « À quoi ça ressemble » (page des professionnels) raconte la démo en trois
+   images — 1 la page du QR code, 2 la page où se fait la réservation, 3
+   l'espace équipe — sur téléphone, tablette et ordinateur, en français et en
+   anglais (dix-huit images ; trois depuis le 25/10/2026, à la demande de
+   Barbaros : « montrer aussi la page où les réservations se font »). Ces images ne se refont pas toutes seules : la
    démo a changé d'aspect le 25/10/2026 et les captures du 23/10 la
    montraient encore telle qu'avant. La règle (memoire/demo-pro.md) :
    REFAIRE LES CAPTURES SI LA DÉMO CHANGE D'ASPECT — c'est ce fichier.
@@ -46,18 +48,32 @@ const ECRANS = [
   { nom: 'tablette', width: 820, height: 1100, dpr: 1, largeur: 820 },
   { nom: 'ordinateur', width: 1280, height: 760, dpr: 1, largeur: 1280 },
 ];
-const VUES = { client: '/demo/hotel/', equipe: '/demo/hotel/reception/' };
+/* « reservation » : la page du QR, puis une destination touchée — le
+   formulaire, tel que le voit le client. Ce que seule la démo y pose (cadre
+   photo, initiales, pastille du flyer, retour aux cartes) est masqué. */
+const VUES = {
+  client: { chemin: '/demo/hotel/' },
+  reservation: { chemin: '/demo/hotel/', carte: 'orly', masquer: ',#demoMarque,#demoExemple,#demoMessage,#demoRetourCartes' },
+  equipe: { chemin: '/demo/hotel/reception/' },
+};
 const LANGUES = { fr: 'fr-FR', en: 'en-GB' };
 /* 10 h à Paris aujourd'hui, heure d'été ou d'hiver. */
 const JOUR = new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Paris' }).slice(0, 10);
 const DIX_HEURES = ['+02:00', '+01:00'].map(o => new Date(`${JOUR}T10:00:00${o}`))
   .find(d => d.toLocaleString('sv-SE', { timeZone: 'Europe/Paris' }).slice(11, 16) === '10:00');
 
-const nav = await chromium.launch();
-const encodeur = await (await nav.newContext()).newPage();
+/* UN NAVIGATEUR PAR LANGUE : la date et l'heure des champs natifs suivent la
+   langue du SYSTÈME (LANG), ni celle de la page ni l'option --lang — sans
+   elle, une capture « française » montrait « 10/25/2026 · 10:00 AM ». */
+const navs = {};
+for (const [langue, locale] of Object.entries(LANGUES)) {
+  const lang = locale.replace('-', '_') + '.UTF-8';
+  navs[langue] = await chromium.launch({ env: { ...process.env, LANG: lang, LC_ALL: lang, LANGUAGE: langue } });
+}
+const encodeur = await (await navs.fr.newContext()).newPage();
 const erreurs = [];
-for (const [vue, chemin] of Object.entries(VUES)) for (const e of ECRANS) for (const [langue, locale] of Object.entries(LANGUES)) {
-  const ctx = await nav.newContext({ viewport: { width: e.width, height: e.height }, deviceScaleFactor: e.dpr, locale, timezoneId: 'Europe/Paris' });
+for (const [vue, { chemin, carte, masquer = '' }] of Object.entries(VUES)) for (const e of ECRANS) for (const [langue, locale] of Object.entries(LANGUES)) {
+  const ctx = await navs[langue].newContext({ viewport: { width: e.width, height: e.height }, deviceScaleFactor: e.dpr, locale, timezoneId: 'Europe/Paris' });
   await ctx.addInitScript(() => { try { localStorage.setItem('ela_demo_session', 'capture'); } catch (x) {} });
   await ctx.route('**/*', r => {
     const u = r.request().url();
@@ -71,7 +87,8 @@ for (const [vue, chemin] of Object.entries(VUES)) for (const e of ECRANS) for (c
   await p.clock.setFixedTime(DIX_HEURES);
   await p.goto(BASE + chemin);
   await p.waitForTimeout(1500);
-  await p.addStyleTag({ content: '#demoBandeau,#demoCadre,#demoCartesAide,#demoCartesFlyer{display:none!important}' });
+  if (carte) { await p.click(`.demo-carte[data-dest="${carte}"]`); await p.waitForTimeout(800); }
+  await p.addStyleTag({ content: `#demoBandeau,#demoCadre,#demoCartesAide,#demoCartesFlyer${masquer}{display:none!important}` });
   await p.evaluate(() => scrollTo(0, 0));
   await p.waitForTimeout(500);
   const png = (await p.screenshot()).toString('base64');
@@ -86,5 +103,6 @@ for (const [vue, chemin] of Object.entries(VUES)) for (const e of ECRANS) for (c
   await writeFile(fichier, Buffer.from(webp, 'base64'));
   console.log(`${fichier} : ${Math.round(Buffer.from(webp, 'base64').length / 1024)} Ko`);
 }
-await nav.close(); serveur.close();
+for (const n of Object.values(navs)) await n.close();
+serveur.close();
 if (erreurs.length) { console.error('ERREURS JavaScript :\n  ' + erreurs.join('\n  ')); process.exit(1); }

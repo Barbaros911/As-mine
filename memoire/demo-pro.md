@@ -524,8 +524,45 @@ hôtels ; le P0 #399 était porté par la PR #425, aucun fichier commun).
   largeurs ; seule la largeur du nom dans une carte dépend du prix), aucune
   couleur orange peinte, rien qui déborde. Sur l'ancien code : 15 contrôles
   tombent en nommant le défaut.
-- **Les douze captures** de `/professionnels/` sont refaites par
-  `.claude/outils/captures-pro.mjs` (WebP fabriqué par Chromium, 41 à 49 Ko).
+- **Les captures** de `/professionnels/` sont refaites par
+  `.claude/outils/captures-pro.mjs` (WebP fabriqué par Chromium, 29 à 49 Ko ;
+  un navigateur par langue, lancé avec `LANG` : sinon la date des champs
+  s'écrivait « 10/25/2026 · 10:00 AM » sur une capture française).
 - Vu et laissé : après le choix d'une destination, l'en-tête collé du moteur
   recouvre la moitié haute de « ← Toutes les destinations » ; le doigt
   l'atteint (mesuré). Identique avant ce changement.
+
+### Même jour, seconde passe : trois couleurs, le QR code dit, trois étapes
+
+Barbaros, sur les captures avant/après : « pas de démonstration avec des
+couleurs moches, seulement quelques couleurs, et il faut bien expliquer que
+la landing page est associée au QR code installé ou celui du flyer et
+montrer aussi l'exemple avec la page où les réservations se font ».
+
+- **Trois couleurs, plus de choix libre** : Bleu (celui d'Elatransfer, par
+  défaut), Bordeaux, Vert sapin. Mesuré sur la page du QR avec les six
+  d'avant : l'or devenait moutarde, l'anthracite rendait le bouton invisible
+  sur le marine, le violet jurait ; le sélecteur libre permettait pire. Une
+  couleur gardée d'avant (l'or, un choix libre) n'est plus appliquée.
+  Chaque pastille donne un bouton lisible (≥ 4,5:1), éprouvé une par une.
+- **L'arrivée prend aussi l'en-tête blanc de la vraie page** (logo, FR/EN) :
+  la barre de couleur du formulaire y ajoutait une couleur que la vraie page
+  n'a pas. Ses boutons FR/EN pilotent ceux du moteur ; l'en-tête du formulaire
+  revient avec le formulaire. Le test de dessin l'a mesuré : la feuille du
+  moteur grossissait ses boutons (16 px au lieu de 13,3) — `button` et
+  `header` sont entrés dans la remise à zéro.
+- **Le fil de la démo** (`#demoGuide`, sous les onglets, hors de la page
+  montrée) : « 1 La page du QR code : votre client scanne le QR code posé à
+  l'accueil ou imprimé sur votre flyer, et arrive ici, sur la page à votre
+  nom », puis « 2 La réservation », puis « 3 Votre réception » (« votre
+  équipe » pour une agence). L'étape suit la page (classe `demo-choix`,
+  onglet). La phrase bleue sous les cartes ne redit plus le QR code : « Ces
+  prix sont ceux de votre flyer. »
+- **`/professionnels/` raconte trois étapes par écran** : 1 la page du QR code,
+  2 la page de réservation (nouvelle capture, une destination touchée, cadre
+  photo et pastilles de la démo masqués), 3 l'espace équipe — légendes
+  numérotées, la première dit « le QR code posé à l'accueil ou imprimé sur
+  votre flyer ». Sur un téléphone, les trois se font glisser (une ligne qui
+  défile, la suivante dépasse au bord) ; le contrôle de débordement de
+  `test-pro-page` ignore ce qui dépasse DANS un cadre qui défile, si le cadre
+  tient dans l'écran. 18 images, chargées à la demande.
