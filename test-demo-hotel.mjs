@@ -229,8 +229,8 @@ for (const w of [390, 1280]) {
 }
 
 /* ═══ 2 ter. LES THÈMES DU PROSPECT (25/10/2026) ═══
-   Barbaros : « le bleu actuel, noir or », puis « un fond noir écriture
-   blanche » et « un fond blanc écriture noire ». Un thème repeint les trois
+   Barbaros, au fil des essais (noir et or, blanc…), garde le Bleu et le Noir.
+   Un thème repeint les trois
    écrans (page du QR, formulaire, réception) : AUCUN NE DOIT RENDRE
    ILLISIBLE UN TEXTE QUE LE BLEU LAISSE LISIBLE. On mesure le contraste de
    CHAQUE texte sur son fond, clair compris (le thème Blanc retourne les
@@ -488,8 +488,8 @@ for (const w of [390, 1280]) {
   }
   check('perso : chaque thème donne un bouton lisible (≥ 4,5:1 avec son propre texte)', illisibles.length === 0, illisibles.join(', '));
   check('perso : chaque thème repeint le bouton d\'une couleur à lui', peints.size === themes.length, [...peints].join(' · '));
-  /* Le noir et or, gardé pour la suite : la réception doit porter le même. */
-  await p.click('.demo-pastille[data-theme="noir-or"]');
+  /* Le Noir, gardé pour la suite : la réception doit porter le même. */
+  await p.click('.demo-pastille[data-theme="noir"]');
   const choisi = await peinte(p, '#btnVoirPrix');
   check('perso : le cadre de la démo garde le bleu Elatransfer', (await p.evaluate(() => getComputedStyle(document.querySelector('.demo-cadre')).backgroundColor)) === 'rgb(6, 47, 85)');
   /* Une photo : générée dans la page, déposée en APPUYANT SUR LE CADRE

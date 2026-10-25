@@ -18,7 +18,7 @@ html.demo-ferme body > #demoIndispo{display:block !important}
 html[data-ela-space="demo"] body.hotel{background:#F2F5F9}
 html[data-ela-space="demo"] body.reception{background:#EDF3F7}
 html[data-ela-space="demo"] body.hotel .bouton,
-html[data-ela-space="demo"] body.reception .bouton{background:var(--h-finition,var(--h-bouton,var(--demo-bleu)));color:var(--h-texteAction,#fff)}
+html[data-ela-space="demo"] body.reception .bouton{background:var(--h-bouton,var(--demo-bleu));color:#fff}
 
 /* Le menu du site public n'a rien à faire ici : la démo est un parcours. */
 html[data-ela-space="demo"] .entete-nav{display:none !important}
@@ -208,85 +208,28 @@ html[data-ela-space="demo"][data-demo-vue="client"] body.demo-choix{padding-bott
 html[data-ela-space="demo"][data-demo-vue="client"] body.demo-choix header.entete{display:none!important}
 html #demoArrivee .qr-top{position:relative}
 /* La couleur du partenaire réel devient celle du THÈME de l'hôtel du
-   prospect (demo-simulateur.js, THEMES) : comme la finition commune, l'action
-   prend « finition » s'il y en a une, sinon « bouton », et le texte posé
-   dessus « texteAction » (noir sur l'or), sinon le blanc. */
-#demoArrivee{--demo-o:var(--h-finition,var(--h-bouton,var(--demo-bleu)));--demo-o2:var(--h-finition2,var(--demo-o));
-  --demo-sur-o:var(--h-texteAction,#fff);
-  --demo-otexte:var(--h-finitionEncre,var(--h-paleEncre,var(--demo-encre)));
-  --demo-opale:var(--h-finitionPale,var(--h-pale,var(--demo-pale)));
+   prospect (demo-simulateur.js, THEMES) : son bouton, ses fonds clairs et
+   leur encre, son fond sombre (le marine du bandeau, devenu variable). */
+#demoArrivee{--demo-o:var(--h-bouton,var(--demo-bleu));--demo-sur-o:#fff;
+  --demo-otexte:var(--h-paleEncre,var(--demo-encre));--demo-opale:var(--h-pale,var(--demo-pale));
   --demo-fond:var(--h-fond,#0b2d4f);--demo-fond2:var(--h-fond2,#123f68);--demo-neutre:var(--h-neutre,#e8f0f8);
   /* Le début du titre, en teinte claire sur le fond (#ffb38a sur la vraie) ;
-     un thème peut la fixer (« titre » : le gris du Noir et du Blanc). */
+     un thème peut la fixer (« titre » : le gris du Noir). */
   --demo-oclair:var(--h-titre,color-mix(in srgb,var(--demo-o) 45%,#fff))}
 /* Le grand bouton du bandeau : l'action du thème, sauf si le thème le veut
-   autrement sur son fond (« ctaFond » : blanc sur le noir du thème Noir). */
-html #demoArrivee .qr-cta{background:var(--h-ctaFond,linear-gradient(120deg,var(--demo-o),var(--demo-o2)));color:var(--h-ctaTexte,var(--demo-sur-o))}
-html #demoArrivee .qr-etapes em{color:var(--demo-sur-o)}
+   autrement sur son fond (« ctaFond » : blanc sur le noir du thème Noir —
+   noir sur noir, il disparaissait). */
+html #demoArrivee .qr-cta{background:var(--h-ctaFond,var(--demo-o));color:var(--h-ctaTexte,var(--demo-sur-o))}
 /* ═══ LES THÈMES, SUR LE FORMULAIRE ET AU COMPTOIR (25/10/2026) ═══
-   Un thème autre que le Bleu repeint les bandeaux sombres de son fond (le
-   Bleu garde ceux d'Elatransfer, à l'identique). La finition commune pose du
-   texte BLANC sur l'action, côté client : juste sur le bleu, illisible sur
-   l'or. Ici seulement — la vraie page d'easyHotel n'est pas touchée —, ce
-   texte suit « texteAction » du thème, comme le fait déjà le comptoir. */
+   Un thème autre que le Bleu repeint de son fond les bandeaux sombres du
+   formulaire et du comptoir ; le Bleu garde ceux d'Elatransfer, à
+   l'identique. */
 html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.hotel-enhanced.eh-sans-photo .hotel-tete,
 html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.reception.hotel-enhanced .hotel-tete,
 html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.reception-premium .hotel-tete,
 html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.reception-premium #ecran-reception .trajet-tete{
   background:linear-gradient(135deg,var(--h-fond) 0%,var(--h-fond2) 100%)!important}
 html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.reception-premium{--v2-marine:var(--h-fond);--v2-titre:var(--h-charbon)}
-html[data-ela-space="demo"] body.hotel.hotel-enhanced .hotel-partner-chip,
-html[data-ela-space="demo"] body.hotel.hotel-enhanced .hotel-partner-chip b,
-html[data-ela-space="demo"] body.hotel.hotel-enhanced .hotel-partner-chip span,
-html[data-ela-space="demo"] body.hotel.hotel-enhanced .hotel-tete .hotel-sur,
-html[data-ela-space="demo"] body.hotel.hotel-enhanced .hotel-sens-btn.actif,
-html[data-ela-space="demo"] body.hotel.hotel-enhanced #ecran-accueil .principal,
-html[data-ela-space="demo"] body.hotel.hotel-enhanced #btnVoirPrix,
-html[data-ela-space="demo"] body.hotel.hotel-enhanced #ecran-vehicules .bouton,
-html[data-ela-space="demo"] body.hotel.hotel-enhanced #ecran-recap .bouton,
-html[data-ela-space="demo"] body.hotel.hotel-enhanced #ecran-bon .bouton,
-html[data-ela-space="demo"] body.hotel.reception-premium #btnVoirPrix:disabled{color:var(--h-texteAction,#fff)!important}
-html[data-ela-space="demo"] body.hotel.hotel-enhanced .langues button[aria-pressed="true"]{color:var(--h-finitionEncre,var(--eh-action))!important}
-/* ═══ LE THÈME BLANC : des bandeaux blancs, l'écriture noire ═══
-   La page du QR, le formulaire et le comptoir écrivent en BLANC sur leurs
-   bandeaux sombres. Sur un thème clair (« data-demo-fond="clair" »), ces
-   textes passent au noir ; un bandeau avec la photo du prospect garde son
-   voile sombre et son blanc (« eh-sans-photo » seulement). La barre du haut
-   du comptoir reste noire : son logo est la version blanche. */
-html[data-demo-fond="clair"] #demoArrivee .qr-hero{color:#111;border-bottom:1px solid #E6E6E6}
-html[data-demo-fond="clair"] #demoArrivee .qr-hero::after{display:none}
-html[data-demo-fond="clair"] #demoArrivee .qr-adresse{background:#F7F7F7;border-color:#E2E2E2}
-html[data-demo-fond="clair"] #demoArrivee .qr-adresse span{color:#555}
-html[data-demo-fond="clair"] #demoArrivee .qr-fixe{color:#1E7A45}
-html[data-demo-fond="clair"] #demoArrivee .qr-note{color:#555}
-html[data-demo-fond="clair"] body.hotel.hotel-enhanced.eh-sans-photo .hotel-tete{border-bottom:1px solid #E6E6E6!important;box-shadow:none!important}
-html[data-demo-fond="clair"] body.hotel.hotel-enhanced.eh-sans-photo .hotel-tete .hotel-nom,
-html[data-demo-fond="clair"] body.hotel.hotel-enhanced.eh-sans-photo .hotel-tete .hotel-adresse{color:#111!important;text-shadow:none!important}
-html[data-demo-fond="clair"] body.hotel.hotel-enhanced.eh-sans-photo .hotel-sens{box-shadow:0 0 0 1px #DADADA!important}
-html[data-demo-fond="clair"] body.hotel-enhanced.eh-sans-photo .demo-photo{border-color:#B8B8B8;background:#FAFAFA;color:#333}
-html[data-demo-fond="clair"] body.hotel-enhanced.eh-sans-photo .demo-initiales{box-shadow:0 0 0 2px #DADADA}
-html[data-demo-fond="clair"] body.hotel-enhanced.eh-sans-photo .demo-message{color:#111;text-shadow:none}
-html[data-ela-space="demo"][data-demo-theme][data-demo-fond="clair"] body.hotel.reception-premium{--v2-marine:#111111}
-html[data-demo-fond="clair"] body.hotel.reception-premium .hotel-tete,
-html[data-demo-fond="clair"] body.hotel.reception-premium #ecran-reception .trajet-tete{border-bottom:1px solid #E6E6E6!important}
-html[data-demo-fond="clair"] body.hotel.reception-premium .hotel-tete .hotel-nom,
-html[data-demo-fond="clair"] body.hotel.reception-premium #ecran-reception .trajet-tete .rec-hotel,
-html[data-demo-fond="clair"] body.hotel.reception-premium .reception-hours b{color:#111!important}
-html[data-demo-fond="clair"] body.hotel.reception-premium .hotel-tete .hotel-adresse,
-html[data-demo-fond="clair"] body.hotel.reception-premium #ecran-reception .trajet-tete .rec-adresse,
-html[data-demo-fond="clair"] body.hotel.reception-premium .reception-hours{color:#4A4A4A!important}
-
-/* L'onglet actif de la barre du bas est écrit de la couleur de l'action, sur
-   du blanc : l'or y lit à 2,4:1 — son encre foncée (« finitionEncre »). */
-html[data-ela-space="demo"] body.hotel.hotel-enhanced .barre .onglet.actif{color:var(--h-finitionEncre,var(--accent))!important}
-/* La page du QR écrit ses liens, ses étapes et sa langue avec le marine de
-   son bandeau : blanc sur un thème clair, il faut l'encre noire. */
-html[data-demo-fond="clair"] #demoArrivee{--n:#111111}
-
-/* Sur téléphone, la barre du haut est elle-même de la couleur de l'action. */
-@media(max-width:760px){
-  html[data-ela-space="demo"] body.hotel.hotel-enhanced:not(.reception-premium) .langues button:not([aria-pressed="true"]){color:var(--h-texteAction,#fff)!important}
-}
 #demoArrivee .qr-px b.demo-a-fixer{font-size:13px;font-weight:700;color:#5A6A7B}
 .demo-retour-cartes{display:inline-flex;align-items:center;min-height:44px;margin:0 0 8px 12px;padding:0 4px;border:0;background:none;
   color:var(--h-bouton,var(--demo-bleu));font:inherit;font-weight:800;font-size:14.5px;cursor:pointer}
