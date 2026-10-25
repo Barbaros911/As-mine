@@ -107,6 +107,16 @@ const jjmm = ms => { const d = new Date(ms); return ('0' + d.getDate()).slice(-2
   check('la démo s\'ouvre avec une session valable', await visible(p, '#demoArrivee'));
   check('… sur la page d\'arrivée, au nom rendu par « ouvrir »', await p.evaluate(() =>
     [...document.querySelectorAll('#demoArrivee [data-demo-arrivee="nom"]')].every(e => e.textContent === 'Hôtel Ibis Roissy')));
+  /* LE TITRE A DEUX COULEURS, COMME LA VRAIE PAGE (25/10/2026, vu par
+     Barbaros sur sa capture) : « Votre transfert depuis » en accent, le nom
+     de l'hôtel de la couleur du titre. Dans un <span>, le nom prenait
+     l'accent. */
+  const titre = await p.evaluate(() => { const h1 = document.querySelector('#demoArrivee .qr-hero h1'); if (!h1) return null;
+    const nom = [...h1.childNodes].find(n => n.nodeType === 3 && n.nodeValue.includes('Hôtel Ibis Roissy'));
+    const accent = h1.querySelector('#demoArrivee-titreHaut');
+    return { nomDansLeTitre: !!nom, couleurTitre: getComputedStyle(h1).color, couleurAccent: accent && getComputedStyle(accent).color }; });
+  check('le titre de la page d\'arrivée a deux couleurs : l\'accent, puis le nom de l\'hôtel en couleur du titre',
+    !!titre && titre.nomDansLeTitre && titre.couleurTitre !== titre.couleurAccent, JSON.stringify(titre));
   check('le nom rendu par « ouvrir » est affiché', (await texte(p, '#hotelTeteNom')) === 'Hôtel Ibis Roissy', await texte(p, '#hotelTeteNom'));
   check('un rond porte les initiales, pas un logo', (await texte(p, '.demo-initiales')) === 'HI', await texte(p, '.demo-initiales'));
   check('la zone photo dit « Votre photo ici »', (await texte(p, '#demoPhotoTexte')) === 'Votre photo ici');

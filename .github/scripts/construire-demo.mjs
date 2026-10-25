@@ -207,7 +207,11 @@ function arriveeDepuisPageQr(source) {
   /* Son en-tête blanc aussi (logo, FR/EN) : celui du formulaire, en couleur,
      ajoutait une barre que la vraie page n'a pas. */
   let corps = (tete[0] + main[1] + pied[0]).replace(/<!--[\s\S]*?-->/g, '');
-  corps = remplacerUnMotif(corps, /(<h1>[\s\S]*?<br>)[^<]+(<\/h1>)/, '$1<span data-demo-arrivee="nom"></span>$2', 'nom du titre');
+  /* Dans le titre, le nom est un TEXTE posé après une ancre vide, comme sur la
+     vraie page : dans un <span>, il prenait la couleur d'accent de « Votre
+     transfert depuis » (la feuille colore « h1 span »), et le titre perdait
+     ses deux couleurs. */
+  corps = remplacerUnMotif(corps, /(<h1>[\s\S]*?<br>)[^<]+(<\/h1>)/, '$1<i hidden data-demo-arrivee="nom-titre"></i>$2', 'nom du titre');
   corps = remplacerUnMotif(corps, /(class="adresse">[\s\S]*?<div>)<b>[^<]*<\/b><span>[^<]*<\/span>/,
     '$1<b data-demo-arrivee="nom"></b><span data-demo-arrivee="adresse"></span>', 'adresse');
   let modeles = '';
@@ -390,6 +394,11 @@ const PERSO = `
         });
       });
       page.querySelectorAll('[data-demo-arrivee="nom"]').forEach(function(e){ e.textContent = h.nom; });
+      var ancre = page.querySelector('[data-demo-arrivee="nom-titre"]');
+      if(ancre){
+        if(!ancre.nextSibling || ancre.nextSibling.nodeType !== 3) ancre.parentNode.insertBefore(document.createTextNode(""), ancre.nextSibling);
+        if(ancre.nextSibling.nodeValue !== h.nom) ancre.nextSibling.nodeValue = h.nom;
+      }
       page.querySelectorAll('[data-demo-arrivee="adresse"]').forEach(function(e){ e.textContent = h.adresse || ""; });
 
       var tpl = modeles.content, reels = tpl.querySelectorAll("a[data-dest]"), libre = null;
