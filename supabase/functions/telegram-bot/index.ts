@@ -47,7 +47,9 @@ Deno.serve(async(req)=>{
   const r=await fetch(`${U}/rest/v1/journal_notifications_admin`,{method:"POST",headers:{apikey:S,Authorization:`Bearer ${S}`,"Content-Type":"application/json",Prefer:"return=minimal"},
     body:JSON.stringify({type_evenement:"vue",course_ref:ref,canal:"telegram",statut:"envoye",detail:"bouton Vu sur Telegram"})}).catch(()=>null);
   const fait=!!(r&&r.ok);
-  await tg("answerCallbackQuery",{callback_query_id:cb.id,text:fait?`Rappels arrêtés pour ${ref}.`:"Échec — réessayez."});
+  /* « Vu » arrête l'alarme, pas le suivi (25 octobre 2026) : la réponse le
+     dit, pour qu'un rappel « vue, pas confirmée » ne surprenne pas. */
+  await tg("answerCallbackQuery",{callback_query_id:cb.id,text:fait?`Vu : rappels arrêtés pour ${ref}. Un rappel suivra si elle n'est pas confirmée.`:"Échec — réessayez."});
   /* Le bouton « Vu » disparaît du message : il a été dit. « Ouvrir la
      course » reste, c'est le geste suivant. */
   if(fait&&cb.message?.message_id)await tg("editMessageReplyMarkup",{chat_id:CHAT,message_id:cb.message.message_id,

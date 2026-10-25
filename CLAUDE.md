@@ -682,13 +682,13 @@ Histoire : `memoire/chauffeurs-et-commission.md`.
 - **`a-coller.ts` est fabriqué par `assembler.mjs`**, jamais écrit à la main :
   c'est le déploiement de secours au téléphone. Le déploiement normal passe par
   `fonctions.yml`.
-- **La relance tourne toutes les 20 s** (pg_cron, en-tête `x-ela-relance`) :
-  la **notification ELA est l'alarme**, **Telegram informe**, chaque rappel
-  Telegram efface le précédent, un dernier message part à l'heure du départ,
-  et tout s'arrête dès que la course est **vue** (bouton « ✅ Vu » ou course
-  ouverte dans l'admin, `signalerVue()`), confirmée ou refusée. Les délais se
-  comptent depuis l'annonce. Cadence exacte : `memoire/alertes-relance.md`.
-  Un `aPrevenir` resté 15 min : un rappel Telegram, un dernier à H-3.
+- **La relance tourne toutes les 20 s** (pg_cron, `x-ela-relance`) : la
+  **notification ELA est l'alarme**, **Telegram informe**, chaque rappel
+  efface le précédent. **Non vue, une demande ne se tait jamais** (25/10, sa
+  décision, nuit comprise). **« Vu »** (bouton, ou course ouverte dans
+  l'admin) **arrête l'alarme, pas le suivi** : 30 min après, H-2, H-30. Un
+  dernier message au départ ; confirmée ou refusée, plus rien. Cadence :
+  `memoire/alertes-relance.md`. `aPrevenir` resté 15 min : un rappel, un à H-3.
 - **Dans l'admin ouvert** : un seul lecteur de son, débloqué au premier appui
   (`#sonCoupe` le dit) ; l'alarme se répète jusqu'à un appui ; pastille sur
   l'icône. **Admin fermé**, seuls la notification, Telegram et la pastille
