@@ -512,8 +512,10 @@
           direPerso("Photo affichée, mais trop lourde pour être gardée : elle disparaîtra en changeant de page.",
                     "Photo shown, but too large to keep: it will disappear when you change page.");
         } else {
-          direPerso("Photo ajoutée. Elle reste sur votre appareil, rien n'est envoyé.",
-                    "Photo added. It stays on your device; nothing is sent.");
+          /* Elle s'affiche où la verrait un partenaire : en tête du formulaire,
+             pas sur la page du QR, qui n'en a pas (25/10/2026). */
+          direPerso("Photo ajoutée : elle s'affiche en tête du formulaire, après le choix d'une destination. Elle reste sur votre appareil, rien n'est envoyé.",
+                    "Photo added: it appears at the top of the booking form, once a destination is chosen. It stays on your device; nothing is sent.");
         }
       };
       img.onerror = function(){ direPerso("Cette image ne s'ouvre pas.", "This image cannot be opened."); };

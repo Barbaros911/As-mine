@@ -98,13 +98,15 @@ const jjmm = ms => { const d = new Date(ms); return ('0' + d.getDate()).slice(-2
 /* ═══ 0. UNE ÉCHÉANCE ILLISIBLE NE S'INVENTE PAS ═══ */
 {
   const { ctx, p } = await ouvrir({ reponse: { expire: 'demain' } });
-  check('échéance illisible : la démo s\'ouvre, et le bandeau n\'invente aucune date', await visible(p, '#hotelTete') && !(await p.$('#demoAcces')));
+  check('échéance illisible : la démo s\'ouvre, et le bandeau n\'invente aucune date', await visible(p, '#demoArrivee') && !(await p.$('#demoAcces')));
   await ctx.close();
 }
 /* ═══ 1. LE NOM VIENT DE LA RÉPONSE, EN TEXTE ═══ */
 {
   const { ctx, p } = await ouvrir();
-  check('la démo s\'ouvre avec une session valable', await visible(p, '#hotelTete'));
+  check('la démo s\'ouvre avec une session valable', await visible(p, '#demoArrivee'));
+  check('… sur la page d\'arrivée, au nom rendu par « ouvrir »', await p.evaluate(() =>
+    [...document.querySelectorAll('#demoArrivee [data-demo-arrivee="nom"]')].every(e => e.textContent === 'Hôtel Ibis Roissy')));
   check('le nom rendu par « ouvrir » est affiché', (await texte(p, '#hotelTeteNom')) === 'Hôtel Ibis Roissy', await texte(p, '#hotelTeteNom'));
   check('un rond porte les initiales, pas un logo', (await texte(p, '.demo-initiales')) === 'HI', await texte(p, '.demo-initiales'));
   check('la zone photo dit « Votre photo ici »', (await texte(p, '#demoPhotoTexte')) === 'Votre photo ici');
@@ -131,6 +133,8 @@ const jjmm = ms => { const d = new Date(ms); return ('0' + d.getDate()).slice(-2
   const { ctx, p } = await ouvrir({ reponse: { etablissement: piege } });
   check('un nom à chevrons s\'affiche en texte', (await texte(p, '#hotelTeteNom')) === piege.slice(0, 60), await texte(p, '#hotelTeteNom'));
   check('… et n\'injecte aucun élément', await p.evaluate(() => !window.__pirate && !document.querySelector('#hotelTete img, #hotelTete b')));
+  check('… ni sur la page d\'arrivée', await p.evaluate((n) => !document.querySelector('#demoArrivee [data-demo-arrivee] *')
+    && [...document.querySelectorAll('#demoArrivee [data-demo-arrivee="nom"]')].every(e => e.textContent === n), piege.slice(0, 60)));
   await ctx.close();
 }
 {
@@ -156,7 +160,7 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   const { ctx, p } = await ouvrir({ reponse: panne });
   check(`serveur ${panne} → « Démonstration momentanément indisponible »`, /Démonstration momentanément indisponible/.test(await texte(p, '#demoIndispo')) && await visible(p, '#demoIndispo'));
   check(`serveur ${panne} → un contact est proposé`, await p.evaluate(() => !!document.querySelector('#demoIndispo a[href="/professionnels/#contact"]')));
-  check(`serveur ${panne} → la démo n'est jamais montrée`, !(await visible(p, '#hotelTete')) && !(await visible(p, '#btnVoirPrix')));
+  check(`serveur ${panne} → la démo n'est jamais montrée`, !(await visible(p, '#demoArrivee')) && !(await visible(p, '#hotelTete')) && !(await visible(p, '#btnVoirPrix')));
   await ctx.close();
 }
 {
@@ -165,25 +169,84 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   await ctx.close();
 }
 
+/* ═══ 2 bis. L'ARRIVÉE EST LA VRAIE PAGE DU QR (25/10/2026) ═══
+   Barbaros : « ce que je présente en démo est bien derrière ». La démo
+   montrait une copie de la page du QR dessinée le 8/10 ; la vraie avait
+   changé, la copie non. Elle est désormais fabriquée depuis la page publiée
+   (construire-demo.mjs) : chaque bloc VISIBLE de la vraie page doit y être,
+   avec le même dessin mesuré — sans quoi la démo reprend du retard en
+   silence, ou la feuille du moteur déborde sur elle. */
+const versDemo = sel => '#demoArrivee ' + sel.replace(/\.([a-z][\w-]*)/g, '.qr-$1');
+const DESSIN = ['.hero h1', '.adresse', '.fixe', '.cta', '.note', '.dest h2', '.carte[data-dest="cdg"]', '.carte[data-dest="cdg"] .pict',
+  '.carte[data-dest="cdg"] .nom b', '.carte[data-dest="cdg"] .nom small', '.carte[data-dest="cdg"] .px i', '.autre', '.etapes', '.etapes em', '.aide h2', '.btns a', '.pied img', '.pied nav a'];
+const PROPRIETES = ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'textAlign', 'display', 'paddingTop', 'paddingLeft',
+  'borderTopLeftRadius', 'borderTopWidth', 'gridTemplateColumns', 'marginTop', 'marginBottom'];
+for (const w of [390, 1280]) {
+  const ctxReel = await b.newContext({ viewport: { width: w, height: 844 }, locale: 'fr-FR' });
+  await ctxReel.route('**/*', r => r.request().url().startsWith(BASE) ? r.continue() : r.abort());
+  const reel = await ctxReel.newPage();
+  await reel.goto(BASE + '/easyhotel-client/'); await reel.waitForTimeout(400);
+  const { ctx, p } = await ouvrir({ w });
+  const blocs = await reel.evaluate(() => [...new Set([...document.querySelectorAll('main [class], footer')].filter(e => {
+    const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden'; }).flatMap(e => [...e.classList]))]);
+  const manquent = await p.evaluate(cs => cs.filter(c => ![...document.querySelectorAll('#demoArrivee .qr-' + c)].some(e => {
+    const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; })), blocs);
+  check(`arrivée ${w} px : chaque bloc de la vraie page du QR y est (${blocs.length})`, blocs.length > 10 && manquent.length === 0, manquent.length ? 'manquent : ' + manquent.join(', ') : '');
+  const mesurer = (pg, liste) => pg.evaluate(([liste, props]) => liste.map(s => { const e = document.querySelector(s); if (!e) return null;
+    const c = getComputedStyle(e), r = e.getBoundingClientRect(); const m = { largeur: Math.round(r.width) };
+    props.forEach(k => { m[k] = k === 'gridTemplateColumns' ? c[k].split(' ').filter(Boolean).length : c[k]; }); return m; }), [liste, PROPRIETES]);
+  const [vrai, demo] = [await mesurer(reel, DESSIN), await mesurer(p, DESSIN.map(versDemo))];
+  const ecarts = [];
+  DESSIN.forEach((s, i) => {
+    if (!vrai[i] || !demo[i]) { ecarts.push(`${s} absent`); return; }
+    /* La colonne du nom prend la place que lui laisse celle des prix (« à
+       fixer » est plus court que « 35 € ») : sa largeur dépend du texte. */
+    for (const k of Object.keys(vrai[i])) if (!(k === 'largeur' && / \.nom /.test(s)) && String(vrai[i][k]) !== String(demo[i][k]))
+      ecarts.push(`${s} ${k} ${vrai[i][k]} ≠ ${demo[i][k]}`);
+  });
+  check(`arrivée ${w} px : le même dessin que la vraie page (polices, marges, colonnes, largeurs)`, ecarts.length === 0, ecarts.slice(0, 6).join(' ; '));
+  const colonnes = (pg, s) => pg.evaluate(s => { const e = document.querySelector(s); return e ? getComputedStyle(e).gridTemplateColumns.split(' ').length : 0; }, s);
+  const [colReel, colDemo] = [await colonnes(reel, '.grille'), await colonnes(p, '#demoArrivee .qr-grille')];
+  check(`arrivée ${w} px : les cartes ont autant de colonnes que sur la vraie page`, colReel > 0 && colReel === colDemo, colReel === colDemo ? '' : `${colReel} ≠ ${colDemo}`);
+  /* JAMAIS LA COULEUR D'UN PARTENAIRE RÉEL : on lit ce que l'écran peint. */
+  const orange = await p.evaluate(() => {
+    const teintes = []; const lire = v => [...String(v).matchAll(/rgba?\((\d+), (\d+), (\d+)/g)].map(m => [+m[1], +m[2], +m[3]]);
+    for (const e of [document.getElementById('demoArrivee'), ...document.querySelectorAll('#demoArrivee *')].filter(Boolean)) {
+      const c = getComputedStyle(e);
+      for (const v of [c.color, c.backgroundColor, c.borderTopColor, c.backgroundImage, c.boxShadow, c.stroke])
+        for (const [r, g, bl] of lire(v)) { const max = Math.max(r, g, bl), min = Math.min(r, g, bl);
+          if (max === r && max - min >= 90) { const t = 60 * (g - bl) / (max - min); if (t >= 10 && t <= 45) teintes.push(`${e.className || e.tagName} rgb(${r},${g},${bl})`); } }
+      const apres = getComputedStyle(e, '::after').backgroundImage;
+      for (const [r, g, bl] of lire(apres)) { const max = Math.max(r, g, bl), min = Math.min(r, g, bl);
+        if (max === r && max - min >= 90) { const t = 60 * (g - bl) / (max - min); if (t >= 10 && t <= 45) teintes.push(`${e.className}::after rgb(${r},${g},${bl})`); } }
+    }
+    return teintes;
+  });
+  check(`arrivée ${w} px : aucune couleur orange d'un partenaire réel`, orange.length === 0, orange.slice(0, 4).join(' ; '));
+  check(`arrivée ${w} px : rien ne déborde`, await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  check(`arrivée ${w} px : aucune erreur JavaScript`, p.errs.length === 0, p.errs.join(' ; '));
+  await ctx.close(); await ctxReel.close();
+}
+
 /* ═══ 3. LE PARCOURS CLIENT → RÉCEPTION ═══ */
 {
   const { ctx, p } = await ouvrir();
   /* LA PAGE D'ARRIVÉE : les cartes d'abord, le formulaire ensuite. */
-  check('arrivée : « Où souhaitez-vous aller ? » et les cartes à l\'ouverture', /Où souhaitez-vous aller/.test(await texte(p, '#demoCartes')) && await visible(p, '.demo-carte[data-dest="cdg"]'));
+  check('arrivée : « Où souhaitez-vous aller ? » et les cartes à l\'ouverture', /Où souhaitez-vous aller/.test(await texte(p, '#demoArrivee')) && await visible(p, '.demo-carte[data-dest="cdg"]'));
   check('arrivée : le formulaire attend qu\'on choisisse', !(await visible(p, '#btnVoirPrix')));
   check('arrivée : une carte par destination, plus « Autre destination »',
     await p.evaluate(() => document.querySelectorAll('.demo-carte').length === document.querySelectorAll('#hotelDest option').length));
   /* AUCUN PRIX PROPOSÉ (8/10/2026) : l'hôtel fixe les siens, ceux de son flyer. */
   check('arrivée : aucun prix proposé, toutes les cartes disent « à fixer »', await p.evaluate(() =>
-    [...document.querySelectorAll('.demo-carte:not(.demo-autre)')].every(c => /à fixer[\s\S]*à fixer/.test(c.innerText) && !/\d+,\d\d\s€/.test(c.innerText))));
+    [...document.querySelectorAll('.demo-carte:not(.demo-autre)')].every(c => /à fixer[\s\S]*à fixer/.test(c.innerText) && !/\d\s€/.test(c.innerText))));
   check('arrivée : une consigne dit de toucher une destination pour continuer', /Touchez une destination/.test(await texte(p, '#demoCartesAide')) && await visible(p, '#demoCartesAide'));
   /* « Prix fixes » au-dessus de cartes « à fixer » se contredisait (recette du
      8/10/2026) : la phrase d'en-tête ne promet pas un prix qui n'existe pas. */
   check('arrivée : l\'en-tête des cartes ne dit pas « Prix fixes » quand les prix sont à fixer',
-    !/prix fixes/i.test(await texte(p, '#demoCartes .demo-cartes-cap')) && /destination/i.test(await texte(p, '#demoCartes .demo-cartes-cap')),
-    await texte(p, '#demoCartes .demo-cartes-cap'));
+    !/prix fixes/i.test(await texte(p, '#demoArrivee .qr-cap')) && /à fixer/i.test(await texte(p, '#demoArrivee .qr-cap')),
+    await texte(p, '#demoArrivee .qr-cap'));
   check('arrivée : à 390 px, cet en-tête tient sur une ligne', await p.evaluate(() => {
-    const e = document.querySelector('#demoCartes .demo-cartes-cap'); const lh = parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.3;
+    const e = document.querySelector('#demoArrivee .qr-cap'); if (!e) return false; const lh = parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.3;
     return e.getBoundingClientRect().height < lh * 1.5; }));
   check('arrivée : la page dit que ces prix sont ceux du flyer et de son QR code', /ceux de votre flyer[\s\S]*QR code/.test(await texte(p, '#demoCartesFlyer')));
   check('arrivée : aucun prix proposé dans « Vos prix »', await p.evaluate(() => [...document.querySelectorAll('#demoPrixTable input')].every(i => i.value === '')));
@@ -264,10 +327,10 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
     'manque : ' + attendusFr.filter(m => !recFr.includes(m)).join(', ') + ' · reste : ' + (recFr.match(/NEW RIDE|Room 214|Pending/gi) || []).join(', '));
   check('réception EN : aucune erreur JavaScript', p.errs.length === 0, p.errs.join(' ; '));
   await p.click('#demoOngletClient'); await p.waitForURL(/\/demo\/hotel\/$/); await p.waitForTimeout(800);
-  check('retour à la vue client par l\'onglet', await visible(p, '#hotelTete'));
+  check('retour à la vue client par l\'onglet', await visible(p, '#demoArrivee'));
   /* EN ANGLAIS */
   await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(300);
-  check('en anglais, les cartes suivent', /Tap a destination/.test(await texte(p, '#demoCartesAide')) && /Where would you like to go/.test(await texte(p, '#demoCartes')) && /Sedan/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
+  check('en anglais, les cartes suivent', /Tap a destination/.test(await texte(p, '#demoCartesAide')) && /Where would you like to go/.test(await texte(p, '#demoArrivee')) && /Sedan/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
   check('en anglais, l\'échéance suit', /^Access valid until \d\d\/\d\d on this device$/.test(await texte(p, '#demoAcces')), await texte(p, '#demoAcces'));
   check('en anglais, le cadre de la démo suit', (await bandeau(p)) === 'Demo — no real booking' && (await texte(p, '#demoOngletClient')) === 'What your guest sees');
   check('aucune erreur JavaScript sur le parcours', p.errs.length === 0, p.errs.join(' ; '));
@@ -328,6 +391,9 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   /* Une photo : générée dans la page, déposée en APPUYANT SUR LE CADRE
      « Votre photo ici » — c'est là que le prospect la cherche. */
   const png = await p.evaluate(() => { const c = document.createElement('canvas'); c.width = 1400; c.height = 900; const g = c.getContext('2d'); g.fillStyle = '#7799bb'; g.fillRect(0, 0, 1400, 900); return c.toDataURL('image/png').split(',')[1]; });
+  /* Le cadre photo est dans l'en-tête de l'hôtel, qui vient avec le formulaire
+     (comme chez un partenaire : la page du QR n'en a pas). */
+  await p.click('.demo-carte[data-dest="cdg"]'); await p.waitForTimeout(400);
   check('perso : le cadre photo se présente comme un bouton', await p.evaluate(() => { const c = document.querySelector('.demo-photo'); return c.getAttribute('role') === 'button' && c.tabIndex === 0 && !!c.getAttribute('aria-label'); }));
   const [choix] = await Promise.all([p.waitForEvent('filechooser', { timeout: 3000 }).catch(() => null), p.click('.demo-photo')]);
   check('perso : appuyer sur le cadre « Votre photo ici » ouvre le choix du fichier', !!choix);
@@ -351,15 +417,16 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('perso : un prix à 0 € est refusé, et on dit pourquoi', /entre 1 et 2 000/.test(await texte(p, '#demoPersoEtat')));
   await p.click('#demoPersoVoir');
   check('perso : « Voir ma page » referme le panneau', !(await p.evaluate(() => document.getElementById('demoPerso').open)));
-  check('perso : la destination ajoutée a sa carte, avec ses prix', /Stade de France[\s\S]*60,00\s€[\s\S]*90,00\s€/.test(await texte(p, '.demo-carte[data-dest^="perso-"]')));
+  check('perso : la destination ajoutée a sa carte, avec ses prix', /Stade de France[\s\S]*60\s€[\s\S]*90\s€/.test(await texte(p, '.demo-carte[data-dest^="perso-"]')));
   /* Le prix fixé dans « Vos prix » passe sur la carte, puis au formulaire. */
   await p.click('#demoPerso summary');
   await p.fill('#demoPrixTable input[data-cle="cdg"][data-gamme="berline"]', '52'); await p.press('#demoPrixTable input[data-cle="cdg"][data-gamme="berline"]', 'Tab');
   await p.waitForTimeout(200);
-  check('perso : un prix fixé dans « Vos prix » passe sur la carte', /52,00\s€[\s\S]*à fixer/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
+  check('perso : un prix fixé dans « Vos prix » passe sur la carte', /52\s€[\s\S]*à fixer/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
   await p.fill('#demoPrixTable input[data-cle="cdg"][data-gamme="van"]', '0'); await p.press('#demoPrixTable input[data-cle="cdg"][data-gamme="van"]', 'Tab');
   check('perso : « Vos prix » refuse un prix à 0 €', /entre 1 et 2 000/.test(await texte(p, '#demoPersoEtat')) && /à fixer/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
   await p.click('#demoPersoVoir');
+  await p.click('#demoRetourCartes'); await p.waitForTimeout(300);
   await p.click('.demo-carte[data-dest^="perso-"]'); await p.waitForTimeout(400);
   check('perso : son forfait s\'affiche avec la destination', (await p.inputValue('#hotelDest')).startsWith('perso-') && /60,00\s€.*90,00\s€/.test(await p.evaluate(() => document.body.innerText)));
   check('perso : le vrai stockage du site n\'a rien reçu', await p.evaluate(() => Object.keys(localStorage).every(k => k === 'ela_demo_session' || k.startsWith('ela_demo__'))));

@@ -41,6 +41,8 @@ alerte Telegram.
   envoyée**. C'est la sienne, ou rien (8/10/2026, à sa demande : « la
   personne doit mettre sa photo ») : le cadre « Votre photo ici » ouvre le
   choix du fichier (rôle bouton, clavier compris), le champ du panneau reste.
+  Depuis le 25/10/2026, ce cadre est en tête du formulaire, après le choix
+  d'une destination : la page du QR n'a pas de photo (voir plus bas).
 - **Initiales au lieu d'un logo** (« Le Relais de Roissy » → RR, les articles
   sautés).
 - **La réception de la démo passe en anglais aussi** (8/10/2026, à sa
@@ -179,7 +181,9 @@ alerte Telegram.
   une fois pour toutes : une page qui bascule ne tenait pas.
 - **Fabriquées à la construction** par `construire-demo.mjs`, à partir des
   pages DÉJÀ construites `site/application.html` et
-  `site/easyhotel-reception/index.html` (elles ont déjà perdu l'admin).
+  `site/easyhotel-reception/index.html` (elles ont déjà perdu l'admin) — et,
+  depuis le 25/10/2026, de la page du QR `site/easyhotel-client/index.html`
+  pour l'arrivée du client.
   `index.html` n'est jamais touché : l'hôtel fictif `demo-hotel` n'existe
   que dans la sortie démo.
 - **Le simulateur** (`demo-simulateur.js`) remplace TOUTE la couche serveur
@@ -208,11 +212,12 @@ alerte Telegram.
   jamais la démo. Aucune clé Supabase envoyée.
 - **Le nom vient de la réponse du serveur**, jamais de l'adresse : posé en
   `textContent`, coupé à 60 caractères ; vide → « Hôtel Démo · Roissy ».
-- **La page d'arrivée** fait comme celle d'un partenaire : « Où
-  souhaitez-vous aller ? » et les destinations en cartes, construites depuis
-  `HOTELS` (jamais recopiées), puis le formulaire ; « ← Toutes les
-  destinations » revient. Consigne : « Touchez une destination pour faire une
-  réservation d'essai, comme vos clients. » Pas de cartes au comptoir.
+- **La page d'arrivée EST la vraie page du QR** (25/10/2026, plus bas) :
+  fabriquée depuis elle, remplie depuis `HOTELS` (jamais recopiée), puis le
+  formulaire ; « ← Toutes les destinations » revient. Consigne : « Touchez une
+  destination pour faire une réservation d'essai, comme vos clients. » Pas de
+  cartes au comptoir. **Ne jamais la redessiner à la main** : c'est ainsi
+  qu'elle avait pris du retard.
 - **« Personnaliser ma page »** (sur les deux vues) : nom (60 car.), couleur
   (six pastilles + sélecteur ; assombrie jusqu'à 4,6:1 pour le bouton, encre
   à 7,5:1 sur l'en-tête), photo (réduite à 1000 px, jamais envoyée, perdue au
@@ -402,7 +407,8 @@ l'hôtel en service, avec son accord écrit).
   390 px ×2, réception 1280 px ; WebP ≈ 45 Ko chacune, une par langue
   (`data-src-en`), chargement différé. `test-pro-page` n'accepte que le logo et
   `professionnels/apercu-*-fr|en.webp`, et exige qu'elles s'affichent et
-  changent de langue. **Refaire les captures si la démo change d'aspect.**
+  changent de langue. **Refaire les captures si la démo change d'aspect** :
+  `sh construire.sh && node .claude/outils/captures-pro.mjs` (depuis le 25/10).
   Reste : dans la démo anglaise, le trajet s'écrit encore « L'hôtel → Orly ».
 - **Trois écrans** (23/10/2026, Barbaros : « qu'ils puissent voir la version
   ordinateur, téléphone, tablette ») : six captures par langue
@@ -467,3 +473,59 @@ l'agent). Tout, et pourquoi : `memoire/demo-pro.md`.
   minimum attendu par la page, 5 demandes/h/IP et 3/jour/e-mail. L'accès dure
   7 jours, et c'est écrit partout. Aucun secret à poser : celui des sessions
   se dérive de la clé service_role (`DEMO_SESSION_SECRET` posé l'emporte).
+
+---
+
+## 25 octobre 2026 — la démo rattrape la vraie page du QR
+
+Barbaros, capture de « Aperçu sur téléphone, tablette et ordinateur » à
+l'appui : « ce que je présente en démo est bien derrière […] comment le
+mettre à jour ? comme un expert ». Priorité annoncée P1 (outil de vente aux
+hôtels ; le P0 #399 était porté par la PR #425, aucun fichier commun).
+
+- **Mesuré, page par page, sur le site construit** : la réception de la démo
+  était À JOUR (fabriquée depuis la vraie à chaque construction ; seules
+  différences voulues : pas de prix, pas de photo, le bleu). **La page
+  client, non** : la démo montrait l'en-tête du formulaire (« Votre photo
+  ici », « Tarifs partenaires », Départ/Arrivée) et ses propres cartes,
+  dessinées le 8/10 ; la vraie page du QR avait depuis « Votre transfert
+  depuis… », l'adresse, « Départ hôtel déjà renseigné », « Réserver mon
+  transfert », les cartes sur trois colonnes, les étapes 1-2-3, « Besoin
+  d'aide ? » et le pied. Une copie ne suit pas l'original.
+- **La correction est structurelle, comme pour la réception** :
+  `arriveeDepuisPageQr()` lit la page publiée, garde son style et son
+  contenu, préfixe classes (`qr-`) et identifiants (`demoArrivee-`) — le
+  moteur a déjà ses `.carte`, `.prix`, `.etapes` —, cloisonne le style sous
+  `#demoArrivee` (une remise à zéro `all:revert` empêche la feuille du moteur
+  d'y entrer), retire nom, adresse, prix, liens et script de l'hôtel réel, et
+  change sa couleur en celle de l'hôtel du prospect (`TEINTES`). Les cartes
+  deviennent des modèles (`<template>`) que la démo clone : destinations de
+  l'hôtel fictif et celles du prospect, prix « à fixer » ou les siens, au
+  format de la vraie page (« 52 € »).
+- **La construction échoue** si un repère de la page du QR disparaît, si un
+  lien relatif, le nom ou l'adresse d'un partenaire réel y reste, ou si une
+  teinte orange y reste (éprouvé : retirer `#ff5a0a` de `TEINTES` fait
+  tomber `construire.sh`).
+- **Ce qui change pour le prospect** : sur l'arrivée, ni l'en-tête du
+  formulaire ni la barre du bas — comme sur la vraie page ; ils viennent avec
+  le formulaire. Le cadre photo, les initiales, « Vos prix : ceux de votre
+  flyer » et le message d'accueil y sont donc ; la phrase « Photo ajoutée »
+  le dit. La ligne « Prix fixes » devient « Prix à fixer » tant qu'un prix
+  manque (même longueur : une ligne à 390 px).
+- **Le « + » de « Nouvelle course »** était un carré blanc vide dans la
+  réception de la démo (visible sur la capture de Barbaros) : la finition
+  commune le peint de la couleur du texte du bouton — noir sur l'orange
+  d'easyHotel, blanc sur le bleu. `demo.css` le peint en bleu ; la vraie
+  réception n'est pas touchée. Un futur partenaire à bouton foncé aurait le
+  même carré vide : à corriger dans la finition commune ce jour-là.
+- **`test-demo-hotel`, bloc 2 bis**, à 390 et 1280 px : chaque bloc visible
+  de la vraie page du QR doit être dans l'arrivée (« manquent : hero, cta… »
+  sur l'ancien code), avec le même dessin mesuré (polices, marges, colonnes,
+  largeurs ; seule la largeur du nom dans une carte dépend du prix), aucune
+  couleur orange peinte, rien qui déborde. Sur l'ancien code : 15 contrôles
+  tombent en nommant le défaut.
+- **Les douze captures** de `/professionnels/` sont refaites par
+  `.claude/outils/captures-pro.mjs` (WebP fabriqué par Chromium, 41 à 49 Ko).
+- Vu et laissé : après le choix d'une destination, l'en-tête collé du moteur
+  recouvre la moitié haute de « ← Toutes les destinations » ; le doigt
+  l'atteint (mesuré). Identique avant ce changement.

@@ -85,6 +85,12 @@ html[data-ela-space="demo"] body.reception .demo-pied{margin-bottom:40px}
 html[data-ela-space="demo"][data-demo-vue="reception"] nav.barre{display:none}
 html[data-ela-space="demo"][data-demo-vue="reception"] body{padding-bottom:0}
 
+/* LE « + » DE « NOUVELLE COURSE » (25/10/2026). La finition commune le peint
+   de la couleur du texte posé sur le bouton, sur un carré blanc : noir chez un
+   partenaire orange, mais BLANC sur le bleu de la démo — un carré vide (vu sur
+   les captures de /professionnels/). Ici, la couleur du bouton. */
+html[data-ela-space="demo"] body.hotel.reception-premium #recDashboardActions #btnRecReserver .reception-action-icon{color:var(--h-bouton,var(--demo-bleu))!important}
+
 /* ═══ L'ÉCRITEAU « RIEN N'EST ENVOYÉ » ═══ */
 .demo-toast{position:fixed;left:50%;bottom:96px;z-index:90;transform:translateX(-50%);max-width:calc(100% - 32px);
   margin:0;padding:10px 16px;border-radius:12px;background:var(--demo-nuit);color:#fff;font-size:14px;font-weight:700;
@@ -174,35 +180,23 @@ html[data-ela-space="demo"] body.hotel-enhanced .demo-initiales{box-shadow:0 0 0
 html[data-ela-space="demo"] body.hotel-enhanced .demo-message{color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.45)}
 .demo-message[hidden]{display:none}
 
-/* ═══ LA PAGE D'ARRIVÉE : « OÙ SOUHAITEZ-VOUS ALLER ? » ═══
-   Tant que le client n'a pas choisi, seules l'en-tête de l'hôtel et les
-   cartes sont à l'écran ; le formulaire vient ensuite, destination posée. */
-body.demo-choix #ecran-accueil > :not(#hotelTete):not(#demoCartes){display:none !important}
-body:not(.demo-choix) #demoCartes{display:none}
-body.demo-choix #demoRetourCartes{display:none}
-.demo-cartes{margin:0 0 18px;padding:0 16px}
-.demo-cartes-titre{margin:4px 0 4px;font-size:22px;font-weight:800;color:#151C22}
-.demo-cartes-cap{margin:0 0 12px;color:#5A6A7B;font-size:14px}
-.demo-grille{display:grid;grid-template-columns:1fr;gap:10px;margin:0;padding:0;list-style:none}
-/* Une carte ne descend jamais sous 320 px : à trois colonnes dans 780 px, le
-   nom n'avait plus que 65 px et « Aéroport » se coupait en « Aéro / rt »
-   (vu sur ordinateur, 23/10/2026). Les colonnes suivent la place réelle. */
-@media (min-width:600px){.demo-grille{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}}
-.demo-carte{display:flex;align-items:center;gap:12px;width:100%;min-height:72px;padding:12px 14px;border:1px solid var(--demo-filet);
-  border-radius:14px;background:#fff;color:#151C22;font:inherit;text-align:left;cursor:pointer;box-shadow:0 2px 8px rgba(6,47,85,.05)}
-.demo-carte:hover{border-color:var(--h-bouton,var(--demo-bleu))}
-.demo-carte:focus-visible{outline:3px solid var(--demo-cyan);outline-offset:2px}
-.demo-pict{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:12px;
-  background:var(--h-pale,var(--demo-pale));color:var(--h-paleEncre,var(--demo-encre));font-weight:800;font-size:14px;letter-spacing:.5px}
-.demo-carte-nom{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
-.demo-carte-nom b{font-size:16px;overflow-wrap:anywhere}
-.demo-carte-nom small{color:var(--h-bouton,var(--demo-bleu));font-weight:700;font-size:13px}
-.demo-carte-prix{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
-.demo-carte-prix span{display:flex;gap:6px;align-items:baseline}
-.demo-carte-prix i{font-style:normal;color:#5A6A7B;font-size:12.5px}
-.demo-carte-prix b{font-size:15px}
-.demo-autre{border-style:dashed}
-.demo-autre .demo-carte-nom small{color:#5A6A7B;font-weight:500}
+/* ═══ LA PAGE D'ARRIVÉE : LA VRAIE PAGE DU QR (25/10/2026) ═══
+   Fabriquée à la construction depuis la page publiée (construire-demo.mjs,
+   arriveeDepuisPageQr) : son dessin est le sien, cloisonné sous #demoArrivee.
+   Ici, seulement ce que la démo y change. Tant que le client n'a pas choisi,
+   seule l'arrivée est à l'écran — comme sur la vraie page, ni l'en-tête de
+   l'hôtel ni la barre du bas, qui viennent avec le formulaire. */
+body.demo-choix #ecran-accueil > :not(#demoArrivee){display:none !important}
+body:not(.demo-choix) #demoArrivee{display:none}
+html[data-ela-space="demo"][data-demo-vue="client"] body.demo-choix nav.barre{display:none}
+html[data-ela-space="demo"][data-demo-vue="client"] body.demo-choix{padding-bottom:0}
+#ecran-accueil > #demoArrivee{grid-column:1/-1}
+/* La couleur du partenaire réel devient celle de l'hôtel du prospect. */
+#demoArrivee{--demo-o:var(--h-bouton,var(--demo-bleu));--demo-otexte:var(--h-paleEncre,var(--demo-encre));
+  --demo-opale:var(--h-pale,var(--demo-pale));
+  /* Le début du titre, en teinte claire sur le marine (#ffb38a sur la vraie). */
+  --demo-oclair:color-mix(in srgb,var(--demo-o) 45%,#fff)}
+#demoArrivee .qr-px b.demo-a-fixer{font-size:13px;font-weight:700;color:#5A6A7B}
 .demo-retour-cartes{display:inline-flex;align-items:center;min-height:44px;margin:0 0 8px 12px;padding:0 4px;border:0;background:none;
   color:var(--h-bouton,var(--demo-bleu));font:inherit;font-weight:800;font-size:14.5px;cursor:pointer}
 
@@ -226,16 +220,15 @@ body.demo-choix #demoRetourCartes{display:none}
 .demo-prix-tete{font-size:12px;font-weight:800;color:#5A6A7B;text-transform:uppercase;letter-spacing:.04em}
 .demo-prix-nom{font-size:14.5px;font-weight:700;overflow-wrap:anywhere}
 .demo-prix-ligne input{text-align:center;font-weight:700}
-.demo-cartes-flyer{margin:-6px 0 12px;padding:10px 12px;border-radius:12px;background:var(--h-pale,var(--demo-pale));
+#demoArrivee .demo-cartes-flyer{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--h-pale,var(--demo-pale));
   color:var(--h-paleEncre,var(--demo-encre));font-size:14px;font-weight:600;line-height:1.4}
-.demo-carte-prix b.demo-a-fixer{font-size:13px;font-weight:700;color:#5A6A7B}
 
 /* La consigne qui mène à la suite du parcours : visible, juste sous le titre. */
-.demo-cartes-aide{display:flex;align-items:center;gap:8px;margin:2px 0 8px;padding:10px 12px;border-radius:12px;
+#demoArrivee .demo-cartes-aide{display:flex;align-items:center;gap:8px;margin:2px 0 8px;padding:10px 12px;border-radius:12px;
   background:var(--h-bouton,var(--demo-bleu));color:#fff;font-size:15px;font-weight:800;line-height:1.35}
 /* Une FLÈCHE vers les cartes, pas un chevron : sur un bandeau bleu plein, le
    chevron se lisait comme un menu à déplier (recette du 8/10/2026). */
-.demo-cartes-aide::before{content:"\2193";flex:0 0 auto;font-size:18px;font-weight:800;line-height:1;margin:0 2px}
+#demoArrivee .demo-cartes-aide::before{content:"\2193";flex:0 0 auto;font-size:18px;font-weight:800;line-height:1;margin:0 2px}
 /* Le cadre photo s'appuie : il ouvre le choix du fichier. */
 html[data-ela-space="demo"] .demo-photo{cursor:pointer}
 html[data-ela-space="demo"] .demo-photo:focus-visible{outline:3px solid var(--h-bouton,#0E6FC7);outline-offset:2px}

@@ -108,6 +108,142 @@ function remplacerEntre(html, debut, fin, apres, quoi, garderFin = true) {
   return html.slice(0, a) + apres + html.slice(garderFin ? b : b + fin.length);
 }
 
+/* ═══ L'ARRIVÉE DU CLIENT EST LA VRAIE PAGE DU QR (25/10/2026) ═══
+   Barbaros : « ce que je présente en démo est bien derrière ». La réception
+   de la démo suivait toute seule (elle est fabriquée depuis la vraie) ; la
+   page d'arrivée du client, elle, était une COPIE dessinée le 8/10, et la
+   vraie page du QR a changé depuis (« Votre transfert depuis… », le bouton,
+   les étapes, l'aide, le pied). Elle est désormais FABRIQUÉE à chaque
+   construction depuis la page publiée, comme la réception :
+     - son style et son contenu, cloisonnés sous #demoArrivee : classes
+       préfixées « qr- », identifiants « demoArrivee- » (le moteur a déjà ses
+       .carte, .prix, .hero, .etapes) ;
+     - rien de l'hôtel réel : ni nom, ni adresse, ni prix, ni lien, ni
+       script (la lecture des prix au serveur ne vient pas), ni sa couleur —
+       elle devient celle de l'hôtel du prospect ;
+     - ses cartes deviennent des MODÈLES : le moteur de la démo les clone
+       pour les destinations de l'hôtel fictif et celles du prospect. */
+const PAGE_QR = path.join('easyhotel-client', 'index.html');
+
+/* La couleur du partenaire réel → celle de l'hôtel du prospect (demo.css).
+   Une teinte orange qui ne serait pas dans cette table fait échouer la
+   construction (orangeRestant) : la démo ne porte jamais la couleur d'un
+   vrai partenaire. */
+const TEINTES = [
+  [/#ff5a0a\b/gi, 'var(--demo-o)'],
+  [/#c2410c\b/gi, 'var(--demo-otexte)'],
+  [/#fff1e8\b/gi, 'var(--demo-opale)'],
+  [/#ffb38a\b/gi, 'var(--demo-oclair)'],
+  [/rgba\(\s*255\s*,\s*90\s*,\s*10\s*,\s*([\d.]+)\s*\)/gi,
+    (m, a) => `color-mix(in srgb,var(--demo-o) ${Math.round(Number(a) * 100)}%,transparent)`],
+];
+const teinter = (t) => TEINTES.reduce((x, [motif, par]) => x.replace(motif, par), t);
+
+function orangeRestant(t) {
+  const couleurs = [];
+  for (const m of t.matchAll(/#([0-9a-f]{6}|[0-9a-f]{3})\b/gi)) {
+    const h = m[1].length === 3 ? m[1].replace(/./g, '$&$&') : m[1];
+    couleurs.push([0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)));
+  }
+  for (const m of t.matchAll(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/gi)) couleurs.push([m[1], m[2], m[3]].map(Number));
+  return couleurs.find(([r, g, b]) => {
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    if (max !== r || max - min < 90) return false;          // ni rouge dominant, ni saturé
+    const teinte = 60 * ((g - b) / (max - min));
+    return teinte >= 10 && teinte <= 45;                      // l'orange
+  });
+}
+
+/* Les sélecteurs de la page du QR, sous la racine de l'arrivée. */
+function selecteurs(liste, racine) {
+  return liste.split(',').map((s) => {
+    s = s.trim().replace(/\.(-?[_a-zA-Z][\w-]*)/g, '.qr-$1').replace(/#([_a-zA-Z][\w-]*)/g, '#demoArrivee-$1');
+    if (/^(?::root|html|body)$/.test(s)) return racine;
+    if (s === '*') return `${racine},${racine} *`;
+    const m = /^(?:html|body)\s+(.+)$/.exec(s);
+    return `${racine} ${m ? m[1] : s}`;
+  }).join(',');
+}
+function cloisonner(css, racine) {
+  css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  let sortie = '', i = 0;
+  for (;;) {
+    const a = css.indexOf('{', i);
+    if (a < 0) break;
+    const tete = css.slice(i, a).trim();
+    if (tete.startsWith('@')) {
+      let p = 1, j = a + 1;
+      while (j < css.length && p) { if (css[j] === '{') p++; else if (css[j] === '}') p--; j++; }
+      if (!/^@media\b/.test(tete)) throw new Error(`construire-demo : règle « ${tete} » inconnue dans la page du QR`);
+      sortie += tete + '{' + cloisonner(css.slice(a + 1, j - 1), racine) + '}\n';
+      i = j;
+    } else {
+      const b = css.indexOf('}', a);
+      sortie += selecteurs(tete, racine) + '{' + css.slice(a + 1, b).trim() + '}\n';
+      i = b + 1;
+    }
+  }
+  return sortie;
+}
+
+function remplacerUnMotif(texte, motif, par, quoi) {
+  const n = (texte.match(new RegExp(motif.source, motif.flags.includes('g') ? motif.flags : motif.flags + 'g')) || []).length;
+  if (n !== 1) throw new Error(`construire-demo : page du QR, repère ${n ? 'ambigu' : 'absent'} (${quoi})`);
+  return texte.replace(motif, par);
+}
+
+function arriveeDepuisPageQr(source) {
+  const page = lireSortie(PAGE_QR);
+  const style = /<style>([\s\S]*?)<\/style>/.exec(page);
+  const main = /<main>([\s\S]*?)<\/main>/.exec(page);
+  const pied = /<footer class="pied">[\s\S]*?<\/footer>/.exec(page);
+  if (!style || !main || !pied) throw new Error('construire-demo : la page du QR n\'a plus son style, son <main> ou son pied');
+
+  let corps = (main[1] + pied[0]).replace(/<!--[\s\S]*?-->/g, '');
+  corps = remplacerUnMotif(corps, /(<h1>[\s\S]*?<br>)[^<]+(<\/h1>)/, '$1<span data-demo-arrivee="nom"></span>$2', 'nom du titre');
+  corps = remplacerUnMotif(corps, /(class="adresse">[\s\S]*?<div>)<b>[^<]*<\/b><span>[^<]*<\/span>/,
+    '$1<b data-demo-arrivee="nom"></b><span data-demo-arrivee="adresse"></span>', 'adresse');
+  let modeles = '';
+  corps = remplacerUnMotif(corps, /<ul class="grille">([\s\S]*?)<\/ul>/, (m, cartes) => { modeles = cartes; return '<ul class="grille" id="grille"></ul>'; }, 'cartes');
+  /* Aucun prix d'un partenaire réel : le moteur de la démo les pose. */
+  modeles = modeles.replace(/(<b data-g="(?:berline|van)">)[^<]*(<\/b>)/g, '$1$2');
+  if (!/data-dest="/.test(modeles) || !/class="li-autre"/.test(modeles)) throw new Error('construire-demo : page du QR, cartes ou « Autre destination » introuvables');
+
+  const prefixer = (t) => teinter(t)
+    .replace(/\shref="\.\.\/\.\.\/application\.html\?doc=(mentions|privacy)"/g, ' href="/?doc=$1"')
+    .replace(/\shref="\.\.\/\.\.\/application\.html\?[^"]*"/g, ' href="#"')
+    .replace(/\s(src|href)="\.\.\/\.\.\//g, ' $1="/')
+    .replace(/\sstroke="(var\([^)]*\))"/g, ' style="stroke:$1"')
+    .replace(/\sclass="([^"]*)"/g, (m, c) => ` class="${c.trim().split(/\s+/).map((x) => 'qr-' + x).join(' ')}"`)
+    .replace(/\sid="([^"]+)"/g, ' id="demoArrivee-$1"')
+    .replace(/\shref="#([^"]+)"/g, ' href="#demoArrivee-$1"');
+  corps = prefixer(corps);
+  modeles = prefixer(modeles);
+  const css = cloisonner(teinter(style[1]), '#demoArrivee');
+
+  /* Ce qui ne doit JAMAIS passer : un lien de la page réelle, l'adresse
+     ou le nom d'un vrai partenaire, sa couleur. (« easyhotel », sa clé et
+     ses forfaits sont en plus refusés par verifier-demo.mjs.) */
+  const tout = corps + modeles + css;
+  if (tout.includes('../')) throw new Error('construire-demo : un lien relatif de la page du QR est resté');
+  const grille = source.slice(source.indexOf('var HOTELS = {'), source.indexOf('Object.keys(HOTELS).forEach'));
+  /* Le nom et l'adresse de chaque partenaire (au niveau de sa fiche, pas de
+     ses destinations), jusqu'à la première virgule. */
+  for (const m of grille.matchAll(/^ {6}(?:nom|court|adresse)\s*:\s*"([^",]{6,})/gm))
+    if (tout.includes(m[1])) throw new Error(`construire-demo : l'arrivée de la démo nomme un partenaire réel (« ${m[1]} »)`);
+  const orange = orangeRestant(tout);
+  if (orange) throw new Error(`construire-demo : l'arrivée de la démo garde la couleur du partenaire réel (rgb ${orange.join(',')}) — l'ajouter à TEINTES`);
+
+  return {
+    style: `<style id="demoArriveeStyle">
+#demoArrivee{display:block;font-size:16px;line-height:normal;font-weight:400;font-style:normal;letter-spacing:normal;word-spacing:normal;text-align:start;text-transform:none;text-indent:0;white-space:normal}
+#demoArrivee :where(h1,h2,p,ul,ol,li,a,b,small,i,em,span,div,section,img,nav,footer){all:revert}
+${css}</style>\n`,
+    contenu: `<div id="demoArrivee" class="demo-arrivee">${corps}</div>\n`
+      + `<template id="demoArriveeModeles">${modeles}</template>\n`,
+  };
+}
+
 const SUIVI_BON = `
   /* Démo : le bon du client suit la course simulée, sans recharger. */
   setInterval(function(){
@@ -187,11 +323,13 @@ const PERSO = `
       /* La finition suit le nom personnalisé (sa pastille, son en-tête). */
       try{ window.dispatchEvent(new Event("ela:hotel")); }catch(e){}
     },
-    /* LA PAGE D'ARRIVÉE, COMME CELLE DU QR D'UN VRAI PARTENAIRE : « Où
-       souhaitez-vous aller ? », une carte par destination avec ses deux prix,
-       puis « Autre destination ». Construite depuis HOTELS — la MÊME liste
-       que le menu du formulaire —, jamais recopiée : destinations ajoutées
-       comprises, la carte et le formulaire ne peuvent pas se contredire. */
+    /* LA PAGE D'ARRIVÉE EST LA VRAIE PAGE DU QR (25/10/2026) : fabriquée par
+       arriveeDepuisPageQr() à la construction, elle est REMPLIE ici depuis
+       HOTELS — la MÊME liste que le menu du formulaire, destinations ajoutées
+       comprises : la carte et le formulaire ne peuvent pas se contredire. Les
+       cartes sont des clones des vraies (mêmes repères, mêmes textes, mêmes
+       deux langues) ; une destination ajoutée par le prospect prend la forme
+       d'une carte à pictogramme, un repère constant. */
     destinations: function(){
       var h = HOTELS["demo-hotel"];
       return h ? h.destinations.map(function(d){ return { cle:d.cle, nom:d.nom }; }) : [];
@@ -199,95 +337,98 @@ const PERSO = `
     dessinerCartes: function(){
       if(document.documentElement.getAttribute("data-demo-vue") !== "client") return;
       var h = HOTELS["demo-hotel"], tete = document.getElementById("hotelTete");
-      if(!h || !tete) return;
+      var page = document.getElementById("demoArrivee"), modeles = document.getElementById("demoArriveeModeles");
+      var grille = document.getElementById("demoArrivee-grille");
+      if(!h || !tete || !page || !modeles || !grille) return;
       var en = LANGUE === "en";
-      var bloc = document.getElementById("demoCartes");
-      if(!bloc){
-        bloc = document.createElement("section");
-        bloc.id = "demoCartes"; bloc.className = "demo-cartes";
-        tete.parentNode.insertBefore(bloc, tete.nextSibling);
-        var retour = document.createElement("button");
-        retour.type = "button"; retour.id = "demoRetourCartes"; retour.className = "demo-retour-cartes";
-        retour.addEventListener("click", function(){
-          document.body.classList.add("demo-choix");
-          var b = document.getElementById("demoBandeau");
-          window.scrollTo(0, Math.max(0, tete.getBoundingClientRect().top + window.scrollY - (b ? b.offsetHeight + 8 : 0)));
-        });
-        bloc.parentNode.insertBefore(retour, bloc.nextSibling);
-        document.body.classList.add("demo-choix");
+      function allerA(el){
+        var b = document.getElementById("demoBandeau");
+        window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - (b ? b.offsetHeight + 8 : 0)));
       }
-      document.getElementById("demoRetourCartes").textContent = en ? "← All destinations" : "← Toutes les destinations";
-      bloc.textContent = "";
-      var titre = document.createElement("h2"); titre.className = "demo-cartes-titre";
-      titre.textContent = en ? "Where would you like to go?" : "Où souhaitez-vous aller ?";
-      var cap = document.createElement("p"); cap.className = "demo-cartes-cap";
-      /* « Prix par destination », plus « Prix fixes » : juste au-dessus de
-         cartes qui disent « à fixer », les deux mots se contredisaient
-         (recette du 8/10/2026). */
-      cap.textContent = en ? "Price per destination · Sedan 4 seats · Van 7 seats"
-                           : "Prix par destination · Berline 4 places · Van 7 places";
-      /* CE QUE LE PROSPECT DOIT COMPRENDRE : ces prix sont ceux de SON flyer,
-         et le QR code du flyer amène ses clients exactement ici. */
-      var flyer = document.createElement("p"); flyer.className = "demo-cartes-flyer"; flyer.id = "demoCartesFlyer";
-      var aucunPrix = h.destinations.every(function(d){ return !d.forfait; });
-      flyer.textContent = en
-        ? "These are the prices on your flyer: your guests scan its QR code and land on this page." + (aucunPrix ? " Set them in “Customise my page”." : "")
-        : "Ces prix sont ceux de votre flyer : vos clients scannent son QR code et arrivent sur cette page." + (aucunPrix ? " Fixez-les dans « Personnaliser ma page »." : "");
-      /* LE PROSPECT DOIT SAVOIR QU'IL PEUT CONTINUER (8/10/2026, Barbaros :
-         « quand est-ce qu'il va voir la seconde page ? »). Rien ne disait qu'il
-         fallait toucher une carte : il restait devant les prix. */
-      var aide = document.createElement("p"); aide.className = "demo-cartes-aide"; aide.id = "demoCartesAide";
-      aide.textContent = en ? "Tap a destination to make a test booking, just like your guests."
-                            : "Touchez une destination pour faire une réservation d’essai, comme vos clients.";
-      bloc.appendChild(titre); bloc.appendChild(aide); bloc.appendChild(cap); bloc.appendChild(flyer);
-      var CODES = { cdg:"CDG", orly:"ORY", bourget:"LBG", beauvais:"BVA" };
-      var ul = document.createElement("ul"); ul.className = "demo-grille";
       function choisir(cle){
         selDest.value = cle;
         selDest.dispatchEvent(new Event("change", { bubbles:true }));
         document.body.classList.remove("demo-choix");
-        var form = document.getElementById("demoRetourCartes") || selDest;
-        var b = document.getElementById("demoBandeau");
-        window.scrollTo(0, Math.max(0, form.getBoundingClientRect().top + window.scrollY - (b ? b.offsetHeight + 8 : 0)));
+        allerA(document.getElementById("demoRetourCartes") || selDest);
       }
+      var dest = grille.parentNode;
+      if(!document.getElementById("demoRetourCartes")){
+        var retour = document.createElement("button");
+        retour.type = "button"; retour.id = "demoRetourCartes"; retour.className = "demo-retour-cartes";
+        retour.addEventListener("click", function(){ document.body.classList.add("demo-choix"); allerA(page); });
+        tete.parentNode.insertBefore(retour, tete.nextSibling);
+        /* « Réserver mon transfert » descend aux cartes, sous le bandeau de la démo. */
+        var cta = document.getElementById("demoArrivee-cta");
+        if(cta) cta.addEventListener("click", function(e){ e.preventDefault(); allerA(dest); });
+        /* CE QUE LE PROSPECT DOIT SAVOIR (8/10/2026, Barbaros : « quand est-ce
+           qu'il va voir la seconde page ? ») : qu'il peut toucher une carte, et
+           que ces prix sont ceux de SON flyer, dont le QR code amène ici. */
+        var aide = document.createElement("p"); aide.className = "demo-cartes-aide"; aide.id = "demoCartesAide";
+        var titre = dest.querySelector("h2");
+        dest.insertBefore(aide, titre ? titre.nextSibling : grille);
+        var flyer = document.createElement("p"); flyer.className = "demo-cartes-flyer"; flyer.id = "demoCartesFlyer";
+        dest.insertBefore(flyer, grille);
+        document.body.classList.add("demo-choix");
+      }
+      document.getElementById("demoRetourCartes").textContent = en ? "← All destinations" : "← Toutes les destinations";
+      page.querySelectorAll('[data-demo-arrivee="nom"]').forEach(function(e){ e.textContent = h.nom; });
+      page.querySelectorAll('[data-demo-arrivee="adresse"]').forEach(function(e){ e.textContent = h.adresse || ""; });
+
+      var tpl = modeles.content, reels = tpl.querySelectorAll("a[data-dest]"), libre = null;
+      for(var k = 0; k < reels.length; k++) if(!libre && reels[k].querySelector("svg")) libre = reels[k];
+      function montant(v){ var c = Math.round(v * 100); return (c % 100 ? (c / 100).toFixed(2).replace(".", ",") : String(c / 100)) + " €"; }
+      function brancher(li, cle){
+        var a = li.querySelector("a");
+        a.classList.add("demo-carte"); a.setAttribute("data-dest", cle); a.setAttribute("href", "#");
+        a.addEventListener("click", function(e){ e.preventDefault(); choisir(cle); });
+        return a;
+      }
+      grille.textContent = "";
       h.destinations.forEach(function(d){
-        var li = document.createElement("li");
-        var a = document.createElement("button"); a.type = "button"; a.className = "demo-carte";
-        a.setAttribute("data-dest", d.cle);
-        var pict = document.createElement("span"); pict.className = "demo-pict"; pict.setAttribute("aria-hidden", "true");
-        /* Un code d'aéroport se lit plus vite qu'une photo ; ailleurs, un repère
-           dessiné (constant, jamais construit à partir d'un texte saisi). */
-        if(CODES[d.cle]) pict.textContent = CODES[d.cle];
-        else pict.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
-        var nom = document.createElement("span"); nom.className = "demo-carte-nom";
-        var b = document.createElement("b"); b.textContent = d.nom;
-        var go = document.createElement("small"); go.textContent = en ? "Choose →" : "Choisir →";
-        nom.appendChild(b); nom.appendChild(go);
-        var prix = document.createElement("span"); prix.className = "demo-carte-prix";
-        [["berline", en ? "Sedan" : "Berline"], ["van", "Van"]].forEach(function(g){
-          var px = document.createElement("span");
-          var i = document.createElement("i"); i.textContent = g[1];
-          var m = document.createElement("b");
-          var v = d.forfait && d.forfait[g[0]];
-          m.textContent = v > 0 ? euros(v) : (en ? "to set" : "à fixer");
-          if(!(v > 0)) m.className = "demo-a-fixer";
-          px.appendChild(i); px.appendChild(m); prix.appendChild(px);
+        var src = null;
+        for(var i = 0; i < reels.length; i++) if(reels[i].getAttribute("data-dest") === d.cle) src = reels[i];
+        var connue = !!src;
+        src = src || libre || reels[0];
+        if(!src) return;
+        var li = src.parentNode.cloneNode(true), a = brancher(li, d.cle);
+        if(!connue){
+          var pict = a.querySelector(".qr-pict");
+          if(pict){ pict.classList.add("qr-bleu"); pict.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>'; }
+          var b = a.querySelector(".qr-nom b"), sous = a.querySelector(".qr-nom small");
+          if(b){ b.removeAttribute("data-fr"); b.removeAttribute("data-en"); b.textContent = d.nom; }
+          if(sous){ sous.removeAttribute("data-fr"); sous.removeAttribute("data-en"); sous.textContent = d.label && d.label !== d.nom ? d.label : ""; }
+        }
+        a.querySelectorAll("b[data-g]").forEach(function(m){
+          var v = d.forfait && d.forfait[m.getAttribute("data-g")];
+          m.textContent = v > 0 ? montant(v) : (en ? "to set" : "à fixer");
+          m.classList.toggle("demo-a-fixer", !(v > 0));
         });
-        a.appendChild(pict); a.appendChild(nom); a.appendChild(prix);
-        a.addEventListener("click", function(){ choisir(d.cle); });
-        li.appendChild(a); ul.appendChild(li);
+        grille.appendChild(li);
       });
-      var liA = document.createElement("li"); liA.className = "demo-li-autre";
-      var autre = document.createElement("button"); autre.type = "button"; autre.className = "demo-carte demo-autre";
-      autre.setAttribute("data-dest", "");
-      var ab = document.createElement("b"); ab.textContent = en ? "Other destination" : "Autre destination";
-      var as = document.createElement("small");
-      as.textContent = en ? "Enter the address · price shown before booking" : "Saisissez l’adresse · prix calculé avant réservation";
-      var an = document.createElement("span"); an.className = "demo-carte-nom"; an.appendChild(ab); an.appendChild(as);
-      autre.appendChild(an);
-      autre.addEventListener("click", function(){ choisir(""); });
-      liA.appendChild(autre); ul.appendChild(liA);
-      bloc.appendChild(ul);
+      var autre = tpl.querySelector(".qr-li-autre");
+      if(autre){ var liA = autre.cloneNode(true); brancher(liA, "").classList.add("demo-autre"); grille.appendChild(liA); }
+
+      /* Les deux langues de la page du QR, comme elle le fait elle-même. On
+         n'écrit que si le texte change. */
+      page.querySelectorAll("[data-fr]").forEach(function(e){
+        var t = e.getAttribute(en ? "data-en" : "data-fr");
+        if(t !== null && e.textContent !== t) e.textContent = t;
+      });
+      /* « Prix fixes » au-dessus de cartes « à fixer » se contredisait (recette
+         du 8/10/2026) : tant qu'un prix manque, la ligne dit ce que disent les
+         cartes. Même longueur, à 390 px elle tient sur une ligne. */
+      var toutFixe = h.destinations.every(function(d){ return d.forfait && d.forfait.berline > 0 && d.forfait.van > 0; });
+      var cap = page.querySelector(".qr-cap");
+      if(cap && !toutFixe){
+        var t = cap.textContent.replace("Prix fixes", "Prix à fixer").replace("Fixed prices", "Prices to set");
+        if(cap.textContent !== t) cap.textContent = t;
+      }
+      var aucunPrix = h.destinations.every(function(d){ return !d.forfait; });
+      document.getElementById("demoCartesAide").textContent = en ? "Tap a destination to make a test booking, just like your guests."
+                                                             : "Touchez une destination pour faire une réservation d’essai, comme vos clients.";
+      document.getElementById("demoCartesFlyer").textContent = en
+        ? "These are the prices on your flyer: your guests scan its QR code and land on this page." + (aucunPrix ? " Set them in “Customise my page”." : "")
+        : "Ces prix sont ceux de votre flyer : vos clients scannent son QR code et arrivent sur cette page." + (aucunPrix ? " Fixez-les dans « Personnaliser ma page »." : "");
     }
   };
 `;
@@ -328,7 +469,7 @@ ${PERSO}  window.addEventListener("ela:demo-pret", function(){
 ${SUIVI_BON}`;
 }
 
-function demoiser(html, vue) {
+function demoiser(html, vue, arrivee) {
   // 1. L'espace et la vue.
   html = html.replace(/<html lang="fr"[^>]*>/, `<html lang="fr" data-ela-space="demo" data-demo-vue="${vue}">`);
   if (!html.includes('data-ela-space="demo"')) throw new Error('construire-demo : balise <html> introuvable');
@@ -370,6 +511,14 @@ function demoiser(html, vue) {
     + '<link rel="stylesheet" href="/demo/demo.css">\n'
     + '<script src="/qr-affiche.js"></script>\n'
     + '<script src="/demo/demo-simulateur.js"></script>', '<head>');
+
+  // 2 bis. L'arrivée du client : la vraie page du QR, fabriquée ci-dessus.
+  if (arrivee) {
+    html = remplacerUne(html, '<link rel="stylesheet" href="/demo/demo.css">\n',
+      '<link rel="stylesheet" href="/demo/demo.css">\n' + arrivee.style, 'style de l\'arrivée');
+    html = remplacerUne(html, '<section class="ecran actif" id="ecran-accueil">',
+      '<section class="ecran actif" id="ecran-accueil">\n' + arrivee.contenu, 'arrivée');
+  }
 
   // 3. Le logo ramène à la page des professionnels, pas au site public.
   html = html.replace(/<a class="logo" href="\/"/g, '<a class="logo" href="/professionnels/"');
@@ -414,7 +563,8 @@ function demoiser(html, vue) {
   return html;
 }
 
-const client = demoiser(lireSortie('application.html'), 'client');
+const application = lireSortie('application.html');
+const client = demoiser(application, 'client', arriveeDepuisPageQr(application));
 /* N'importe quelle page de comptoir fait l'affaire : elles ne diffèrent que
    par l'hôtel servi, que la démo remplace. La première, pour être stable. */
 const comptoirs = fs.readdirSync(path.join(sortie, 'reception')).filter((d) => fs.existsSync(path.join(sortie, 'reception', d, 'index.html'))).sort();
