@@ -502,10 +502,22 @@ try {
      état propre, admin fermé (aucun navigateur ne tourne ici : tout ce qui
      sonne vient du serveur). */
   {
-    let tgEnPanne = false; const ecritsCourses = [], vuesEcrites = [];
+    let tgEnPanne = false, lectureCoursesKo = false; const ecritsCourses = [], vuesEcrites = [], battements = [], tableBattements = {};
     globalThis.fetch = ((f) => async (url, init = {}) => {
       const u = String(url);
       if (tgEnPanne && u.includes('api.telegram.org/bott/sendMessage')) return new Response('{"ok":false}', { status: 502 });
+      /* « ela_battements », comme PostgREST : une ligne par nom ; POST
+         réécrit (on_conflict), GET et PATCH filtrent par égalité, et le PATCH
+         rend les lignes touchées quand on les demande. */
+      if (u.includes('/rest/v1/ela_battements')) {
+        const filtres = [...u.matchAll(/[?&](nom|detail)=eq\.([^&]+)/g)].map(x => [x[1], decodeURIComponent(x[2])]);
+        const lignes = Object.values(tableBattements).filter(l => filtres.every(([k, v]) => l[k] === v));
+        const methode = init.method || 'GET';
+        if (methode === 'POST') { const c = JSON.parse(init.body); battements.push({ url: u, prefer: new Headers(init.headers).get('Prefer') || '', corps: c }); tableBattements[c.nom] = { ...c }; return new Response('', { status: 201 }); }
+        if (methode === 'PATCH') { const c = JSON.parse(init.body); lignes.forEach(l => Object.assign(l, c)); return new Response(/representation/.test(new Headers(init.headers).get('Prefer') || '') ? JSON.stringify(lignes) : '', { status: 200 }); }
+        return new Response(JSON.stringify(lignes.map(l => ({ le: l.le, detail: l.detail }))));
+      }
+      if (lectureCoursesKo && u.includes('/rest/v1/courses?select=ref,bon,cree_le&statut=eq.attente')) return new Response('panne', { status: 500 });
       if (u.includes('/rest/v1/courses') && init.method && init.method !== 'GET') ecritsCourses.push(u);
       if (u.includes('journal_notifications_admin') && init.method === 'POST' && /"type_evenement":"vue"/.test(String(init.body))) vuesEcrites.push(u);
       return f(url, init);
@@ -643,6 +655,49 @@ try {
     await inserer('ELA-26-10-PPERSO1'); await derouler(20); voir('ELA-26-10-PPERSO1'); await derouler(30);
     const toutTg = tg.join('\n');
     check('P0 · ni nom, ni téléphone, ni chambre dans l\'annonce, les rappels et le suivi', tg.length > 3 && !/Martin|Jeanne|12 34 56 78|0612345678|412/.test(toutTg), String(tg.length));
+
+    /* ÉTAPE 2 — LE BATTEMENT (25 octobre 2026). pg_cron se dit « réussi »
+       dès la mise en file : seul ce battement, écrit par la fonction à la
+       fin d'un tour réussi, dit au voyant que les rappels partent vraiment. */
+    neuf(); battements.length = 0; await relance();
+    const b0 = battements.at(-1);
+    check('P0 · un tour réussi écrit son battement « relance »', battements.length === 1 && b0?.corps?.nom === 'relance' && /^relance :/.test(b0?.corps?.detail || ''), JSON.stringify(b0?.corps));
+    check('P0 · …en réécrivant sa ligne (une par nom), jamais une pile', /on_conflict=nom/.test(b0?.url || '') && /merge-duplicates/.test(b0?.prefer || ''), (b0?.url || '') + ' ' + (b0?.prefer || ''));
+    check('P0 · …à l\'heure du serveur', Date.parse(b0?.corps?.le || '') === maintenant, String(b0?.corps?.le));
+    lectureCoursesKo = true; await relance(); lectureCoursesKo = false;
+    check('P0 · une lecture refusée n\'est PAS un tour réussi : pas de battement', battements.length === 1, String(battements.length));
+    await Promise.all(Array.from({ length: 5 }, () => relance()));
+    check('P0 · des tours effacés par le verrou ne battent pas à la place du vrai', battements.length === 2, String(battements.length));
+
+    /* ÉTAPE 2 — L'ALERTE D'ESSAI. L'admin dépose « essai / demande » (RPC
+       ela_demander_essai_alerte) ; la relance l'envoie 30 s plus tard. */
+    neuf();
+    const alertesEssai = () => tg.filter(t => /^ESSAI — alerte Elatransfer/.test(t));
+    tableBattements.essai = { nom: 'essai', le: iso(maintenant), detail: 'demande' };
+    maintenant += 10000; await relance();
+    check('P0 · essai demandé il y a 10 s : rien encore (le temps de verrouiller)', alertesEssai().length === 0, String(alertesEssai().length));
+    maintenant += 25000; await relance();
+    check('P0 · essai : il part 30 s après la demande, par Telegram', alertesEssai().length === 1, String(alertesEssai().length));
+    check('P0 · …et par la notification ELA, inscrit au journal comme « essai »', journal.filter(j => j.type_evenement === 'essai').map(j => j.canal).sort().join(',') === 'push,telegram', JSON.stringify(journal.map(j => j.type_evenement + ':' + j.canal)));
+    check('P0 · …et la ligne dit ce qui est parti', /^fait : notification .*Telegram envoyé$/.test(tableBattements.essai.detail), tableBattements.essai.detail);
+    check('P0 · l\'essai dit que ce n\'est pas une demande de client', /aucune demande de client/.test(alertesEssai()[0] || ''));
+    maintenant += 20000; await relance(); maintenant += 20000; await relance();
+    check('P0 · un essai part une fois, pas à chaque tour', alertesEssai().length === 1, String(alertesEssai().length));
+    /* Deux INSTANCES de la fonction (deux verrous en mémoire distincts) qui
+       voient l'essai au même instant : la réservation de la ligne (PATCH
+       sous condition « demande ») n'en laisse partir qu'un. */
+    fs.copyFileSync(tmp + '/index.mjs', tmp + '/index-a.mjs'); fs.copyFileSync(tmp + '/index.mjs', tmp + '/index-b.mjs');
+    let hA, hB;
+    globalThis.Deno.serve = f => { hA = f; }; await import(tmp + '/index-a.mjs');
+    globalThis.Deno.serve = f => { hB = f; }; await import(tmp + '/index-b.mjs');
+    globalThis.Deno.serve = f => { h = f; };
+    const tour = (hh) => hh(new Request('http://x', { method: 'POST', body: JSON.stringify({ type: 'RELANCE' }) })).then(r => r.text());
+    neuf(); tableBattements.essai = { nom: 'essai', le: iso(maintenant - 40000), detail: 'demande' };
+    await Promise.all([tour(hA), tour(hB)]);
+    check('P0 · deux serveurs voient l\'essai ensemble : UN seul part', alertesEssai().length === 1, String(alertesEssai().length));
+    neuf(); tableBattements.essai = { nom: 'essai', le: iso(maintenant - 11 * 60000), detail: 'demande' };
+    await relance();
+    check('P0 · un essai resté 11 min sans relance (elle était arrêtée) expire sans sonner', alertesEssai().length === 0 && tableBattements.essai.detail === 'expirée', tableBattements.essai.detail);
   }
 } catch (x) { ko.push('PLANTAGE — ' + x.message); }
 

@@ -778,6 +778,18 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
 /* Un client pas encore prévenu : le rouge de « il manque », celui des
    pastilles urgentes — c'est un client qui attend sans le savoir. */
 .a-prevenir-bord{border-color:#f0cfcf;background:#fbe9e9;color:#8f2220;}
+/* UNE DEMANDE NON VUE (25 octobre 2026, P0) : le rouge de « quelqu'un
+   attend », plus fort passé 10 min — le palier critique du serveur. Deux
+   lignes au plus : la première demande de la liste reste entière à l'écran. */
+.non-vues-bord{display:block;width:calc(100% - 40px);margin:12px 20px 0;min-height:44px;padding:10px 14px;
+  border:1.5px solid #e2a3a2;border-radius:12px;background:#fbe9e9;color:#8f2220;font:inherit;font-size:13px;
+  line-height:1.45;text-align:left;cursor:pointer;}
+.non-vues-bord b{display:block;font-size:14px}
+.non-vues-bord.critique{border:2px solid #C9302F;background:#fde0df}
+.non-vues-bord .nv-critique{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;background:#C9302F;
+  color:#fff;font-size:11.5px;font-weight:800;vertical-align:1px}
+.non-vues-bord[hidden]{display:none}
+@media (min-width:900px){ body.espace .non-vues-bord{margin:16px 28px 0;width:calc(100% - 56px);} }
 /* Ce qui a été ouvert pour le client, une ligne par message. */
 .msg-histo{list-style:none;margin:0 0 10px;padding:0}
 .msg-histo li{font-size:14px;line-height:1.45;padding:7px 0;border-top:1px solid var(--filet)}
@@ -2619,7 +2631,8 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
 #bordArrivee:not([hidden])~#bordAvis,#bordAlertes:not([hidden])~#bordAvis,
 #bordDettes:not([hidden])~#bordAvis,#bordHorsLigne:not([hidden])~#bordAvis,
 #bordSynchro:not([hidden])~#bordAvis,#bordConflit:not([hidden])~#bordAvis,
-#bordSansChauffeur:not([hidden])~#bordAvis,#bordAPrevenir:not([hidden])~#bordAvis{display:none}
+#bordSansChauffeur:not([hidden])~#bordAvis,#bordAPrevenir:not([hidden])~#bordAvis,
+#bordNonVues:not([hidden])~#bordAvis{display:none}
 .sauvegarde-bord[hidden]{display:none}
 @media (min-width:900px){ body.espace .sauvegarde-bord{margin:16px 28px 0;} }
 /* ═══ L'ADMIN ERGONOMIQUE (9 octobre 2026) : bandeaux compacts, Actualiser,
@@ -4207,6 +4220,14 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
          deux jours, et c'est celui-là qu'on ne verrait pas le jour où il
          dit quelque chose. -->
     <button class="arrivee-avis" type="button" id="bordArrivee" hidden></button>
+    <!-- LES DEMANDES NON VUES (25 octobre 2026, P0). Une demande du site, de
+         la réception ou d'un client d'hôtel, encore en attente et que
+         personne n'a vue (ni « Vu » dans Telegram, ni ouverte ici). Lu dans
+         le journal des alertes, au rythme de la relecture : depuis quand elle
+         attend, si l'alerte est partie, combien de fois, la dernière quand.
+         CRITIQUE passé 10 min. Le toucher ouvre la plus ancienne — et
+         l'ouvrir, c'est la voir. -->
+    <button class="non-vues-bord" type="button" id="bordNonVues" hidden></button>
     <!-- LE SON DES ALERTES EST COUPÉ TANT QU'ON N'A PAS TOUCHÉ L'ÉCRAN.
          iPhone et Android refusent de jouer un son qu'aucun doigt n'a
          autorisé : l'ancien bip se taisait donc presque toujours, sans rien
@@ -4621,6 +4642,15 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
         <span>Tester mes alertes</span>
       </button>
       <p class="champ-aide" id="testAlertesEtat" hidden></p>
+      <!-- L'ALERTE D'ESSAI, TÉLÉPHONE VERROUILLÉ (25 octobre 2026, P0).
+           « Tester mes alertes » sonne page ouverte ; le vrai cas est le
+           téléphone verrouillé. Le serveur envoie, 30 s après l'appui, une
+           alerte d'essai par Telegram et par la notification ELA — le temps
+           de verrouiller. Le résultat se lit ici au retour. -->
+      <button class="bouton-fantome" type="button" id="btnEssaiServeur" style="margin-top:10px">
+        <span>Recevoir une alerte d'essai dans 30 s</span>
+      </button>
+      <p class="champ-aide" id="essaiServeurEtat" hidden></p>
       <!-- FABRIQUER LA PAIRE DE CLÉS, SUR SON PROPRE TÉLÉPHONE (29/09/2026).
            Les secrets VAPID manquaient chez Supabase et la clé privée
            d'origine n'est gardée nulle part. La paire est fabriquée ICI, dans
@@ -5209,6 +5239,19 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
       <div id="regDelai"></div>
       <p class="bloc-note">Du dépôt d'une demande par le site jusqu'à votre « Confirmer ».
         Compté depuis le 19 octobre 2026 : les courses confirmées avant n'ont pas d'heure de confirmation.</p>
+    </div>
+
+    <!-- LA RÉACTIVITÉ (25 octobre 2026, P0) : les téléphones de la réception
+         étaient traités en moins de 15 min, une demande passée par l'outil
+         l'a été avec plus de 30 min de retard. Ces chiffres disent, période
+         par période, si l'outil fait aussi bien que le téléphone : délai
+         jusqu'à la première alerte, jusqu'à la vue, jusqu'à la confirmation.
+         Lus sur le serveur (ela_reactivite) ; jamais un nom ni un numéro. -->
+    <div class="bloc" id="blocReactivite">
+      <h2 class="bloc-titre">Réactivité aux demandes</h2>
+      <div id="regReactivite"></div>
+      <p class="bloc-note">Demandes du site, de la réception et des clients d'hôtel, sur la période choisie.
+        « Vue » : le « Vu » de Telegram, la course ouverte ici, ou sa confirmation.</p>
     </div>
 
     <!-- QUI ROULE, ET COMBIEN IL A RAPPORTÉ. C'est le tableau qui sert à
@@ -14331,6 +14374,7 @@ window.ELA_TEXTES = {
     if(typeof dessinerDettesBord === "function") dessinerDettesBord();
     if(typeof dessinerSauvegardeBord === "function") dessinerSauvegardeBord();
     if(typeof dessinerAvisBord === "function") dessinerAvisBord();
+    if(typeof dessinerNonVues === "function") dessinerNonVues();
     var liste = document.getElementById("listeBord");
     var vide  = document.getElementById("videBord");
     var tout  = registre();
@@ -15011,6 +15055,7 @@ window.ELA_TEXTES = {
   function ouvrirBonBord(ref){
     arreterAlarme();
     signalerVue(ref);
+    if(typeof dessinerNonVues === "function") dessinerNonVues();
     var liste = registre();
     bonBord = liste.filter(function(c){ return c.ref === ref; })[0] || null;
     if(!bonBord) return;
@@ -16654,6 +16699,8 @@ window.ELA_TEXTES = {
       dessinerBord();
       direAJour();
       if(n && !premiereLecture) annoncerArrivee(n);
+      /* Les demandes non vues se relisent avec la liste (25 octobre 2026). */
+      lireNonVues();
       premiereLecture = false;
       viderFile();
       /* LA SONDE REPART DE CE QU'ON VIENT DE LIRE. Sans ce repère, son
@@ -16788,6 +16835,16 @@ window.ELA_TEXTES = {
       lignes.push({ nom: "Notifications (1 h)", sous: (+m.telegram_ok_1h || 0) + " Telegram parties · " + (+m.telegram_echecs_1h || 0) + " en échec",
                     val: (+m.telegram_echecs_1h || 0) > 0 && !(+m.telegram_ok_1h) ? "en panne" : "OK" });
       lignes.push({ nom: "Demandes du site (24 h)", sous: "", val: String(+m.demandes_24h || 0) });
+      /* LA RELANCE ET LA NOTIFICATION ELA (25 octobre 2026) : mesures de la
+         migration 20261025000000 ; absentes, « non mesuré », jamais « OK ». */
+      var bat = ("relance_ok_s" in m) && m.relance_ok_s !== null ? +m.relance_ok_s : null;
+      lignes.push({ nom: "Rappels automatiques", sous: bat !== null ? "dernier tour réussi " + ilYa(Date.now() - bat * 1000) : "",
+                    val: !("relance_ok_s" in m) ? "non mesuré" : bat === null || bat > 300 ? "en panne" : "OK" });
+      if("abonnes_push" in m){
+        var ab = +m.abonnes_push || 0, pok = +m.push_ok_1h || 0, pko = +m.push_echecs_1h || 0;
+        lignes.push({ nom: "Notification ELA (1 h)", sous: ab + " téléphone" + (ab > 1 ? "s" : "") + " abonné" + (ab > 1 ? "s" : "") + " · " + pok + " envoyée(s) · " + pko + " en échec",
+                      val: !ab ? "aucun téléphone" : pko > 0 && !pok ? "en panne" : "OK" });
+      } else lignes.push({ nom: "Notification ELA (1 h)", sous: "", val: "non mesuré" });
     }
     var es = erreursSite.m;
     lignes.push({ nom: "Erreurs du site", sous: es ? es.n1h + " dans l'heure" : "", val: es ? es.n24h + " en 24 h" : "non mesuré" });
@@ -16981,6 +17038,11 @@ window.ELA_TEXTES = {
        le son est débloqué. */
     var bordAlertes = document.getElementById("bordAlertes");
     if(bordAlertes && !bordAlertes.hidden){ el.hidden = true; dessinerBandeauAlertes(); return; }
+    /* LE BANDEAU DES NON VUES LE REMPLACE AUSSI (25 octobre 2026) : le
+       toucher ouvre la demande ET débloque le son (premier appui n'importe
+       où). Empilés, ils sortaient la première demande de l'écran. */
+    var bordNonVues = document.getElementById("bordNonVues");
+    if(bordNonVues && !bordNonVues.hidden){ el.hidden = true; return; }
     if(!cacher){ el.hidden = false; return; }
     /* ON LE RETIRE UNE DEMI-SECONDE APRÈS L'APPUI, PAS PENDANT. Le premier
        appui débloque le son ; retiré aussitôt, le bandeau faisait remonter
@@ -17010,8 +17072,12 @@ window.ELA_TEXTES = {
   ["pointerdown", "touchend", "keydown"].forEach(function(ev){
     document.addEventListener(ev, deverrouillerSon, { capture:true, passive:true });
   });
-  function bip(){
+  /* « sansCreer » : l'alarme lancée à l'OUVERTURE de l'admin, hors de tout
+     geste, ne fabrique pas le lecteur de son — sur iPhone il resterait muet
+     (le défaut d'origine). Elle sonne dès que le premier appui l'a débloqué. */
+  function bip(sansCreer){
     try{
+      if(!sonCtx && sansCreer) return;
       if(!sonCtx) deverrouillerSon();
       if(!sonCtx) return;
       var t = sonCtx.currentTime + 0.02;
@@ -17030,18 +17096,18 @@ window.ELA_TEXTES = {
   }
   /* LA VIBRATION n'existe que sur Android : iPhone ignore l'appel, sans
      erreur. La notification du téléphone, elle, vibre partout. */
-  function sonner(){
-    bip();
+  function sonner(sansCreer){
+    bip(sansCreer);
     try{ if(navigator.vibrate) navigator.vibrate([400,150,400,150,400]); }catch(e){}
   }
   var minuterieAlarme = null, minuterieTitre = null, titreAvant = null;
-  function lancerAlarme(){
+  function lancerAlarme(sansCreer){
     arreterAlarme();
     var debut = Date.now();
-    sonner();
+    sonner(sansCreer);
     minuterieAlarme = setInterval(function(){
       if(Date.now() - debut > 10 * 60000){ arreterAlarme(); return; }
-      sonner();
+      sonner(sansCreer);
     }, 10000);
     /* LE TITRE DE L'ONGLET CLIGNOTE : c'est ce qu'on voit d'un onglet
        rangé derrière un autre, sur un ordinateur. */
@@ -17075,6 +17141,107 @@ window.ELA_TEXTES = {
     el.hidden = false;
     lancerAlarme();
   }
+  /* ═══ LES DEMANDES NON VUES (25 octobre 2026, P0) ═══
+     Une réservation de la réception, passée par l'outil, a été vue avec plus
+     de 30 min de retard : elle était dans la liste, sans rien qui dise
+     qu'elle n'avait été vue par personne. Le bandeau le dit, lu sur le
+     SERVEUR (journal des alertes, que l'exploitant lit déjà) : depuis quand
+     elle attend, si l'alerte est partie, combien de fois, la dernière quand.
+     « Vue », c'est le bouton « ✅ Vu » de Telegram ou la course ouverte ici
+     (décision de Barbaros, 25/10 : ouvrir reste un « Vu »).
+     L'ALARME DE CETTE PAGE SONNE AUSSI POUR UNE NON VUE TROUVÉE À
+     L'OUVERTURE : jusqu'ici, la première lecture ne sonnait jamais, et
+     une demande arrivée pendant que l'admin était fermé s'y rangeait en
+     silence. Une fois par demande et par visite. */
+  var nonVues = { journal:{}, lu:0, enCours:false, connues:{} };
+  var NON_VUE_CRITIQUE_MS = 10 * 60000, NON_VUE_FENETRE_MS = 7 * 86400000;
+  function demandesSiteEnAttente(){
+    return registre().filter(function(c){
+      if(!c || (c.statut || "attente") !== "attente") return false;
+      if(!(c.securite && c.securite.empreinteDepot)) return false;
+      var t = Date.parse(c._cree || c.cree || "");
+      return !isFinite(t) || Date.now() - t <= NON_VUE_FENETRE_MS;
+    });
+  }
+  /* « nonVues » est posé plus bas que les premiers dessins du tableau de
+     bord (même garde que le voyant) : appelé trop tôt, on ne fait rien. */
+  function lireNonVues(){
+    if(!nonVues || nonVues.enCours || !nuage.connecte()) return;
+    var refs = demandesSiteEnAttente().map(function(c){ return c.ref; })
+      .filter(function(r){ return /^[A-Z]{2,4}-[0-9A-Z-]{4,26}$/.test(r); });
+    if(!refs.length){ nonVues.journal = {}; nonVues.lu = Date.now(); dessinerNonVues(); return; }
+    nonVues.enCours = true;
+    /* DU PLUS RÉCENT AU PLUS ANCIEN : une demande oubliée plusieurs jours
+       accumule plus de lignes que la limite, et c'est la plus récente — le
+       « Vu », le dernier envoi — qu'il ne faut pas couper. */
+    nuage.appel("/rest/v1/journal_notifications_admin?select=course_ref,type_evenement,canal,statut,cree_le&course_ref=in.("
+        + refs.join(",") + ")&order=cree_le.desc&limit=2000")
+      .then(function(l){
+        var m = {};
+        (Array.isArray(l) ? l : []).forEach(function(x){
+          if(!x || !x.course_ref) return;
+          var j = m[x.course_ref] || (m[x.course_ref] = { vue:false, envois:0, echecs:0, dernier:null });
+          var t = Date.parse(x.cree_le || "");
+          if(x.type_evenement === "vue"){ j.vue = true; return; }
+          if(x.statut === "envoye"){ j.envois++; if(isFinite(t) && (!j.dernier || t > j.dernier)) j.dernier = t; }
+          else if(x.canal !== "email") j.echecs++;
+        });
+        nonVues.journal = m; nonVues.lu = Date.now(); nonVues.erreur = false;
+      }).catch(function(){ nonVues.erreur = true; /* journal illisible : le bandeau le dit, il ne se tait pas */ })
+      .then(function(){ nonVues.enCours = false; dessinerNonVues(); });
+  }
+  function etatAlerte(j){
+    if(nonVues.erreur) return "alerte : journal illisible";
+    if(!nonVues.lu) return "alerte : lecture en cours";
+    if(!j) return "aucune alerte partie encore";
+    if(j.envois) return (j.envois > 1 ? j.envois + " alertes parties" : "1 alerte partie") + ", la dernière " + ilYa(j.dernier);
+    return j.echecs ? "ALERTES EN ÉCHEC" : "aucune alerte partie encore";
+  }
+  function dessinerNonVues(){
+    var el = document.getElementById("bordNonVues");
+    if(!el || !nonVues) return;
+    var l = demandesSiteEnAttente().filter(function(c){
+      var j = nonVues.journal[c.ref];
+      return !vuesSignalees[c.ref] && !(j && j.vue);
+    }).sort(function(a, b){
+      return (Date.parse(a._cree || a.cree || "") || 0) - (Date.parse(b._cree || b.cree || "") || 0);
+    });
+    var avant = el.hidden;
+    el.hidden = !l.length;
+    /* « Son coupé » cède sa place au bandeau (et la reprend) : on le rejuge
+       quand le bandeau paraît ou disparaît. */
+    if(avant !== el.hidden) jugerSon();
+    if(!l.length){ el.dataset.ref = ""; return; }
+    var c = l[0], t = Date.parse(c._cree || c.cree || ""), j = nonVues.journal[c.ref];
+    var critique = isFinite(t) && Date.now() - t > NON_VUE_CRITIQUE_MS;
+    el.classList.toggle("critique", critique);
+    el.dataset.ref = c.ref;
+    el.textContent = "";
+    var b = document.createElement("b");
+    b.textContent = l.length > 1 ? l.length + " demandes NON VUES" : "NON VUE" + (numeroDe(c) ? " · N° " + numeroDe(c) : "");
+    if(critique){
+      b.appendChild(document.createTextNode(" "));
+      var k = document.createElement("span"); k.className = "nv-critique"; k.textContent = "CRITIQUE"; b.appendChild(k);
+    }
+    el.appendChild(b);
+    el.appendChild(document.createTextNode((l.length > 1 ? "La plus ancienne" + (numeroDe(c) ? " (N° " + numeroDe(c) + ")" : "") + " : reçue " : "Reçue ")
+      + (isFinite(t) ? ilYa(t) : "à une heure inconnue") + " · " + etatAlerte(j) + " — touchez pour l'ouvrir."));
+    /* Une non vue que cette visite n'avait pas encore vue fait sonner la
+       page — une fois, et seulement quand le journal a été lu (sinon on
+       sonnerait pour une demande déjà vue dans Telegram). */
+    if(nonVues.lu){
+      var neuves = l.filter(function(x){ return !nonVues.connues[x.ref]; });
+      l.forEach(function(x){ nonVues.connues[x.ref] = true; });
+      if(neuves.length && !minuterieAlarme) lancerAlarme(true);
+    }
+  }
+  var elNonVues = document.getElementById("bordNonVues");
+  if(elNonVues) elNonVues.addEventListener("click", function(){
+    if(this.dataset.ref) ouvrirBonBord(this.dataset.ref);
+  });
+  /* « il y a 3 min » vieillit même quand rien n'arrive : on redessine, sans
+     rien demander au serveur. */
+  setInterval(dessinerNonVues, 30000);
   /* « Tester mes alertes » vit ICI, avec l'alarme : les pages publiques
      retirent ce bloc à la construction, et un bouton branché ailleurs y
      appellerait des fonctions qui n'existent plus. */
@@ -17101,6 +17268,49 @@ window.ELA_TEXTES = {
     }).then(function(){ fin("Notification : envoyée."); },
             function(){ fin("Notification : refusée par le téléphone."); });
   });
+  /* L'ALERTE D'ESSAI, TÉLÉPHONE VERROUILLÉ (25 octobre 2026, P0). L'appui
+     dépose une demande d'essai sur le serveur (exploitant seul, une par
+     minute) ; la relance l'envoie 30 s plus tard. Au retour sur la page, on
+     lit dans le journal ce qui est parti. Une RPC absente (migration pas
+     encore appliquée) le dit au lieu d'échouer en silence. */
+  var elEssai = document.getElementById("btnEssaiServeur");
+  if(elEssai) elEssai.addEventListener("click", function(){
+    var etat = document.getElementById("essaiServeurEtat"), bouton = this;
+    function dire(t){ if(etat){ etat.hidden = false; etat.textContent = t; } }
+    if(!nuage.connecte()){ dire("Connectez-vous au serveur d'abord."); return; }
+    var depuis = new Date(Date.now() - 5000).toISOString();
+    bouton.disabled = true;
+    setTimeout(function(){ bouton.disabled = false; }, 60000);
+    nuage.appel("/rest/v1/rpc/ela_demander_essai_alerte", { method:"POST", body:"{}" }).then(function(r){
+      if(typeof r === "string"){ try{ r = JSON.parse(r); }catch(e){ r = null; } }
+      if(r && r.ok){
+        dire("C'est parti : verrouillez votre téléphone maintenant. L'alerte arrive dans 30 à 60 secondes, par Telegram et par la notification ELA. Revenez ensuite ici : le résultat s'affichera.");
+        suivreEssai(depuis, dire);
+      } else if(r && r.raison === "deja_en_route") dire("Un essai est déjà en route : attendez une minute.");
+      else dire("Le serveur n'a pas accepté l'essai.");
+    }).catch(function(){
+      bouton.disabled = false;
+      dire("Essai impossible pour l'instant : pas de réseau, ou le serveur n'est pas encore à jour.");
+    });
+  });
+  function suivreEssai(depuis, dire){
+    var tours = 0;
+    var t = setInterval(function(){
+      if(document.hidden) return;
+      if(++tours > 24){ clearInterval(t); dire("Aucune trace de l'essai après 4 minutes : les rappels automatiques ne tournent peut-être pas (voir « État du système »)."); return; }
+      nuage.appel("/rest/v1/journal_notifications_admin?select=canal,statut,detail,cree_le&type_evenement=eq.essai&cree_le=gte."
+          + encodeURIComponent(depuis) + "&order=cree_le.desc&limit=4").then(function(l){
+        if(!Array.isArray(l) || !l.length) return;
+        clearInterval(t);
+        var tg = l.filter(function(x){ return x.canal === "telegram"; })[0], pu = l.filter(function(x){ return x.canal === "push"; })[0];
+        var nb = pu && /^(\d+)\/(\d+) push/.exec(pu.detail || "");
+        dire("Essai parti. Telegram : " + (tg && tg.statut === "envoye" ? "envoyé" : "raté")
+          + ". Notification ELA : " + (pu && pu.statut === "envoye" ? "envoyée" + (nb ? " sur " + nb[1] + " appareil" + (nb[1] > 1 ? "s" : "") : "")
+            : pu && pu.statut === "aucun_abonne" ? "aucun téléphone abonné (appuyez sur « Activer les notifications »)" : "ratée")
+          + ". Si votre téléphone verrouillé a sonné, tout fonctionne.");
+      }).catch(function(){});
+    }, 10000);
+  }
   /* SANS SESSION, RIEN N'ARRIVE — et c'est le genre de chose qu'on ne
      découvre qu'en ratant une course. On le dit en haut du tableau de
      bord, pas seulement en petit dans le bloc du serveur. */
@@ -17571,7 +17781,42 @@ window.ELA_TEXTES = {
                                 val: String(enAttente) });
     poser("regDelai", lignes, "Aucune demande du site " + periode + ".");
   }
+  /* LA RÉACTIVITÉ (25 octobre 2026, P0), lue sur le serveur au rythme du
+     registre. Fonction absente (migration pas encore appliquée), refus,
+     réseau : on le dit, on n'invente aucun chiffre. */
+  var reactiviteJeton = 0;
+  function secondesLisibles(s){ return s < 60 ? Math.round(s) + " s" : dureeLisible(s * 1000); }
+  function lireReactivite(){
+    if(!document.getElementById("regReactivite")) return;
+    var periode = { semaine: "cette semaine", mois: "ce mois-ci", annee: "cette année" }[periodeReg] || "";
+    if(!nuage.connecte()){ poser("regReactivite", [], "Connectez-vous au serveur pour lire ces chiffres."); return; }
+    var jeton = ++reactiviteJeton;
+    nuage.appel("/rest/v1/rpc/ela_reactivite", { method:"POST", body: JSON.stringify({ p_periode: periodeReg }) }).then(function(r){
+      if(jeton !== reactiviteJeton) return;
+      if(typeof r === "string"){ try{ r = JSON.parse(r); }catch(e){ r = null; } }
+      if(!r || typeof r !== "object" || !("demandes" in r)) throw new Error("illisible");
+      var n = +r.demandes || 0, lignes = [];
+      var part = function(x){ x = +x || 0; return x + " sur " + n + " (" + Math.round(100 * x / n) + " %)"; };
+      var med = function(v){ return v === null || v === undefined ? "—" : secondesLisibles(+v); };
+      if(n){
+        lignes.push({ nom: "Première alerte partie", sous: "délai médian après la demande", val: med(r.alerte_mediane_s) });
+        lignes.push({ nom: "Vue", sous: "délai médian", val: med(r.vue_mediane_s) });
+        lignes.push({ nom: "Confirmée", sous: "délai médian", val: med(r.confirmation_mediane_s) });
+        lignes.push({ nom: "Vues en moins de 2 min", sous: "", val: part(r.vues_2min) });
+        lignes.push({ nom: "Confirmées en moins de 5 min", sous: "", val: part(r.confirmees_5min) });
+        lignes.push({ nom: "Confirmées en moins de 15 min", sous: "", val: part(r.confirmees_15min) });
+        lignes.push({ nom: "Jamais vues", sous: (+r.jamais_vues_en_attente || 0) ? "dont " + (+r.jamais_vues_en_attente) + " encore en attente" : "",
+                      val: String(+r.jamais_vues || 0) });
+      }
+      lignes.push({ nom: "Alertes en échec", sous: "Telegram et notification ELA, " + periode, val: String(+r.alertes_echec || 0) });
+      poser("regReactivite", lignes, "");
+    }).catch(function(){
+      if(jeton !== reactiviteJeton) return;
+      poser("regReactivite", [], "Pas encore mesurée : le serveur n'a pas rendu ces chiffres.");
+    });
+  }
   function dessinerRegistre(){
+    lireReactivite();
     var g = agregatsLocaux();
     /* Le serveur a déjà répondu pour cette période : on ne repeint pas avec
        l'appareil le temps qu'il réponde de nouveau. */

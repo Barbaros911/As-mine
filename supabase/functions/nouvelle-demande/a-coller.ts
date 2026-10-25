@@ -637,6 +637,35 @@ async function rappelerAPrevenir():Promise<string>{
   return `${n} rappel(s) « client pas prévenu »`;
 }
 
+/* ═══ L'ALERTE D'ESSAI, ÉCRAN VERROUILLÉ (25 octobre 2026, P0) ═══
+   « Tester mes alertes » fait sonner la page ouverte : il ne dit rien du
+   téléphone verrouillé, qui est le vrai cas. L'admin dépose une demande
+   d'essai (RPC ela_demander_essai_alerte, exploitant seul) ; elle part ici,
+   30 s plus tard, par les mêmes canaux qu'une vraie alerte. La ligne est
+   RÉSERVÉE avant l'envoi (« demande » → « envoi », sous condition) : deux
+   tours qui la verraient ensemble n'en enverraient qu'un. Trop vieille
+   (10 min : la relance était arrêtée), elle expire sans sonner. */
+const ESSAI_DELAI_MS=30*1000,ESSAI_EXPIRE_MS=10*MIN_MS;
+async function envoyerEssai():Promise<string>{
+  if(!U||!S)return "";
+  const r=await db("ela_battements?nom=eq.essai&detail=eq.demande&select=le").catch(()=>null);
+  if(!r||!r.ok)return "";
+  const l=((await r.json().catch(()=>[]))||[])[0];if(!l)return "";
+  const age=Date.now()-Date.parse(String(l.le||""));
+  if(!Number.isFinite(age)||age<ESSAI_DELAI_MS-SOUPLESSE_MS)return "";
+  const expire=age>ESSAI_EXPIRE_MS;
+  const prise=await db("ela_battements?nom=eq.essai&detail=eq.demande",{method:"PATCH",headers:{Prefer:"return=representation"},
+    body:JSON.stringify({detail:expire?"expirée":"envoi"})}).catch(()=>null);
+  if(!prise||!prise.ok||!((await prise.json().catch(()=>[]))||[]).length||expire)return expire?"essai expiré":"";
+  const t="ESSAI — alerte Elatransfer";
+  const m="Ceci est un essai demandé depuis l'admin, aucune demande de client. Si cette alerte a sonné téléphone verrouillé, tout fonctionne.";
+  const [push,tg]=await Promise.all([parPush(t,"ESSAI","Essai"),parTelegram(t,m,"",{inline_keyboard:[[{text:"Ouvrir l'admin",url:ADMIN}]]})]);
+  await Promise.all([journal("essai","","push",push),journal("essai","","telegram",tg)]);
+  await db("ela_battements?nom=eq.essai",{method:"PATCH",headers:{Prefer:"return=minimal"},
+    body:JSON.stringify({detail:`fait : notification ${push.ok?"envoyée":"ratée"}, Telegram ${tg.ok?"envoyé":"raté"}`})}).catch(()=>{});
+  return `essai envoyé (notification ${push.ok?"ok":"ratée"}, Telegram ${tg.ok?"ok":"raté"})`;
+}
+
 /* UNE SEULE RELANCE À LA FOIS (25 octobre 2026, P0). pg_cron appelle toutes
    les 20 s sans attendre la réponse : un tour plus long (Telegram lent,
    plusieurs demandes) chevauchait le suivant, les deux lisaient le même
@@ -646,6 +675,17 @@ async function rappelerAPrevenir():Promise<string>{
    les suivants. */
 const RELANCE_VERROU_MS=60*1000;
 let relanceEnCoursDepuis=0;
+/* LE BATTEMENT DE LA RELANCE (25 octobre 2026, P0). pg_cron se dit
+   « réussi » dès que l'appel est mis en file, même quand cette fonction
+   répond 401 ou 500 : le voyant et le chien de garde ne voyaient donc
+   jamais une relance cassée. Chaque tour réussi réécrit sa ligne dans
+   « ela_battements » (migration 20261025000000), que la mesure du voyant
+   lit. Sans la table, l'écriture échoue sans rien gêner. */
+async function battre(nom:string,detail:string):Promise<void>{
+  if(!U||!S)return;
+  await db("ela_battements?on_conflict=nom",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},
+    body:JSON.stringify({nom,le:new Date(Date.now()).toISOString(),detail:detail.slice(0,300)})}).catch(()=>{});
+}
 const annoncesEnCours:Set<string>=new Set();
 Deno.serve(async(req)=>{
   let charge:Record<string,unknown>;try{charge=await req.json()}catch{return new Response("corps illisible",{status:400})}
@@ -657,8 +697,13 @@ Deno.serve(async(req)=>{
       try{
         /* Deux tâches indépendantes : une lecture refusée d'un côté n'arrête
            pas l'autre. */
-        const attente=await relancer(),prevenir=await rappelerAPrevenir();
-        return new Response(attente+" | "+prevenir,{status:200});
+        const attente=await relancer(),prevenir=await rappelerAPrevenir(),essai=await envoyerEssai();
+        const bilan=attente+" | "+prevenir+(essai?" | "+essai:"");
+        /* LE BATTEMENT (25 octobre 2026, P0) : seulement quand le tour a lu
+           les demandes. Une lecture refusée n'est pas un tour réussi, et le
+           voyant doit le voir. */
+        if(/^relance :/.test(attente))await battre("relance",bilan);
+        return new Response(bilan,{status:200});
       }finally{relanceEnCoursDepuis=0;}
     }
     /* Poser le webhook du bouton « Vu ». Appelé une fois par la migration ;

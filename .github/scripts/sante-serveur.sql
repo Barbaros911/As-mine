@@ -7,6 +7,12 @@
 -- échec, et une ligne « vue » (course ouverte dans l'admin, bouton « Vu »)
 -- n'est pas un envoi réussi — elle porte pourtant canal « telegram » et
 -- statut « envoye » (relecture du 4 octobre 2026).
+-- La relance et la notification ELA (25 octobre 2026, migration
+-- 20261025000000) : « relance_ok_s » lit le battement que la fonction écrit
+-- à chaque tour réussi — pg_cron se dit « réussi » dès la mise en file, même
+-- quand la fonction répond 401 ; la notification ELA (l'alarme) compte ses
+-- envois et ses appareils abonnés. Même remarque que pour journal_depots :
+-- sans la migration, cette requête échoue, l'Issue se ferme seule ensuite.
 -- Les dépôts refusés (9 octobre 2026) : « journal_depots », écrit par
 -- deposer-course à chaque refus — code, motif, référence, jamais de donnée
 -- personnelle. Migration 20261009000000, à appliquer aussitôt après la
@@ -48,5 +54,16 @@ select json_build_object(
      where motif = 'quota' and cree_le >= now() - interval '1 hour'),
   'depots_refuses_1h', (
     select count(*) from public.journal_depots
-     where code < 500 and motif <> 'quota' and cree_le >= now() - interval '1 hour')
+     where code < 500 and motif <> 'quota' and cree_le >= now() - interval '1 hour'),
+  'relance_ok_s', (
+    select round(extract(epoch from now() - b.le)) from public.ela_battements b where b.nom = 'relance'),
+  'push_ok_1h', (
+    select count(*) from public.journal_notifications_admin
+     where canal = 'push' and statut = 'envoye' and cree_le >= now() - interval '1 hour'),
+  'push_echecs_1h', (
+    select count(*) from public.journal_notifications_admin
+     where canal = 'push' and statut in ('echec', 'indisponible', 'aucun_abonne')
+       and cree_le >= now() - interval '1 hour'),
+  'abonnes_push', (
+    select count(*) from public.abonnements_admin where actif)
 ) as sante;

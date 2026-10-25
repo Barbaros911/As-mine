@@ -184,15 +184,15 @@ Tant que la migration n'est pas appliquée, rien ne change : la fonction qui
 ne trouve pas la RPC accepte comme avant, parce que la relance EST l'alerte.
 `RELANCE_SECRET` (Edge Functions → Secrets) reste un repli manuel : posé, il
 l'emporte sur la base — à n'utiliser que si le coffre devait disparaître. Si
-les deux côtés divergeaient un jour, la relance tomberait en 401 — **et ni
-le voyant ni le chien de garde ne le verraient** (corrigé le 25/10/2026 :
-cette ligne disait le contraire). Ils jugent la tâche pg_cron, qui se dit
-« réussie » dès que l'appel est mis en file, quelle que soit la réponse de
-la fonction : personne ne lit ces réponses. Seules les annonces resteraient
-(le webhook INSERT, la demande qui arrive, n'a jamais besoin de cet
-en-tête) ; les rappels, eux, s'arrêteraient sans bruit. Le signe à guetter :
-plus aucun « RAPPEL » ni « NON VUE » dans Telegram sur une demande laissée
-sans « Vu ».
+les deux côtés divergeaient un jour, la relance tomberait en 401 : les
+annonces resteraient (le webhook INSERT n'a jamais besoin de cet en-tête),
+les rappels s'arrêteraient. **Le voyant le dit en 5 min** (« Les rappels
+automatiques ne partent plus »), et le chien de garde ouvre une Issue : la
+fonction écrit un **battement** à chaque tour réussi (`ela_battements`,
+migration `20261025000000_alertes_suivi.sql`), et c'est lui qu'ils jugent.
+Avant cette migration, ils jugeaient la tâche pg_cron, qui se dit
+« réussie » dès que l'appel est mis en file : une relance en 401 passait
+inaperçue (cette ligne affirmait le contraire jusqu'au 25/10/2026).
 
 ### Depuis un ordinateur, si l'occasion se présente
 
