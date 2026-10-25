@@ -669,40 +669,39 @@ Histoire : `memoire/chauffeurs-et-commission.md`.
 
 ## Les alertes à Barbaros
 
-- **`nouvelle-demande` annonce chaque demande** (Telegram et notification ELA),
-  sur un webhook **INSERT seul**, détaché : **la notification ne peut jamais
-  faire échouer une réservation** — ne jamais inverser. Elle relit la course
-  sur le serveur (existante, récente, jamais annoncée) ; le message ne porte ni
-  nom, ni téléphone, ni chambre (`departPublic`) ; le titre (trajet et heure)
-  tient sous 90 caractères ; **aucun `parse_mode`** chez Telegram ; rien de
-  configuré rend une **erreur**, jamais un 200. Les saisies de l'exploitant ne
-  sont ni annoncées ni relancées (sa demande). **Pas de serveur loué** : les
-  fonctions Supabase suffisent, ne pas y revenir sans un besoin qu'elles ne
-  couvrent pas.
-- **`a-coller.ts` est fabriqué par `assembler.mjs`**, jamais écrit à la main :
-  c'est le déploiement de secours au téléphone. Le déploiement normal passe par
-  `fonctions.yml`.
-- **La relance tourne toutes les 20 s** (pg_cron, en-tête `x-ela-relance`) :
-  la **notification ELA est l'alarme**, **Telegram informe**, chaque rappel
-  Telegram efface le précédent, un dernier message part à l'heure du départ,
-  et tout s'arrête dès que la course est **vue** (bouton « ✅ Vu » ou course
-  ouverte dans l'admin, `signalerVue()`), confirmée ou refusée. Les délais se
-  comptent depuis l'annonce. Cadence exacte : `memoire/alertes-relance.md`.
-  Un `aPrevenir` resté 15 min : un rappel Telegram, un dernier à H-3.
-- **Dans l'admin ouvert** : un seul lecteur de son, débloqué au premier appui
-  (`#sonCoupe` le dit) ; l'alarme se répète jusqu'à un appui ; pastille sur
-  l'icône. **Admin fermé**, seuls la notification, Telegram et la pastille
-  chiffrée arrivent : une page fermée ne tourne pas, ne pas promettre
-  l'inverse.
-- **WhatsApp ne peut pas sonner tout seul** (l'API Business exige une
-  vérification d'entreprise et un numéro dédié) : ne pas le promettre.
-- **Le voyant des alertes** (« Alertes OK / en panne / non vérifiées ») : un
-  seul juge, `admin-sante.js`, partagé avec le chien de garde ; une seule
-  mesure, `ela_sante_alertes()`. **Gris quand on ne sait pas, jamais un ancien
-  vert.** Une panne d'alerte ne perd aucune course : seule la sonnerie
-  s'arrête. `memoire/voyant.md`.
-- **Le chien de garde GitHub** (toutes les 15 min, Issue unique, jamais
-  Telegram) est un filet, pas une horloge : GitHub le réveille mal.
+- **`nouvelle-demande` annonce chaque demande** (Telegram et notification ELA)
+  sur un webhook **INSERT seul**, détaché : **une alerte ne peut jamais faire
+  échouer une réservation** — ne jamais inverser. Elle relit la course
+  (existante, récente, jamais annoncée) ; ni nom, ni téléphone, ni chambre
+  (`departPublic`) ; titre sous 90 caractères ; **aucun `parse_mode`** ; rien
+  de configuré rend une **erreur**. Les saisies de l'exploitant ne sonnent
+  pas. **Pas de serveur loué** : les fonctions Supabase suffisent.
+- **`a-coller.ts` est fabriqué par `assembler.mjs`** (secours au téléphone) ;
+  le déploiement normal passe par `fonctions.yml`.
+- **La relance tourne toutes les 20 s** (pg_cron, `x-ela-relance`) : la
+  **notification ELA est l'alarme**, **Telegram informe**, chaque rappel
+  efface le précédent. **Non vue, une demande ne se tait jamais** (25/10, sa
+  décision, nuit comprise). **« Vu »** (bouton, ou course ouverte dans
+  l'admin) **arrête l'alarme, pas le suivi** : 30 min après, H-2, H-30. Un
+  dernier message au départ ; confirmée ou refusée, plus rien. Cadence :
+  `memoire/alertes-relance.md`. `aPrevenir` resté 15 min : un rappel, un à H-3.
+- **Dans l'admin ouvert** : un lecteur de son, débloqué au premier appui
+  (`#sonCoupe`) ; l'alarme se répète jusqu'à un appui. **Le bandeau des non
+  vues** (`#bordNonVues`, lu au journal) dit depuis quand, combien
+  d'alertes, CRITIQUE à 10 min ; il remplace `#sonCoupe` et sonne aussi à
+  l'ouverture. **Admin fermé**, seuls la notification, Telegram et la
+  pastille arrivent : ne pas promettre l'inverse.
+- **WhatsApp ne peut pas sonner tout seul** (API Business : vérification et
+  numéro dédié) : ne pas le promettre.
+- **Le voyant** (« Alertes OK / en panne / non vérifiées ») : un seul juge,
+  `admin-sante.js`, partagé avec le chien de garde ; une mesure,
+  `ela_sante_alertes()`. **La relance se juge sur son battement**
+  (`ela_battements`), jamais sur pg_cron ; la notification ELA sur ses
+  abonnés et ses envois. **Gris quand on ne sait pas.** `memoire/voyant.md`.
+- **Alerte d'essai** (Réglages) : le serveur l'envoie 30 s après, téléphone
+  verrouillé. **Réactivité** au Registre (`ela_reactivite`).
+- **Le chien de garde GitHub** (15 min, Issue unique, jamais Telegram) est
+  un filet : GitHub le réveille mal.
 - **Les erreurs JavaScript du site** sont comptées sous le voyant
   (`erreur-client`, masquées). `memoire/erreurs-client.md`.
 

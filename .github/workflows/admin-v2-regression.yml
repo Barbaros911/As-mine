@@ -223,6 +223,24 @@ jobs:
             -f supabase/migrations/20261004010000_sante_alertes.sql \
             -f supabase/migrations/20261009000000_journal_depots.sql \
             -f supabase/tests/sante-alertes-apres.sql
+          # Les alertes se surveillent elles-mêmes (25 octobre 2026, P0) : le
+          # battement de la relance, la notification ELA (abonnés, envois,
+          # échecs) et les chiffres de réactivité. Sur les vrais opérateurs
+          # (la réactivité lit les fonctions du registre) ; la migration est
+          # jouée deux fois, comme en production : elle doit se rejouer.
+          psql -h 127.0.0.1 -U postgres -d postgres -X -q -v ON_ERROR_STOP=1 -c 'create database suivi;'
+          psql -h 127.0.0.1 -U postgres -d suivi -X -q -v ON_ERROR_STOP=1 \
+            -f supabase/tests/socle.sql \
+            -f supabase/tests/role-agent-avant.sql \
+            -f supabase/migrations/20260929030000_role_agent_serveur.sql \
+            -f supabase/tests/sante-alertes.sql \
+            -f supabase/migrations/20260916090000_admin_push_notifications.sql \
+            -f supabase/migrations/20261004010000_sante_alertes.sql \
+            -f supabase/migrations/20261009000000_journal_depots.sql \
+            -f supabase/migrations/20261020040000_registre_serveur.sql
+          psql -h 127.0.0.1 -U postgres -d suivi -X -q -v ON_ERROR_STOP=1 -1 -f supabase/migrations/20261025000000_alertes_suivi.sql
+          psql -h 127.0.0.1 -U postgres -d suivi -X -q -v ON_ERROR_STOP=1 -1 -f supabase/migrations/20261025000000_alertes_suivi.sql
+          psql -h 127.0.0.1 -U postgres -d suivi -X -q -v ON_ERROR_STOP=1 -f supabase/tests/alertes-suivi-apres.sql
           # Les vues publiques en lecture seule (5 octobre 2026). L'épreuve
           # repose les privilèges par défaut de Supabase et les vues de la VRAIE
           # migration de tarif, exige que le trou SE REPRODUISE (un anonyme

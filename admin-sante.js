@@ -95,6 +95,34 @@
     if(dRefus !== null && dRefus >= 10) panne(dRefus + " dépôts refusés dans l'heure (demande invalide, origine ou session) : à lire dans journal_depots.",
       "Beaucoup de demandes sont refusées à l'entrée.");
 
+    /* LA RELANCE ET LA NOTIFICATION ELA (25 octobre 2026, P0). Clés
+       FACULTATIVES, comme les dépôts : un serveur d'avant la migration
+       20261025000000 ne les rend pas.
+       — « relance_ok_s » : le battement que la fonction écrit à chaque tour
+         réussi. pg_cron se dit « réussi » dès que l'appel est mis en file :
+         seule cette mesure voit une fonction qui répond 401 ou 500 à chaque
+         tour. Jugée seulement quand pg_cron, lui, tourne : sinon c'est la
+         même panne, déjà dite plus haut.
+       — « abonnes_push » à zéro : aucun téléphone ne reçoit l'alarme, et
+         seul Telegram prévient encore.
+       — des notifications tentées dans l'heure, toutes ratées : l'iPhone a
+         révoqué l'abonnement, ou les clés ont changé. */
+    var a = function(k){ return Object.prototype.hasOwnProperty.call(s, k); };
+    if(a("relance_ok_s") && s.relance_active === true && derniere !== null && derniere <= 300){
+      var bat = n(s.relance_ok_s);
+      if(bat === null) panne("La relance n'a jamais battu : la tâche pg_cron appelle, mais aucun tour de « nouvelle-demande » n'a abouti (secret de la relance, déploiement ?).",
+        "Les rappels automatiques ne partent pas.");
+      else if(bat > 300) panne("Aucun tour de relance réussi depuis " + Math.round(bat / 60) + " min : pg_cron appelle, mais la fonction échoue (401, 500, délai).",
+        "Les rappels automatiques ne partent plus depuis " + Math.round(bat / 60) + " min.");
+    }
+    if(a("abonnes_push")){
+      var abonnes = n(s.abonnes_push), pushOk = n(s.push_ok_1h) || 0, pushKo = n(s.push_echecs_1h) || 0;
+      if(abonnes === 0) panne("Aucun appareil n'est abonné aux notifications ELA : seul Telegram prévient encore.",
+        "Aucun téléphone ne reçoit les notifications ELA : Réglages → « Activer les notifications ».");
+      else if(pushKo > 0 && pushOk === 0) panne("Les notifications ELA échouent toutes depuis une heure (" + pushKo + " échec(s), 0 réussite) : abonnement révoqué par le téléphone, ou clés changées.",
+        "Les notifications ELA n'arrivent plus sur votre téléphone : Réglages → « Activer les notifications ».");
+    }
+
     return { ok: pannes.length === 0, pannes: pannes, simples: simples };
   }
 

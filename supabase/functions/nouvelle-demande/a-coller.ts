@@ -76,6 +76,35 @@ function titreRappel(bon: any, minutes: any) {
     + ", " + quand(bon);
 }
 
+/* UNE DURÉE QUI SE LIT D'UN COUP D'ŒIL (25 octobre 2026) : une demande non
+   vue sonne désormais jusqu'au « Vu », parfois toute une nuit. « 9 h 05 » se
+   lit, « 545 min » non. */
+function duree(minutes: any) {
+  const m = Math.max(0, Math.round(Number(minutes) || 0));
+  return m < 60 ? m + " min" : Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0");
+}
+
+/* NON VUE APRÈS 10 MINUTES (25 octobre 2026, P0). La fenêtre d'alarme est
+   passée sans un « Vu » : le titre le dit d'abord, en rouge, pour qu'il ne
+   se confonde ni avec une nouvelle demande ni avec le premier rappel. */
+function titreNonVue(bon: any, minutes: any) {
+  const c = bon.course ?? {};
+  return "🔴 NON VUE " + duree(minutes) + " — "
+    + court(c.departPublic ?? c.depart, 20)
+    + " → " + court(c.arriveePublic ?? c.arrivee, 20)
+    + ", " + quand(bon);
+}
+
+/* VUE, MAIS TOUJOURS EN ATTENTE (25 octobre 2026, P0). « Vu » arrête
+   l'alarme, pas le suivi : un coup d'œil n'est pas une course confiée. */
+function titreVuePasConfirmee(bon: any) {
+  const c = bon.course ?? {};
+  return "VUE, PAS CONFIRMÉE — "
+    + court(c.departPublic ?? c.depart, 20)
+    + " → " + court(c.arriveePublic ?? c.arrivee, 20)
+    + ", " + quand(bon);
+}
+
 /* LE DERNIER MESSAGE, à l'heure du départ : il dit que c'est fini, pas
    « rappel ». Après lui, plus rien ne part — une course oubliée se clôt dans
    l'admin, elle ne sonne pas six heures. */
@@ -252,7 +281,7 @@ async function effacerTelegram(messageId:string):Promise<void>{
 }
 function dernierRappelTelegram(journalRef:Array<Record<string,string>>):string{
   for(const x of [...journalRef].reverse()){
-    if(x.canal!=="telegram"||x.statut!=="envoye"||(x.type_evenement!=="rappel_reservation"&&x.type_evenement!=="rappel_final"))continue;
+    if(x.canal!=="telegram"||x.statut!=="envoye"||(x.type_evenement!=="rappel_reservation"&&x.type_evenement!=="rappel_final"&&x.type_evenement!=="rappel_vue"))continue;
     const m=/message_id=(\d+)/.exec(x.detail||"");if(m)return m[1];
   }
   return "";
@@ -281,7 +310,10 @@ async function parPush(t:string,ref:string,etiq=ref):Promise<Resultat>{
   if(!U||!S||!VAPID_PUBLIQUE||!VAPID_PRIVEE)return{ok:false,detail:"push_non_configure",statut:"indisponible"};
   const r=await db("abonnements_admin?select=id,abonnement&actif=eq.true");if(!r.ok)return{ok:false,detail:"lecture_abonnements_refusee",statut:"echec"};const lignes=await r.json();if(!Array.isArray(lignes)||!lignes.length)return{ok:false,detail:"aucun_abonne",statut:"aucun_abonne"};
   const charge=JSON.stringify({titre:t,corps:`${etiq} — action requise`,ref,attente:await nbAttente(),url:`${ADMIN}?ref=${encodeURIComponent(ref)}`});let envoyes=0,echecs=0;
-  for(const ligne of lignes){const ab=ligne.abonnement;if(!ab?.endpoint||!ab?.keys?.p256dh||!ab?.keys?.auth){echecs++;continue;}try{const paquet=await chiffrer(charge,ab.keys.p256dh,ab.keys.auth),origine=new URL(ab.endpoint).origin,jeton=await jetonVapid(origine,VAPID_SUJET,VAPID_PRIVEE,VAPID_PUBLIQUE),rep=await fetch(ab.endpoint,{method:"POST",headers:{Authorization:`vapid t=${jeton}, k=${VAPID_PUBLIQUE}`,"Content-Encoding":"aes128gcm","Content-Type":"application/octet-stream",TTL:"14400"},body:paquet});if(rep.ok)envoyes++;else{echecs++;if(rep.status===404||rep.status===410)await db(`abonnements_admin?id=eq.${encodeURIComponent(ligne.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({actif:false,modifie_le:new Date().toISOString()})}).catch(()=>{});}}catch{echecs++;}}
+  /* 8 s AU PLUS PAR APPAREIL (25 octobre 2026, P0) : un service de
+     notification qui ne répond pas retenait toute la relance, qui chevauchait
+     alors le tour suivant — et les rappels partaient en double. */
+  for(const ligne of lignes){const ab=ligne.abonnement;if(!ab?.endpoint||!ab?.keys?.p256dh||!ab?.keys?.auth){echecs++;continue;}const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);try{const paquet=await chiffrer(charge,ab.keys.p256dh,ab.keys.auth),origine=new URL(ab.endpoint).origin,jeton=await jetonVapid(origine,VAPID_SUJET,VAPID_PRIVEE,VAPID_PUBLIQUE),rep=await fetch(ab.endpoint,{method:"POST",signal:ctrl.signal,headers:{Authorization:`vapid t=${jeton}, k=${VAPID_PUBLIQUE}`,"Content-Encoding":"aes128gcm","Content-Type":"application/octet-stream",TTL:"14400"},body:paquet});if(rep.ok)envoyes++;else{echecs++;if(rep.status===404||rep.status===410)await db(`abonnements_admin?id=eq.${encodeURIComponent(ligne.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({actif:false,modifie_le:new Date().toISOString()})}).catch(()=>{});}}catch{echecs++;}finally{clearTimeout(timer);}}
   return envoyes?{ok:true,detail:`${envoyes}/${lignes.length} push`,statut:"envoye"}:{ok:false,detail:`0/${lignes.length} push; ${echecs} échec(s)`,statut:"echec"};
 }
 
@@ -326,37 +358,54 @@ function saisieExploitant(bon:Record<string,any>):boolean{
    C'est le téléphone qui finissait par couper le son, et la vraie demande
    suivante passait avec.
    Appelée toutes les 20 s par pg_cron avec {type:"RELANCE"}.
-   - RATTRAPAGE (inchangé) : en attente depuis plus d'1 min sans AUCUNE
-     alerte réussie → annoncée maintenant, par tous les canaux.
-   - LA NOTIFICATION ELA EST L'ALARME : à chaque tour (20 s) les 10 premières
-     minutes et à H-30 ou moins, toutes les 10 min entre H-2 et H-30, rien
-     avant H-2. Elle REMPLACE la précédente sur le téléphone (même étiquette),
-     elle ne s'empile pas.
-   - TELEGRAM INFORME : toutes les 90 s pendant la fenêtre d'alarme (les
-     10 premières minutes), puis toutes les 15 min pendant la première
-     heure ; silence ensuite jusqu'à H-2 (toutes les 15 min), toutes les
-     5 min sous H-30. Chaque rappel EFFACE le précédent : une seule ligne de
-     rappel visible, jamais une pile.
-     LES 90 s DATENT DU 9 OCTOBRE 2026, à sa demande, après l'avoir éprouvé
-     admin fermé sur une vraie réservation : c'était +3 min puis +10 min.
-     Pas moins de 90 s : à 20 s, le téléphone finissait par couper le son de
-     Telegram (ci-dessus), et la notification ELA sonne déjà à chaque tour.
+   PLUS AUCUN SILENCE AVANT LE « VU » (25 octobre 2026, P0). Mesuré sur ce
+   code : une demande de la veille pour le lendemain matin, ratée dans ses
+   10 premières minutes, recevait trois Telegram (+25, +40, +55 min) puis
+   QUATORZE HEURES de silence jusqu'à H-2 — la notification s'était tue dès
+   +10 min. C'est le chemin de la réservation vue avec plus de 30 min de
+   retard. Barbaros, interrogé : la nuit aussi, jusqu'au « Vu » (« oui »).
+   - RATTRAPAGE : en attente depuis plus d'1 min sans AUCUNE alerte réussie
+     → annoncée maintenant, par tous les canaux ; toutes les minutes les
+     6 premières heures, puis tous les quarts d'heure tant que le départ
+     n'est pas passé (avant : jamais au-delà de 6 h).
+   - NON VUE — la notification ELA est l'alarme, Telegram informe :
+       · 0 à 10 min : notification à chaque tour (20 s), Telegram toutes les
+         90 s (9 octobre 2026, à sa demande, éprouvé admin fermé ; pas moins :
+         à 20 s, le téléphone finissait par couper le son de Telegram) ;
+       · 10 à 30 min, PALIER CRITIQUE (« 🔴 NON VUE ») : notification toutes
+         les 2 min, Telegram toutes les 5 min ;
+       · au-delà, JOUR ET NUIT, quel que soit le départ : notification toutes
+         les 5 min, Telegram toutes les 15 min ;
+       · départ dans 30 min ou moins : notification à chaque tour, Telegram
+         toutes les 5 min.
+     La notification REMPLACE la précédente (même étiquette) ; chaque rappel
+     Telegram EFFACE le précédent : une ligne de rappel visible, jamais une
+     pile (2 octobre 2026, « pas trop d'alertes sur Telegram »).
+   - VUE MAIS TOUJOURS EN ATTENTE : « Vu » arrête l'alarme, pas le suivi. Un
+     rappel « vue, pas confirmée » 30 min après le « Vu », puis un à H-2 et
+     un à H-30 — jamais deux à moins de 20 min, ni dans les 20 min qui
+     suivent le « Vu ». Avant, « Vu » coupait tout jusqu'au départ.
    - À L'HEURE DU DÉPART, UN DERNIER MESSAGE sur les deux canaux (« départ
-     passé, non traitée »), puis plus rien. Une course oubliée se clôt dans
-     l'admin, elle ne sonne pas six heures.
-   - Tout s'arrête dès que la course n'est plus « attente », ou dès qu'elle
-     est VUE (bouton « ✅ Vu », ou ouverte dans l'admin).
+     passé, non traitée »), vue ou non, puis plus rien. Une course oubliée
+     se clôt dans l'admin, elle ne sonne pas six heures.
+   - Tout s'arrête dès que la course n'est plus « attente ».
    - LES SAISIES DE L'EXPLOITANT NE SONT NI ANNONCÉES NI RELANCÉES.
    Rien n'est cru de l'appel : tout est relu sur le serveur, et la cadence
-   vient du journal. */
+   vient du journal — une nouvelle exécution du serveur reprend exactement
+   où la précédente s'est arrêtée. */
 const MIN_MS=60*1000,IMMEDIAT_MS=30*60*1000;
 /* SOUPLESSE : pg_cron ne tombe jamais pile. Un rappel dû à 3 min vérifié à
    2 min 59 s partirait au tour suivant, 20 s plus tard — ou, pour la
    notification « à chaque tour », une fois sur deux. */
 const SOUPLESSE_MS=5*1000;
-const RATTRAPAGE_MS=60*1000,PAS_ALARME_MS=20*1000-SOUPLESSE_MS,ALARME_MS=10*MIN_MS,PAS_PROCHE_MS=10*MIN_MS,FENETRE_MS=6*3600*1000;
+const RATTRAPAGE_MS=60*1000,PAS_ALARME_MS=20*1000-SOUPLESSE_MS,ALARME_MS=10*MIN_MS,FENETRE_MS=6*3600*1000;
 /* Telegram pendant la fenêtre d'alarme : 90 s (9 octobre 2026). */
 const PAS_TELEGRAM_ALARME_MS=90*1000;
+/* Le palier critique (10 à 30 min) et la suite, jusqu'au « Vu » (25 octobre
+   2026). */
+const CRITIQUE_MS=30*MIN_MS,PAS_PUSH_CRITIQUE_MS=2*MIN_MS,PAS_TG_CRITIQUE_MS=5*MIN_MS,PAS_PUSH_SUITE_MS=5*MIN_MS,PAS_TG_SUITE_MS=15*MIN_MS;
+/* Le suivi d'une demande vue mais pas confirmée (25 octobre 2026). */
+const VUE_SUIVI_MS=30*MIN_MS,VUE_ECART_MS=20*MIN_MS;
 const plusRecent=(l:Array<Record<string,string>>,defaut:number)=>l.length?Math.max(...l.map(x=>Date.parse(x.cree_le))):defaut;
 /* L'ÉTIQUETTE D'UNE COURSE DANS UNE ALERTE (9 octobre 2026, Barbaros : « je
    voudrais que tous les numéros soient pareils »). Le N° court quand la base
@@ -372,15 +421,15 @@ function departCivil(bon:Record<string,any>):number|null{const c=(bon.course??{}
 /* Temps restant avant le départ, en ms (négatif = passé) ; null si le bon
    n'a pas de date lisible. */
 function resteAvantDepart(bon:Record<string,any>):number|null{const depart=departCivil(bon);return depart===null?null:depart-heureCivileParis(Date.now());}
-/* LA NOTIFICATION ELA — l'alarme. Pas de rappel une fois le départ passé :
-   c'est le message final qui parle, une fois. */
+/* LA NOTIFICATION ELA — l'alarme, d'une demande NON VUE. Pas de rappel une
+   fois le départ passé : c'est le message final qui parle, une fois. Plus
+   jamais « rien » avant le départ (25 octobre 2026) : c'était le silence de
+   +10 min à H-2. */
 function cadencePush(reste:number|null,age:number):number|null{
   if(reste!==null&&reste<=0)return null;
-  if(age<=ALARME_MS)return PAS_ALARME_MS;
-  if(reste===null)return null;
-  if(reste<=30*MIN_MS)return PAS_ALARME_MS;
-  if(reste<=2*3600*1000)return PAS_PROCHE_MS;
-  return null;
+  if(age<=ALARME_MS||(reste!==null&&reste<=30*MIN_MS))return PAS_ALARME_MS;
+  if(age<=CRITIQUE_MS)return PAS_PUSH_CRITIQUE_MS-SOUPLESSE_MS;
+  return PAS_PUSH_SUITE_MS-SOUPLESSE_MS;
 }
 /* TELEGRAM — l'information. « depuisDernier » = temps écoulé depuis le
    dernier envoi Telegram, annonce comprise, réussi OU NON : un échec compte,
@@ -389,27 +438,72 @@ function telegramDu(age:number,reste:number|null,depuisDernier:number):boolean{
   if(reste!==null&&reste<=0)return false;
   if(reste!==null&&reste<=30*MIN_MS)return depuisDernier>=5*MIN_MS-SOUPLESSE_MS;
   if(age<=ALARME_MS)return depuisDernier>=PAS_TELEGRAM_ALARME_MS-SOUPLESSE_MS;
-  if(age>60*MIN_MS&&(reste===null||reste>2*3600*1000))return false;
-  return depuisDernier>=15*MIN_MS-SOUPLESSE_MS;
+  if(age<=CRITIQUE_MS)return depuisDernier>=PAS_TG_CRITIQUE_MS-SOUPLESSE_MS;
+  return depuisDernier>=PAS_TG_SUITE_MS-SOUPLESSE_MS;
 }
-/* Faut-il encore regarder cette course ? Hors de toute fenêtre, on
-   n'interroge même pas le journal : sept jours de demandes relues toutes
-   les 20 s. */
+/* Faut-il encore regarder cette course ? Tant que son départ n'est pas
+   passé depuis plus de 6 h, oui (25 octobre 2026 : elle sonne jusqu'au
+   « Vu », quel que soit le départ). Une course sans date lisible reste
+   bornée par la lecture (7 jours). Au-delà, on n'interroge même pas le
+   journal. */
 function encoreUtile(age:number,reste:number|null):boolean{
-  if(age<=FENETRE_MS)return true;
-  if(reste===null)return false;
-  return reste>-FENETRE_MS&&reste<=2*3600*1000;
+  if(age<=FENETRE_MS||reste===null)return true;
+  return reste>-FENETRE_MS;
+}
+/* LE DÉPART EST PASSÉ : un dernier message, une seule fois, puis rien — que
+   la demande ait été vue ou non. Vue, son message n'offre plus « Vu ». */
+async function messageFinal(ref:string,bon:Record<string,any>,journalRef:Array<Record<string,string>>,vue:boolean):Promise<boolean>{
+  if(journalRef.some(x=>x.type_evenement==="rappel_final"))return false;
+  const t=titreFinal(bon),etiq=etiquette(bon,ref);
+  await effacerTelegram(dernierRappelTelegram(journalRef));
+  const [tg,push]=await Promise.all([
+    parTelegram(t,bon.course?.immediat===true?`${etiq} — demande immédiate toujours en attente après 30 min. Rappelez le client ou refusez-la dans l'admin. Plus aucun rappel ne partira.`:`${etiq} — l'heure du départ est passée et la demande est toujours en attente. À clore dans l'admin. Plus aucun rappel ne partira.`,ref,
+      vue?{inline_keyboard:[[{text:"Ouvrir la course",url:`${ADMIN}?ref=${encodeURIComponent(ref)}`}]]}:undefined),
+    parPush(t,ref,etiq),
+  ]);
+  await Promise.all([journal("rappel_final",ref,"telegram",tg),journal("rappel_final",ref,"push",push)]);
+  return true;
+}
+/* VUE, PAS CONFIRMÉE (25 octobre 2026, P0). « Vu » arrête l'alarme. Avant,
+   il arrêtait TOUT jusqu'au départ : une demande vue puis oubliée partait
+   sans chauffeur sans qu'un seul message ne le rappelle. Trois rappels au
+   plus, chacun une fois : 30 min après le « Vu », à H-2, à H-30 — jamais
+   deux à moins de 20 min, ni dans les 20 min qui suivent le « Vu ». Puis le
+   message final à l'heure du départ. Un rappel couvre les jalons déjà
+   atteints quand il part : envoyé à H-25, il vaut pour H-2 et pour H-30. */
+async function suivreVue(ref:string,bon:Record<string,any>,journalRef:Array<Record<string,string>>,vueLe:number,reste:number|null):Promise<""|"final"|"rappel">{
+  if(reste!==null&&reste<=0)return (await messageFinal(ref,bon,journalRef,true))?"final":"";
+  if(!Number.isFinite(vueLe))return "";
+  const faits=journalRef.filter(x=>x.type_evenement==="rappel_vue"),maintenant=Date.now();
+  const depart=reste===null?null:maintenant+reste;
+  /* « reste » se compte à la minute près (heureCivileParis tronque) : le
+     départ calculé flotte d'un tour à l'autre de moins d'une minute. Sans
+     cette marge, le rappel de H-2 se croyait non fait et repartait 20 min
+     plus tard — trouvé par le test (cinq rappels au lieu de trois). */
+  const couvert=(jalon:number)=>faits.some(x=>Date.parse(x.cree_le)>=jalon-MIN_MS-SOUPLESSE_MS);
+  const du=(!faits.length&&maintenant-vueLe>=VUE_SUIVI_MS-SOUPLESSE_MS)
+    ||(depart!==null&&reste!==null&&reste<=2*3600*1000&&!couvert(depart-2*3600*1000))
+    ||(depart!==null&&reste!==null&&reste<=30*MIN_MS&&!couvert(depart-30*MIN_MS));
+  if(!du||maintenant-vueLe<VUE_ECART_MS-SOUPLESSE_MS||maintenant-plusRecent(faits,0)<VUE_ECART_MS-SOUPLESSE_MS)return "";
+  const etiq=etiquette(bon,ref),t=titreVuePasConfirmee(bon);
+  await effacerTelegram(dernierRappelTelegram(journalRef));
+  const [tg,push]=await Promise.all([
+    parTelegram(t,`${etiq} — vue il y a ${duree((maintenant-vueLe)/60000)}, toujours en attente. Confirmez-la ou refusez-la dans l'admin.`,ref,
+      {inline_keyboard:[[{text:"Ouvrir la course",url:`${ADMIN}?ref=${encodeURIComponent(ref)}`}]]}),
+    parPush(t,ref,etiq),
+  ]);
+  await Promise.all([journal("rappel_vue",ref,"telegram",tg),journal("rappel_vue",ref,"push",push)]);
+  return "rappel";
 }
 /* On lit les demandes en attente des 7 derniers jours : c'est l'heure du
-   départ qui décide du rappel (un hôtel réserve la veille) ; le rattrapage
-   garde sa borne de 6 h depuis la création. */
+   départ qui décide du rappel (un hôtel réserve la veille). */
 const LECTURE_MS=7*24*3600*1000;
 async function relancer():Promise<string>{
   if(!U||!S)return "non configuré";
   const depuis=new Date(Date.now()-LECTURE_MS).toISOString();
   const r=await db(`courses?select=ref,bon,cree_le&statut=eq.attente&cree_le=gte.${encodeURIComponent(depuis)}&order=cree_le.desc&limit=200`);
   if(!r.ok)return "lecture refusée";
-  const lignes=(await r.json())||[];let rattrapes=0,rappelsTg=0,rappelsPush=0,finals=0;
+  const lignes=(await r.json())||[];let rattrapes=0,rappelsTg=0,rappelsPush=0,finals=0,suivis=0;
   for(const l of lignes){
     const ref=String(l.ref||"").slice(0,32);if(!/^[A-Z]{2,4}-[0-9A-Z-]{4,26}$/.test(ref))continue;
     const cree=Date.parse(String(l.cree_le||""));if(!Number.isFinite(cree))continue;
@@ -434,7 +528,12 @@ async function relancer():Promise<string>{
     const j=await db(`journal_notifications_admin?select=type_evenement,canal,statut,detail,cree_le&course_ref=eq.${encodeURIComponent(ref)}&order=cree_le.asc`);
     if(!j.ok)continue;
     const journalRef=((await j.json())||[]) as Array<Record<string,string>>;
-    if(journalRef.some(x=>x.type_evenement==="vue"))continue;
+    const vue=journalRef.find(x=>x.type_evenement==="vue");
+    if(vue){
+      const fait=await suivreVue(ref,bon,journalRef,Date.parse(vue.cree_le),reste);
+      if(fait==="final")finals++;else if(fait==="rappel")suivis++;
+      continue;
+    }
     const reussies=journalRef.filter(x=>x.statut==="envoye");
     /* LES RAPPELS SE COMPTENT DEPUIS L'ANNONCE, PAS DEPUIS LA CRÉATION : une
        demande rattrapée 15 min après son dépôt aurait eu son « +3 min » au
@@ -443,26 +542,28 @@ async function relancer():Promise<string>{
     const ageAnnonce=Date.now()-(Number.isFinite(annonce)?annonce:cree);
     if(!reussies.length){
       const derniereTentative=plusRecent(journalRef.filter(x=>x.type_evenement==="nouvelle_reservation"),cree);
-      if(age<RATTRAPAGE_MS||age>FENETRE_MS||Date.now()-derniereTentative<RATTRAPAGE_MS)continue;
+      /* LE RATTRAPAGE VA JUSQU'AU DÉPART (25 octobre 2026). Borné à 6 h, une
+         demande dont toutes les alertes avaient échoué plus de 6 h n'était
+         plus jamais annoncée — et le voyant cessait alors de la compter.
+         Toutes les minutes les 6 premières heures, tous les quarts d'heure
+         ensuite ; une demande dont le départ est passé ne réveille pas
+         l'historique. */
+      const utile=reste===null?age<=FENETRE_MS:reste>0;
+      const pas=age>FENETRE_MS?15*MIN_MS:RATTRAPAGE_MS;
+      if(age<RATTRAPAGE_MS||!utile||Date.now()-derniereTentative<pas)continue;
       const t=titre(bon),m=corps(bon,ADMIN);rattrapes++;
       const [push,telegram]=await Promise.all([parPush(t,ref,etiquette(bon,ref)),parTelegram(t,m,ref)]);
       await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram)]);
       continue;
     }
-    /* LE DÉPART EST PASSÉ : un dernier message, une seule fois, puis rien. */
     if(reste!==null&&reste<=0){
-      if(journalRef.some(x=>x.type_evenement==="rappel_final"))continue;
-      const t=titreFinal(bon);finals++;
-      await effacerTelegram(dernierRappelTelegram(journalRef));
-      const [tg,push]=await Promise.all([
-        parTelegram(t,bon.course?.immediat===true?`${etiquette(bon,ref)} — demande immédiate toujours en attente après 30 min. Rappelez le client ou refusez-la dans l'admin. Plus aucun rappel ne partira.`:`${etiquette(bon,ref)} — l'heure du départ est passée et la demande est toujours en attente. À clore dans l'admin. Plus aucun rappel ne partira.`,ref),
-        parPush(t,ref,etiquette(bon,ref)),
-      ]);
-      await Promise.all([journal("rappel_final",ref,"telegram",tg),journal("rappel_final",ref,"push",push)]);
+      if(await messageFinal(ref,bon,journalRef,false))finals++;
       continue;
     }
     const minutes=Math.max(1,Math.round(age/60000));
-    const t=titreRappel(bon,minutes);
+    /* Passé la fenêtre d'alarme, le titre dit « NON VUE » et depuis quand. */
+    const critique=ageAnnonce>ALARME_MS;
+    const t=critique?titreNonVue(bon,minutes):titreRappel(bon,minutes);
     const tgTous=journalRef.filter(x=>x.canal==="telegram");
     const doitTelegram=!!(TELEGRAM_TOKEN&&TELEGRAM_CHAT)&&telegramDu(ageAnnonce,reste,Date.now()-plusRecent(tgTous,cree));
     const cadence=cadencePush(reste,ageAnnonce);
@@ -471,7 +572,9 @@ async function relancer():Promise<string>{
     if(doitTelegram){
       /* Le rappel précédent s'efface AVANT d'envoyer le suivant. */
       await effacerTelegram(dernierRappelTelegram(journalRef));
-      const tg=await parTelegram(t,`${etiquette(bon,ref)} — toujours en attente. Appuyez sur « Vu » pour arrêter les rappels.`,ref);
+      const tg=await parTelegram(t,critique
+        ?`${etiquette(bon,ref)} — toujours en attente, NON VUE depuis ${duree(minutes)}. Appuyez sur « ✅ Vu » pour arrêter les rappels.`
+        :`${etiquette(bon,ref)} — toujours en attente. Appuyez sur « Vu » pour arrêter les rappels.`,ref);
       await journal("rappel_reservation",ref,"telegram",tg);rappelsTg++;
     }
     if(doitPush){
@@ -479,7 +582,7 @@ async function relancer():Promise<string>{
       await journal("rappel_reservation",ref,"push",push);rappelsPush++;
     }
   }
-  return `relance : ${lignes.length} en attente, ${rattrapes} rattrapée(s), ${rappelsTg} rappel(s) Telegram, ${rappelsPush} rappel(s) notification, ${finals} message(s) final(aux)`;
+  return `relance : ${lignes.length} en attente, ${rattrapes} rattrapée(s), ${rappelsTg} rappel(s) Telegram, ${rappelsPush} rappel(s) notification, ${suivis} suivi(s) de demande vue, ${finals} message(s) final(aux)`;
 }
 
 /* ═══ LE CLIENT PAS ENCORE PRÉVENU (24 octobre 2026, à sa demande : « un
@@ -534,15 +637,74 @@ async function rappelerAPrevenir():Promise<string>{
   return `${n} rappel(s) « client pas prévenu »`;
 }
 
+/* ═══ L'ALERTE D'ESSAI, ÉCRAN VERROUILLÉ (25 octobre 2026, P0) ═══
+   « Tester mes alertes » fait sonner la page ouverte : il ne dit rien du
+   téléphone verrouillé, qui est le vrai cas. L'admin dépose une demande
+   d'essai (RPC ela_demander_essai_alerte, exploitant seul) ; elle part ici,
+   30 s plus tard, par les mêmes canaux qu'une vraie alerte. La ligne est
+   RÉSERVÉE avant l'envoi (« demande » → « envoi », sous condition) : deux
+   tours qui la verraient ensemble n'en enverraient qu'un. Trop vieille
+   (10 min : la relance était arrêtée), elle expire sans sonner. */
+const ESSAI_DELAI_MS=30*1000,ESSAI_EXPIRE_MS=10*MIN_MS;
+async function envoyerEssai():Promise<string>{
+  if(!U||!S)return "";
+  const r=await db("ela_battements?nom=eq.essai&detail=eq.demande&select=le").catch(()=>null);
+  if(!r||!r.ok)return "";
+  const l=((await r.json().catch(()=>[]))||[])[0];if(!l)return "";
+  const age=Date.now()-Date.parse(String(l.le||""));
+  if(!Number.isFinite(age)||age<ESSAI_DELAI_MS-SOUPLESSE_MS)return "";
+  const expire=age>ESSAI_EXPIRE_MS;
+  const prise=await db("ela_battements?nom=eq.essai&detail=eq.demande",{method:"PATCH",headers:{Prefer:"return=representation"},
+    body:JSON.stringify({detail:expire?"expirée":"envoi"})}).catch(()=>null);
+  if(!prise||!prise.ok||!((await prise.json().catch(()=>[]))||[]).length||expire)return expire?"essai expiré":"";
+  const t="ESSAI — alerte Elatransfer";
+  const m="Ceci est un essai demandé depuis l'admin, aucune demande de client. Si cette alerte a sonné téléphone verrouillé, tout fonctionne.";
+  const [push,tg]=await Promise.all([parPush(t,"ESSAI","Essai"),parTelegram(t,m,"",{inline_keyboard:[[{text:"Ouvrir l'admin",url:ADMIN}]]})]);
+  await Promise.all([journal("essai","","push",push),journal("essai","","telegram",tg)]);
+  await db("ela_battements?nom=eq.essai",{method:"PATCH",headers:{Prefer:"return=minimal"},
+    body:JSON.stringify({detail:`fait : notification ${push.ok?"envoyée":"ratée"}, Telegram ${tg.ok?"envoyé":"raté"}`})}).catch(()=>{});
+  return `essai envoyé (notification ${push.ok?"ok":"ratée"}, Telegram ${tg.ok?"ok":"raté"})`;
+}
+
+/* UNE SEULE RELANCE À LA FOIS (25 octobre 2026, P0). pg_cron appelle toutes
+   les 20 s sans attendre la réponse : un tour plus long (Telegram lent,
+   plusieurs demandes) chevauchait le suivant, les deux lisaient le même
+   journal avant que l'un n'écrive, et le rappel partait deux fois. Le
+   verrou vit en mémoire, il vaut donc pour une instance de la fonction ; il
+   se libère seul après 60 s, pour qu'un tour bloqué ne fasse jamais taire
+   les suivants. */
+const RELANCE_VERROU_MS=60*1000;
+let relanceEnCoursDepuis=0;
+/* LE BATTEMENT DE LA RELANCE (25 octobre 2026, P0). pg_cron se dit
+   « réussi » dès que l'appel est mis en file, même quand cette fonction
+   répond 401 ou 500 : le voyant et le chien de garde ne voyaient donc
+   jamais une relance cassée. Chaque tour réussi réécrit sa ligne dans
+   « ela_battements » (migration 20261025000000), que la mesure du voyant
+   lit. Sans la table, l'écriture échoue sans rien gêner. */
+async function battre(nom:string,detail:string):Promise<void>{
+  if(!U||!S)return;
+  await db("ela_battements?on_conflict=nom",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},
+    body:JSON.stringify({nom,le:new Date(Date.now()).toISOString(),detail:detail.slice(0,300)})}).catch(()=>{});
+}
+const annoncesEnCours:Set<string>=new Set();
 Deno.serve(async(req)=>{
   let charge:Record<string,unknown>;try{charge=await req.json()}catch{return new Response("corps illisible",{status:400})}
   if(charge.type==="RELANCE"||charge.type==="INSTALLER_TELEGRAM"){
     if(!(await relanceAutorisee(req)))return new Response("relance refusée : en-tête x-ela-relance absent ou faux",{status:401});
     if(charge.type==="RELANCE"){
-      /* Deux tâches indépendantes : une lecture refusée d'un côté n'arrête
-         pas l'autre. */
-      const attente=await relancer(),prevenir=await rappelerAPrevenir();
-      return new Response(attente+" | "+prevenir,{status:200});
+      if(Date.now()-relanceEnCoursDepuis<RELANCE_VERROU_MS)return new Response("relance déjà en cours : ce tour s'efface",{status:200});
+      relanceEnCoursDepuis=Date.now();
+      try{
+        /* Deux tâches indépendantes : une lecture refusée d'un côté n'arrête
+           pas l'autre. */
+        const attente=await relancer(),prevenir=await rappelerAPrevenir(),essai=await envoyerEssai();
+        const bilan=attente+" | "+prevenir+(essai?" | "+essai:"");
+        /* LE BATTEMENT (25 octobre 2026, P0) : seulement quand le tour a lu
+           les demandes. Une lecture refusée n'est pas un tour réussi, et le
+           voyant doit le voir. */
+        if(/^relance :/.test(attente))await battre("relance",bilan);
+        return new Response(bilan,{status:200});
+      }finally{relanceEnCoursDepuis=0;}
     }
     /* Poser le webhook du bouton « Vu ». Appelé une fois par la migration ;
        le rappeler ne fait que reposer la même adresse. */
@@ -550,16 +712,25 @@ Deno.serve(async(req)=>{
   }
   if(charge.type!=="INSERT"||charge.table!=="courses")return new Response("ignoré : "+String(charge.type),{status:200});
   const recu=(charge.record??{}) as Record<string,any>;
-  const bon=await courseReelle(String(recu.ref||(recu.bon??{}).ref||"").trim().slice(0,32));
-  if(!bon)return new Response("ignoré : course inconnue, ancienne ou déjà annoncée",{status:200});
-  const ref=String(bon.ref).slice(0,32),t=titre(bon),m=corps(bon,ADMIN);
+  const refRecue=String(recu.ref||(recu.bon??{}).ref||"").trim().slice(0,32);
+  /* UNE ANNONCE PAR DEMANDE, MÊME APPELÉE DEUX FOIS EN MÊME TEMPS (25 octobre
+     2026, P0) : deux appels simultanés liraient tous deux un journal encore
+     vide, et la demande s'annoncerait deux fois. Même portée que le verrou
+     de la relance : une instance de la fonction. */
+  if(annoncesEnCours.has(refRecue))return new Response("ignoré : annonce déjà en cours",{status:200});
+  annoncesEnCours.add(refRecue);
+  try{
+    const bon=await courseReelle(refRecue);
+    if(!bon)return new Response("ignoré : course inconnue, ancienne ou déjà annoncée",{status:200});
+    const ref=String(bon.ref).slice(0,32),t=titre(bon),m=corps(bon,ADMIN);
 
-  /* Push ELA + Telegram partent en parallèle. L'un ne bloque jamais l'autre.
-     L'e-mail reste un troisième filet facultatif. */
-  const [push,telegram,email]=await Promise.all([parPush(t,ref,etiquette(bon,ref)),parTelegram(t,m,ref),parEmail(t,m)]);
-  await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram),journal("nouvelle_reservation",ref,"email",email)]);
-  const utiles=[push,telegram,email].filter(x=>x.statut!=="indisponible");
-  const bilan=`push : ${push.ok?"ok":push.detail} | telegram : ${telegram.ok?"ok":telegram.detail} | email : ${email.ok?"ok":email.detail}`;
-  if(!utiles.length)return new Response("aucun canal configuré",{status:500});
-  return new Response(bilan,{status:utiles.some(x=>x.ok)?200:500});
+    /* Push ELA + Telegram partent en parallèle. L'un ne bloque jamais l'autre.
+       L'e-mail reste un troisième filet facultatif. */
+    const [push,telegram,email]=await Promise.all([parPush(t,ref,etiquette(bon,ref)),parTelegram(t,m,ref),parEmail(t,m)]);
+    await Promise.all([journal("nouvelle_reservation",ref,"push",push),journal("nouvelle_reservation",ref,"telegram",telegram),journal("nouvelle_reservation",ref,"email",email)]);
+    const utiles=[push,telegram,email].filter(x=>x.statut!=="indisponible");
+    const bilan=`push : ${push.ok?"ok":push.detail} | telegram : ${telegram.ok?"ok":telegram.detail} | email : ${email.ok?"ok":email.detail}`;
+    if(!utiles.length)return new Response("aucun canal configuré",{status:500});
+    return new Response(bilan,{status:utiles.some(x=>x.ok)?200:500});
+  }finally{annoncesEnCours.delete(refRecue);}
 });
