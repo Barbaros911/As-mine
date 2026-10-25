@@ -600,3 +600,17 @@ montrer aussi l'exemple avec la page où les réservations se font ».
   défile, la suivante dépasse au bord) ; le contrôle de débordement de
   `test-pro-page` ignore ce qui dépasse DANS un cadre qui défile, si le cadre
   tient dans l'écran. 18 images, chargées à la demande.
+
+### Même jour : la photo du bâtiment sur la vraie page, « Votre photo ici » dans la démo
+
+Barbaros : « pourquoi il n'y a plus la photo de l'hôtel ? […] c'est pour la
+vraie page client easyHotel », puis deux photos du bâtiment, prises par lui.
+La vraie page du QR porte désormais la photo du bâtiment en haut de son
+bandeau (`memoire/mode-hotel.md`). **La démo, fabriquée depuis cette page, ne
+la montre jamais** : `arriveeDepuisPageQr` remplace toute image `/photos/…` du
+style par `var(--h-photo-entete,none)` — la photo du prospect, sinon rien — et
+refuse toute autre image ; le voile bleu nuit devient celui du thème
+(`TEINTES`). Là où la vraie page montre le bâtiment, la démo pose le cadre
+« Votre photo ici » (`#demoPhotoArrivee`), qui ouvre le choix du fichier et
+devient « Changer la photo » une fois la photo posée : le prospect retrouve sa
+photo dès le premier écran, ce que Barbaros regrettait.

@@ -140,6 +140,11 @@ const TEINTES = [
   [/#ffb38a\b/gi, 'var(--demo-oclair)'],
   [/rgba\(\s*255\s*,\s*90\s*,\s*10\s*,\s*([\d.]+)\s*\)/gi,
     (m, a) => `color-mix(in srgb,var(--demo-o) ${Math.round(Number(a) * 100)}%,transparent)`],
+  /* Le voile bleu nuit posé sur la photo du bâtiment (25/10/2026). */
+  [/rgba\(\s*11\s*,\s*45\s*,\s*79\s*,\s*([\d.]+)\s*\)/gi,
+    (m, a) => `color-mix(in srgb,var(--demo-fond) ${Math.round(Number(a) * 100)}%,transparent)`],
+  [/rgba\(\s*18\s*,\s*63\s*,\s*104\s*,\s*([\d.]+)\s*\)/gi,
+    (m, a) => `color-mix(in srgb,var(--demo-fond2) ${Math.round(Number(a) * 100)}%,transparent)`],
 ];
 const teinter = (t) => TEINTES.reduce((x, [motif, par]) => x.replace(motif, par), t);
 
@@ -230,7 +235,12 @@ function arriveeDepuisPageQr(source) {
     .replace(/\shref="#([^"]+)"/g, ' href="#demoArrivee-$1"');
   corps = prefixer(corps);
   modeles = prefixer(modeles);
-  const css = cloisonner(teinter(style[1]), '#demoArrivee');
+  /* LA PHOTO DE L'HÔTEL RÉEL NE PASSE JAMAIS DANS LA DÉMO (25/10/2026) : à
+     sa place, celle que le prospect a choisie (« Personnaliser ma page »,
+     --h-photo-entete), sinon rien — l'aplat de son thème. */
+  const styleSansPhoto = style[1].replace(/url\((['"]?)\.\.\/\.\.\/photos\/[^)'"]+\1\)/g, 'var(--h-photo-entete,none)');
+  if (/url\(/.test(styleSansPhoto)) throw new Error('construire-demo : la page du QR charge une image que la démo ne sait pas remplacer');
+  const css = cloisonner(teinter(styleSansPhoto), '#demoArrivee');
 
   /* Ce qui ne doit JAMAIS passer : un lien de la page réelle, l'adresse
      ou le nom d'un vrai partenaire, sa couleur. (« easyhotel », sa clé et
@@ -382,6 +392,21 @@ const PERSO = `
         document.body.classList.add("demo-choix");
       }
       document.getElementById("demoRetourCartes").textContent = en ? "← All destinations" : "← Toutes les destinations";
+      /* « VOTRE PHOTO ICI », LÀ OÙ LA VRAIE PAGE MONTRE LE BÂTIMENT (25/10/2026) :
+         la photo du prospect y passe en fond (--h-photo-entete) ; sans elle,
+         ce cadre ouvre le choix du fichier. */
+      var hero = page.querySelector(".qr-hero"), cadreP = document.getElementById("demoPhotoArrivee");
+      if(hero && !cadreP){
+        cadreP = document.createElement("button"); cadreP.type = "button";
+        cadreP.id = "demoPhotoArrivee"; cadreP.className = "demo-photo-arrivee";
+        hero.insertBefore(cadreP, hero.firstChild);
+      }
+      if(cadreP){
+        var aPhoto = !!document.documentElement.style.getPropertyValue("--h-photo-entete");
+        cadreP.classList.toggle("avec-photo", aPhoto);
+        var tp = aPhoto ? (en ? "Change the photo" : "Changer la photo") : (en ? "Your photo here" : "Votre photo ici");
+        if(cadreP.textContent !== tp) cadreP.textContent = tp;
+      }
       /* Les boutons FR/EN de la page du QR font ce que font ceux du moteur. */
       page.querySelectorAll(".qr-lang[data-lang]").forEach(function(btn){
         var l = btn.getAttribute("data-lang") === "en" ? "en" : "fr";

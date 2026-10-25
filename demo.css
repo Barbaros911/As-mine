@@ -230,6 +230,18 @@ html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.
 html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.reception-premium #ecran-reception .trajet-tete{
   background:linear-gradient(135deg,var(--h-fond) 0%,var(--h-fond2) 100%)!important}
 html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.reception-premium{--v2-marine:var(--h-fond);--v2-titre:var(--h-charbon)}
+/* « VOTRE PHOTO ICI » SUR LA PAGE DU QR (25/10/2026) : la vraie page porte la
+   photo du bâtiment en haut de son bandeau (à droite sur ordinateur) ; la
+   démo y met celle du prospect, et en attendant ce cadre, qui ouvre le choix
+   du fichier. Avec une photo, il ne reste qu'un petit « Changer la photo ». */
+#demoArrivee .demo-photo-arrivee{position:absolute;z-index:2;left:16px;right:16px;top:14px;height:118px;max-width:1048px;margin:0 auto;
+  display:flex;align-items:center;justify-content:center;border:2px dashed rgba(255,255,255,.6);border-radius:12px;
+  background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+#demoArrivee .demo-photo-arrivee.avec-photo{left:auto;right:12px;top:12px;height:auto;min-height:36px;padding:0 12px;
+  border:1px solid rgba(255,255,255,.6);background:rgba(0,0,0,.4);font-size:13px}
+#demoArrivee .demo-photo-arrivee:focus-visible{outline:3px solid var(--demo-cyan);outline-offset:2px}
+@media(min-width:640px){#demoArrivee .demo-photo-arrivee:not(.avec-photo){height:168px}}
+@media(min-width:1000px){#demoArrivee .demo-photo-arrivee:not(.avec-photo){left:auto;right:max(16px,calc((100% - 1080px) / 2 + 16px));top:28px;bottom:28px;height:auto;width:min(420px,36%);margin:0}}
 #demoArrivee .qr-px b.demo-a-fixer{font-size:13px;font-weight:700;color:#5A6A7B}
 .demo-retour-cartes{display:inline-flex;align-items:center;min-height:44px;margin:0 0 8px 12px;padding:0 4px;border:0;background:none;
   color:var(--h-bouton,var(--demo-bleu));font:inherit;font-weight:800;font-size:14.5px;cursor:pointer}

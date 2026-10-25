@@ -172,6 +172,36 @@ for(const langue of ['fr-FR','en-US']){
     check(`${langue} moteur easyHotel : pas de pastille à son nom dans l'en-tête`, !s.pastille);
     await ctx.close(); }
 }
+// 4 bis. LA PHOTO DU BÂTIMENT (25/10/2026, prise par Barbaros) : servie par
+// NOTRE site — jamais une image d'un autre (la précédente venait de celui
+// d'easyHotel, sans accord, retirée le 20/10) — et chaque texte du bandeau se
+// lit dessus. Mesuré au pixel : on cache le texte, on photographie ce qu'il y
+// a derrière lui, et on prend le pixel le PLUS CLAIR (le pire cas), comme
+// test-reception-bon pour la photo du comptoir.
+for(const [w,h] of [[390,844],[820,1180],[1280,800]]){
+  const {ctx,p}=await nouveau('fr-FR',w,h);
+  const images=[]; p.on('request',r=>{if(r.resourceType()==='image')images.push(r.url());});
+  await p.goto(BASE+'/easyhotel-client/',{waitUntil:'load'}); await p.waitForTimeout(400);
+  const fond=await p.evaluate(()=>getComputedStyle(document.querySelector('.hero')).backgroundImage);
+  check(`${w}px : le bandeau porte la photo du bâtiment, servie par notre site`, new RegExp('url\\("'+BASE.replace(/[.]/g,'\\.')+'/photos/[^"]+\\.webp"\\)').test(fond), fond.slice(0,140));
+  check(`${w}px : aucune image d'un autre site`, images.every(u=>u.startsWith(BASE)), images.filter(u=>!u.startsWith(BASE)).join(', '));
+  const TEXTES=[['.hero h1',3],['.hero h1 span',3],['.hero .adresse b',4.5],['.hero .adresse span',4.5],['.hero .fixe',4.5],['.hero .note',4.5]];
+  const boites=await p.evaluate(t=>{const out=t.map(([s,seuil])=>{const e=document.querySelector(s);const r=e.getBoundingClientRect();
+    return {s,seuil,couleur:getComputedStyle(e).color,x:r.left,y:r.top+scrollY,w:r.width,h:r.height};});
+    document.querySelector('.hero .wrap').style.visibility='hidden';return out;},TEXTES);
+  const faibles=[];
+  for(const bx of boites){
+    const png=(await p.screenshot({clip:{x:bx.x,y:bx.y,width:bx.w,height:bx.h},fullPage:true})).toString('base64');
+    const q=await p.evaluate(async([b64,couleur])=>{const i=new Image();i.src='data:image/png;base64,'+b64;await i.decode();
+      const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const g=c.getContext('2d');g.drawImage(i,0,0);
+      const d=g.getImageData(0,0,c.width,c.height).data;const lin=v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4;};
+      let max=0;for(let k=0;k<d.length;k+=4)max=Math.max(max,.2126*lin(d[k])+.7152*lin(d[k+1])+.0722*lin(d[k+2]));
+      const t=couleur.match(/\d+/g).slice(0,3).map(Number);const lt=.2126*lin(t[0])+.7152*lin(t[1])+.0722*lin(t[2]);
+      return (Math.max(lt,max)+.05)/(Math.min(lt,max)+.05);},[png,bx.couleur]);
+    if(q<bx.seuil)faibles.push(`${bx.s} ${q.toFixed(2)}:1`);
+  }
+  check(`${w}px : chaque texte du bandeau se lit sur la photo (au pixel le plus clair)`, faibles.length===0, faibles.join(' ; '));
+  await ctx.close(); }
 // 5. largeurs : débordement, zones tactiles, recouvrements, liens contact
 for(const [w,h] of [[320,640],[375,812],[390,844],[393,852],[430,932],[768,1024],[1024,768],[1280,800]]){
   const {ctx,p}=await nouveau('fr-FR',w,h);

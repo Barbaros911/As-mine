@@ -148,6 +148,10 @@ photo à l'aplat — CLS 0,245 (`test-easyhotel-client`). `construire-espaces-ho
 pose désormais cette classe avant le premier dessin pour tout hôtel sans photo.
 `test-finition-commune` refuse toute photo de `HOTELS` en `http` et toute image
 extérieure sur la page d'easyHotel.
+- **25/10/2026** : la photo revient, mais c'est LA SIENNE (le bâtiment,
+  photographié par Barbaros, servie par `/photos/`) ; `test-finition-commune`
+  exige désormais une photo servie par notre site, plus un aplat
+  (`memoire/mode-hotel.md`).
 
 ---
 

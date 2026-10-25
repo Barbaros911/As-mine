@@ -557,10 +557,10 @@
           direPerso("Photo affichée, mais trop lourde pour être gardée : elle disparaîtra en changeant de page.",
                     "Photo shown, but too large to keep: it will disappear when you change page.");
         } else {
-          /* Elle s'affiche où la verrait un partenaire : en tête du formulaire,
-             pas sur la page du QR, qui n'en a pas (25/10/2026). */
-          direPerso("Photo ajoutée : elle s'affiche en tête du formulaire, après le choix d'une destination. Elle reste sur votre appareil, rien n'est envoyé.",
-                    "Photo added: it appears at the top of the booking form, once a destination is chosen. It stays on your device; nothing is sent.");
+          /* Elle s'affiche où la verrait un partenaire : en fond du bandeau
+             de la page du QR, puis en tête du formulaire (25/10/2026). */
+          direPerso("Photo ajoutée : elle s'affiche en haut de votre page. Elle reste sur votre appareil, rien n'est envoyé.",
+                    "Photo added: it appears at the top of your page. It stays on your device; nothing is sent.");
         }
       };
       img.onerror = function(){ direPerso("Cette image ne s'ouvre pas.", "This image cannot be opened."); };
@@ -956,7 +956,7 @@
      endroit que le prospect veut la voir : le chercher dans le panneau du
      haut serait un détour. */
   document.addEventListener("click", function(e){
-    var cadre = e.target && e.target.closest && e.target.closest(".demo-photo");
+    var cadre = e.target && e.target.closest && e.target.closest(".demo-photo, .demo-photo-arrivee");
     var champ = document.getElementById("demoPersoPhoto");
     if(cadre && champ) champ.click();
   });

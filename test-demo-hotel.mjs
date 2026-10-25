@@ -129,6 +129,16 @@ const jjmm = ms => { const d = new Date(ms); return ('0' + d.getDate()).slice(-2
   check('le bandeau reste en haut après défilement', await p.evaluate(() => { scrollTo(0, 900); const r = document.getElementById('demoBandeau').getBoundingClientRect(); return r.top <= 1 && r.bottom > 10; }));
   check('« ouvrir » est appelé avec la session et sans clé Supabase', p.appels.length >= 1 && p.appels[0].action === 'ouvrir' && p.appels[0].session === 's.test' && !JSON.stringify(p.appels).includes('apikey'));
   check('un QR code mène à la page des professionnels', await p.evaluate(() => !!document.querySelector('#demoQr svg')));
+  /* LA VRAIE PAGE DU QR PORTE LA PHOTO DU BÂTIMENT D'EASYHOTEL (25/10/2026) :
+     la démo, fabriquée depuis elle, ne la montre JAMAIS ; à sa place, le cadre
+     « Votre photo ici », qui ouvre le choix du fichier. */
+  check('la page d\'arrivée ne montre aucune photo de l\'hôtel réel', await p.evaluate(() => {
+    const f = getComputedStyle(document.querySelector('#demoArrivee .qr-hero')).backgroundImage; return !/url\(/.test(f); }));
+  check('« Votre photo ici » est en haut de la page d\'arrivée, là où la vraie montre le bâtiment',
+    (await texte(p, '#demoPhotoArrivee')) === 'Votre photo ici' && await visible(p, '#demoPhotoArrivee')
+    && await p.evaluate(() => document.getElementById('demoPhotoArrivee').getBoundingClientRect().bottom < document.querySelector('#demoArrivee .qr-hero h1').getBoundingClientRect().top + 4));
+  const [choixArrivee] = await Promise.all([p.waitForEvent('filechooser', { timeout: 3000 }).catch(() => null), p.click('#demoPhotoArrivee')]);
+  check('… et ce cadre ouvre le choix du fichier', !!choixArrivee);
   check('les forfaits ne sont pas ceux d\'un partenaire réel', !/easyhotel/i.test(await p.content()));
   check('aucune erreur JavaScript à l\'ouverture', p.errs.length === 0, p.errs.join(' ; '));
   await ctx.close();
@@ -520,6 +530,11 @@ for (const w of [390, 1280]) {
   check('perso : la photo s\'affiche dans le bandeau de l\'hôtel, comme chez un partenaire', await p.evaluate(() =>
     /url\("data:image\/jpeg/.test(getComputedStyle(document.getElementById('hotelTete')).backgroundImage) && !document.body.classList.contains('eh-sans-photo')));
   check('perso : … et le cadre devient « Changer la photo »', (await texte(p, '#demoPhotoTexte')) === 'Changer la photo');
+  await p.click('#demoRetourCartes'); await p.waitForTimeout(300);
+  check('perso : la photo passe aussi en haut de la page d\'arrivée, et le cadre dit « Changer la photo »', await p.evaluate(() =>
+    /url\("data:image\/jpeg/.test(getComputedStyle(document.querySelector('#demoArrivee .qr-hero')).backgroundImage))
+    && (await texte(p, '#demoPhotoArrivee')) === 'Changer la photo');
+  await p.click('.demo-carte[data-dest="cdg"]'); await p.waitForTimeout(300);
   check('perso : … réduite à 1000 px au plus', await p.evaluate(() => new Promise(ok => { const i = new Image(); i.onload = () => ok(Math.max(i.width, i.height) <= 1000); i.onerror = () => ok(false);
     i.src = /url\("([^"]+)"\)/.exec(document.documentElement.style.getPropertyValue('--h-photo-entete'))[1]; })));
   await p.fill('#demoPersoMessage', 'Bienvenue <b>chez nous</b>');
