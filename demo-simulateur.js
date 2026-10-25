@@ -415,13 +415,14 @@
   /* Les couleurs de l'hôtel fictif (celles de HOTELS_DEMO dans construire-demo.mjs). */
   var MARQUE_ORIGINE = { charbon:"#062F55", vif:"#D7EAFB", bouton:"#0E6FC7", pale:"#E8F2FD", paleEncre:"#0A4F91" };
   var photoMemoire = "";
-  /* TROIS COULEURS, ET AUCUNE AUTRE (25/10/2026, Barbaros : « pas de
-     démonstration avec des couleurs moches, seulement quelques couleurs »).
-     Mesuré sur la page du QR : l'or devenait moutarde, l'anthracite rendait
-     le bouton invisible sur le marine, le violet jurait ; le choix libre
-     permettait pire. Une page laide montrée à un directeur, c'est la nôtre. */
+  /* QUATRE THÈMES, ET AUCUN AUTRE (25/10/2026, Barbaros : « pas de
+     démonstration avec des couleurs moches », puis « proposer au pro 4
+     thèmes »). Essayés sur la page du QR : l'or et le bronze devenaient
+     ternes, l'anthracite, la prune et l'indigo se fondaient dans le marine,
+     le violet jurait ; le choix libre permettait pire. Une page laide montrée
+     à un directeur, c'est la nôtre. Le premier est le thème par défaut. */
   var NUANCIER = [["#0E6FC7", "Bleu", "Blue"], ["#8B1E3F", "Bordeaux", "Burgundy"],
-                  ["#1F6B4F", "Vert sapin", "Forest green"]];
+                  ["#1F6B4F", "Vert sapin", "Forest green"], ["#0F6E7A", "Pétrole", "Teal"]];
   /* Une couleur gardée d'avant (l'or, un choix libre) n'est plus appliquée. */
   function couleurAdmise(hex){
     var h = String(hex || "").toLowerCase();
@@ -679,16 +680,21 @@
     nom.addEventListener("input", function(){ var v = nom.value.replace(/\s+/g, " ").trim().slice(0, 60); modifier(function(q){ if(v) q.nom = v; else delete q.nom; }); });
     corps.appendChild(champ("Nom de l'établissement", "Business name", nom));
 
+    /* Chaque thème est un bouton qui dit son nom : un rond de couleur seul
+       ne se nomme pas, ni à l'œil ni au lecteur d'écran. */
     var palette = el("div", "demo-nuancier"); palette.setAttribute("role", "group");
+    var actuelle = couleurAdmise(p.couleur) || NUANCIER[0][0].toLowerCase();
     NUANCIER.forEach(function(n){
       var b = el("button", "demo-pastille"); b.type = "button";
-      b.style.background = n[0]; b.setAttribute("data-couleur", n[0]);
-      b.setAttribute("aria-label", n[1]);
-      b.setAttribute("aria-pressed", String(couleurAdmise(p.couleur) === n[0].toLowerCase()));
+      b.setAttribute("data-couleur", n[0]);
+      var rond = el("span", "demo-pastille-rond"); rond.style.background = n[0]; rond.setAttribute("aria-hidden", "true");
+      b.appendChild(rond);
+      b.appendChild(bilingue("span", "demo-pastille-nom", n[1], n[2]));
+      b.setAttribute("aria-pressed", String(actuelle === n[0].toLowerCase()));
       b.addEventListener("click", function(){ choisirCouleur(n[0]); });
       palette.appendChild(b);
     });
-    corps.appendChild(champ("Votre couleur", "Your colour", palette));
+    corps.appendChild(champ("Votre thème", "Your theme", palette));
 
     /* Le bouton du navigateur est écrit dans SA langue (« Choose File ») : on
        le cache et on pose le nôtre, qui suit la langue de la page. */
@@ -745,7 +751,7 @@
       ["--h-bouton", "--h-vif", "--h-charbon", "--h-pale", "--h-paleEncre"].forEach(function(v){ racine.style.removeProperty(v); });
       try{ window.ELA_DEMO_PAGE.appliquer({}); }catch(e){}
       Object.keys(MARQUE_ORIGINE).forEach(function(k){ racine.style.setProperty("--h-" + k, MARQUE_ORIGINE[k]); });
-      palette.querySelectorAll(".demo-pastille").forEach(function(b){ b.setAttribute("aria-pressed", "false"); });
+      palette.querySelectorAll(".demo-pastille").forEach(function(b, i){ b.setAttribute("aria-pressed", String(i === 0)); });
       appliquerPerso();
       direPerso("Page d'origine rétablie.", "Original page restored.");
     });

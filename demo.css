@@ -145,9 +145,14 @@ html[data-ela-space="demo"] .langues button[aria-pressed="true"]{background:var(
 .demo-perso-actions{display:flex;flex-wrap:wrap;gap:8px;grid-column:1/-1}
 .demo-perso-actions .demo-perso-voir{flex:1 1 200px}
 .demo-perso-actions .demo-perso-raz{flex:1 1 200px;min-height:44px}
-.demo-nuancier{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.demo-pastille{width:40px;height:40px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--demo-filet);cursor:pointer;padding:0}
-.demo-pastille[aria-pressed="true"]{box-shadow:0 0 0 3px #151C22}
+/* Les quatre thèmes : deux par ligne sur un téléphone, quatre au-delà. */
+.demo-nuancier{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (min-width:600px){.demo-nuancier{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.demo-pastille{display:flex;align-items:center;gap:10px;min-width:0;min-height:48px;padding:6px 10px 6px 8px;border:1px solid var(--demo-filet);
+  border-radius:12px;background:#fff;color:#151C22;font:inherit;font-size:14.5px;font-weight:700;text-align:left;cursor:pointer}
+.demo-pastille-rond{flex:0 0 30px;width:30px;height:30px;border-radius:50%}
+.demo-pastille-nom{min-width:0;overflow-wrap:anywhere}
+.demo-pastille[aria-pressed="true"]{border-color:#151C22;box-shadow:0 0 0 2px #151C22}
 .demo-dest-bloc{margin:0 0 12px;padding:0;border:0;min-width:0}
 .demo-dest-saisie{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .demo-dest-saisie #demoDestNom{grid-column:1/-1}

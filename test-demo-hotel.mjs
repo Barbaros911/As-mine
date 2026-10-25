@@ -393,14 +393,18 @@ for (const w of [390, 1280]) {
   check('perso : le nom saisi remplace celui de l\'en-tête, en texte', (await texte(p, '#hotelTeteNom')) === piege && await p.evaluate(() => !window.__pirate && !document.querySelector('#hotelTete img')));
   check('perso : les initiales sautent les articles', (await texte(p, '.demo-initiales')) === 'RI', await texte(p, '.demo-initiales'));
   check('perso : le départ du formulaire porte le nouveau nom', (await p.inputValue('#depart')).startsWith(piege));
-  /* QUELQUES COULEURS, AUCUNE AUTRE (25/10/2026, Barbaros : « pas de
-     démonstration avec des couleurs moches ») : pas de choix libre, et chaque
-     pastille donne un bouton lisible. LA COULEUR PEINTE, PAS LA SEULE
+  /* DES THÈMES CHOISIS, AUCUN AUTRE (25/10/2026, Barbaros : « pas de
+     démonstration avec des couleurs moches », « proposer au pro 4 thèmes ») :
+     pas de choix libre, chaque thème dit son nom, le premier est choisi
+     d'office, et chacun donne un bouton lisible. LA COULEUR PEINTE, PAS LA SEULE
      « backgroundColor » : sous la finition commune (11/10/2026), le bouton
      est un dégradé, et sa couleur de fond est transparente — lue seule, elle
      rendait un rapport de 21 et ce contrôle passait sans rien vérifier. */
-  check('perso : pas de couleur au choix libre, seulement le nuancier', await p.evaluate(() =>
+  check('perso : pas de couleur au choix libre, seulement les thèmes', await p.evaluate(() =>
     !document.querySelector('#demoPerso input[type="color"]') && document.querySelectorAll('#demoPerso .demo-pastille').length >= 2));
+  const themes = await p.$$eval('#demoPerso .demo-pastille', l => l.map(b => ({ nom: b.innerText.trim(), presse: b.getAttribute('aria-pressed') })));
+  check('perso : chaque thème dit son nom, et le premier est choisi d\'office', themes.every(t => t.nom.length >= 3)
+    && themes.map(t => t.presse).join() === ['true', ...themes.slice(1).map(() => 'false')].join(), JSON.stringify(themes));
   const lisible = () => p.evaluate(() => {
     const s = getComputedStyle(document.getElementById('btnVoirPrix'));
     const rvb = (/rgb\([^)]*\)/.exec(s.backgroundImage) || [s.backgroundColor])[0].match(/\d+/g).slice(0, 3).map(Number);

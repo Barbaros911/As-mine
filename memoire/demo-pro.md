@@ -532,19 +532,24 @@ hôtels ; le P0 #399 était porté par la PR #425, aucun fichier commun).
   recouvre la moitié haute de « ← Toutes les destinations » ; le doigt
   l'atteint (mesuré). Identique avant ce changement.
 
-### Même jour, seconde passe : trois couleurs, le QR code dit, trois étapes
+### Même jour, seconde passe : quatre thèmes, le QR code dit, trois étapes
 
 Barbaros, sur les captures avant/après : « pas de démonstration avec des
 couleurs moches, seulement quelques couleurs, et il faut bien expliquer que
 la landing page est associée au QR code installé ou celui du flyer et
 montrer aussi l'exemple avec la page où les réservations se font ».
 
-- **Trois couleurs, plus de choix libre** : Bleu (celui d'Elatransfer, par
-  défaut), Bordeaux, Vert sapin. Mesuré sur la page du QR avec les six
-  d'avant : l'or devenait moutarde, l'anthracite rendait le bouton invisible
-  sur le marine, le violet jurait ; le sélecteur libre permettait pire. Une
-  couleur gardée d'avant (l'or, un choix libre) n'est plus appliquée.
-  Chaque pastille donne un bouton lisible (≥ 4,5:1), éprouvé une par une.
+- **Quatre thèmes, plus de choix libre** (proposés d'abord à trois ; Barbaros :
+  « je veux que tu me proposes 4 couleurs au choix, proposer au pro 4
+  thèmes ») : Bleu (celui d'Elatransfer, par défaut), Bordeaux, Vert sapin,
+  Pétrole. Essayés sur la page du QR : l'or et le bronze devenaient ternes,
+  l'anthracite, la prune et l'indigo se fondaient dans le marine, le violet
+  jurait ; le sélecteur libre permettait pire. Chaque thème est un bouton qui
+  dit son nom (deux par ligne sur téléphone, quatre au-delà), le premier est
+  choisi d'office. Une couleur gardée d'avant (l'or, un choix libre) n'est
+  plus appliquée. Chaque thème donne un bouton lisible (≥ 4,5:1), éprouvé un
+  par un. Le fond marine de la page reste : c'est celui de la vraie page du
+  QR, quel que soit le partenaire.
 - **L'arrivée prend aussi l'en-tête blanc de la vraie page** (logo, FR/EN) :
   la barre de couleur du formulaire y ajoutait une couleur que la vraie page
   n'a pas. Ses boutons FR/EN pilotent ceux du moteur ; l'en-tête du formulaire
