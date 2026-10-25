@@ -539,17 +539,42 @@ couleurs moches, seulement quelques couleurs, et il faut bien expliquer que
 la landing page est associée au QR code installé ou celui du flyer et
 montrer aussi l'exemple avec la page où les réservations se font ».
 
-- **Quatre thèmes, plus de choix libre** (proposés d'abord à trois ; Barbaros :
-  « je veux que tu me proposes 4 couleurs au choix, proposer au pro 4
-  thèmes ») : Bleu (celui d'Elatransfer, par défaut), Bordeaux, Vert sapin,
-  Pétrole. Essayés sur la page du QR : l'or et le bronze devenaient ternes,
-  l'anthracite, la prune et l'indigo se fondaient dans le marine, le violet
-  jurait ; le sélecteur libre permettait pire. Chaque thème est un bouton qui
-  dit son nom (deux par ligne sur téléphone, quatre au-delà), le premier est
-  choisi d'office. Une couleur gardée d'avant (l'or, un choix libre) n'est
-  plus appliquée. Chaque thème donne un bouton lisible (≥ 4,5:1), éprouvé un
-  par un. Le fond marine de la page reste : c'est celui de la vraie page du
-  QR, quel que soit le partenaire.
+- **Quatre thèmes, plus de choix libre.** Proposés d'abord à trois couleurs,
+  puis à quatre (Bleu, Bordeaux, Vert sapin, Pétrole) ; Barbaros : « non, je
+  veux le bleu actuel, noir or, et deux autres couleurs classe ». Retenus :
+  **Bleu** (celui d'Elatransfer, par défaut), **Noir et or**, **Bordeaux**,
+  **Vert anglais**. Essayés et écartés : l'or seul et le bronze (ternes),
+  l'anthracite, la prune et l'indigo (fondus dans le marine), le violet ; le
+  sélecteur libre permettait pire.
+  - **Un thème est une marque complète** (`THEMES`, `demo-simulateur.js`),
+    celle qu'aurait un vrai partenaire dans `HOTELS` : le fond sombre des
+    bandeaux (`fond`, `fond2`, clés propres à la démo), le bouton, le texte
+    posé dessus (`texteAction` : noir sur l'or, comme sur l'orange
+    d'easyHotel), les fonds clairs et leur encre. Une couleur seule ne fait
+    pas un noir et or : un bouton doré sous du blanc lit à 1,9:1, un bouton
+    noir disparaît sur le marine. Bordeaux et Vert anglais ont leur propre
+    fond sombre assorti, pas le marine : c'est ce qui en fait un thème.
+  - Le thème suit les trois écrans. Sur la page du QR, le marine et son bleu
+    pâle sont devenus des variables (`TEINTES` : `--demo-fond`,
+    `--demo-fond2`, `--demo-neutre`). Au formulaire et au comptoir,
+    `demo.css` repeint les bandeaux (`html[data-demo-theme]`, posé par
+    `poserTheme`) — **le Bleu garde ceux d'Elatransfer à l'identique**.
+  - **La finition commune pose du blanc sur l'action côté client** (bandeau
+    du téléphone, « Tarifs partenaires », « Départ de l'hôtel », « Voir mon
+    prix »…) ; seul le comptoir lit `texteAction`. `demo.css` corrige pour la
+    démo seulement : la vraie page d'easyHotel n'est pas touchée. **Un futur
+    partenaire à couleur claire aura besoin de la même correction dans la
+    finition commune.**
+  - Chaque thème est un bouton qui dit son nom, avec un rond qui montre ses
+    deux couleurs (fond et bouton) ; le premier est choisi d'office. Un choix
+    gardé d'avant (une couleur, l'or, un choix libre) revient au Bleu.
+  - `test-demo-hotel`, bloc 2 ter : pour chaque thème, à 390 et 1280 px, sur
+    la page du QR, le formulaire et le comptoir, le contraste de chaque texte
+    posé sur un fond coloré ; **aucun thème ne doit rendre illisible un texte
+    que le Bleu laisse lisible** (le Bleu a deux défauts d'origine, hors des
+    thèmes : les pastilles « 1 2 3 » du formulaire, 4,16:1, et le blanc sur
+    le vert de WhatsApp). Il a trouvé, avant correction, le « EN » noir sur
+    le noir du comptoir (1,02:1).
 - **L'arrivée prend aussi l'en-tête blanc de la vraie page** (logo, FR/EN) :
   la barre de couleur du formulaire y ajoutait une couleur que la vraie page
   n'a pas. Ses boutons FR/EN pilotent ceux du moteur ; l'en-tête du formulaire

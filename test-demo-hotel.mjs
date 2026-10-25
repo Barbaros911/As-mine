@@ -228,15 +228,67 @@ for (const w of [390, 1280]) {
   await ctx.close(); await ctxReel.close();
 }
 
+/* ═══ 2 ter. LES THÈMES DU PROSPECT (25/10/2026) ═══
+   Barbaros : « le bleu actuel, noir or, et deux autres couleurs classe ». Un
+   thème repeint les trois écrans (page du QR, formulaire, réception) : AUCUN
+   NE DOIT RENDRE ILLISIBLE UN TEXTE QUE LE BLEU LAISSE LISIBLE. On mesure le
+   contraste de chaque texte posé sur un fond coloré (pas sur le blanc), et on
+   le compare à ce que donne le Bleu — ses petits défauts d'origine (les
+   pastilles « 1 2 3 » du formulaire, le blanc sur le vert de WhatsApp) ne
+   sont pas ceux des thèmes. Mesuré avant correction : l'or sous du blanc
+   (1,9:1), le « EN » noir sur le noir du comptoir (1,02:1). */
+const SCAN_CONTRASTE = () => {
+  const rvb = s => { const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/.exec(s || ''); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]] : null; };
+  const L = c => { const t = c.slice(0, 3).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; };
+  const fondDe = e => { for (let x = e; x; x = x.parentElement) { const c = getComputedStyle(x);
+    const g = /gradient/.test(c.backgroundImage) ? rvb(c.backgroundImage) : null; if (g && g[3] > .9) return g;
+    const f = rvb(c.backgroundColor); if (f && f[3] > .9) return f; } return [255, 255, 255, 1]; };
+  const fautes = [];
+  for (const e of document.querySelectorAll('body *')) {
+    if (![...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+    const r = e.getBoundingClientRect(); if (!r.width || !r.height || r.bottom < 0 || r.top > innerHeight * 3) continue;
+    const c = getComputedStyle(e); if (c.visibility === 'hidden' || +c.opacity < .5 || e.closest('#demoBandeau,#demoCadre,#demoPied,svg')) continue;
+    const fond = fondDe(e), t = rvb(c.color); if (L(fond) > .8 || !t) continue;
+    const x = L(t), y = L(fond), q = (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
+    const grand = parseFloat(c.fontSize) >= 24 || (parseFloat(c.fontSize) >= 18.66 && +c.fontWeight >= 700);
+    if (q < (grand ? 3 : 4.5)) fautes.push(`${e.id ? '#' + e.id : String(e.className || e.tagName).slice(0, 30)} « ${e.textContent.trim().slice(0, 20)} »`);
+  }
+  return fautes;
+};
+for (const w of [390, 1280]) {
+  const { ctx, p } = await ouvrir({ w });
+  const themes = await p.$$eval('#demoPerso .demo-pastille[data-theme]', l => l.map(b => b.getAttribute('data-theme')));
+  check(`thèmes ${w} px : plusieurs thèmes, le premier par défaut`, themes.length >= 2, themes.join(', '));
+  const mesures = {};
+  for (const t of themes) {
+    await p.evaluate(t => localStorage.setItem('ela_demo__ela_demo_perso', JSON.stringify({ theme: t })), t);
+    await p.goto(BASE + '/demo/hotel/'); await p.waitForTimeout(1200);
+    const fautes = await p.evaluate(SCAN_CONTRASTE);
+    const cta = await p.evaluate(() => getComputedStyle(document.querySelector('#demoArrivee .qr-cta')).backgroundImage);
+    await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(500); await p.evaluate(() => scrollTo(0, 0));
+    fautes.push(...(await p.evaluate(SCAN_CONTRASTE)).map(f => 'formulaire ' + f));
+    await p.goto(BASE + '/demo/hotel/reception/'); await p.waitForTimeout(1500);
+    fautes.push(...(await p.evaluate(SCAN_CONTRASTE)).map(f => 'réception ' + f));
+    mesures[t] = { fautes, cta };
+  }
+  const base = new Set((mesures[themes[0]] || { fautes: [] }).fautes);
+  for (const t of themes.slice(1)) {
+    const nouvelles = mesures[t].fautes.filter(f => !base.has(f));
+    check(`thème « ${t} » ${w} px : aucun texte illisible que le thème par défaut laisse lisible`, nouvelles.length === 0, nouvelles.slice(0, 4).join(' ; '));
+  }
+  check(`thèmes ${w} px : chacun repeint la page du QR`, new Set(themes.map(t => mesures[t].cta)).size === themes.length);
+  check(`thèmes ${w} px : aucune erreur JavaScript`, p.errs.length === 0, p.errs.join(' ; '));
+  await ctx.close();
+}
+
 /* Une couleur gardée d'avant le 25/10/2026 (l'or, un choix libre) n'est plus
    appliquée : le prospect revenu voit le bleu, pas une page moutarde. */
 {
   const { ctx, p } = await ouvrir();
   await p.evaluate(() => localStorage.setItem('ela_demo__ela_demo_perso', JSON.stringify({ couleur: '#9A6A1F' })));
   await p.reload(); await p.waitForTimeout(1200);
-  check('perso : une couleur hors du nuancier, gardée d\'avant, n\'est plus appliquée',
-    (await p.evaluate(() => getComputedStyle(document.querySelector('#demoArrivee .qr-cta')).backgroundColor)) === 'rgb(14, 111, 199)',
-    await p.evaluate(() => getComputedStyle(document.querySelector('#demoArrivee .qr-cta')).backgroundColor));
+  check('perso : une couleur hors des thèmes, gardée d\'avant, n\'est plus appliquée : c\'est le thème par défaut',
+    (await peinte(p, '#demoArrivee .qr-cta')) === 'rgb(14, 111, 199)', await peinte(p, '#demoArrivee .qr-cta'));
   await ctx.close();
 }
 
@@ -405,19 +457,25 @@ for (const w of [390, 1280]) {
   const themes = await p.$$eval('#demoPerso .demo-pastille', l => l.map(b => ({ nom: b.innerText.trim(), presse: b.getAttribute('aria-pressed') })));
   check('perso : chaque thème dit son nom, et le premier est choisi d\'office', themes.every(t => t.nom.length >= 3)
     && themes.map(t => t.presse).join() === ['true', ...themes.slice(1).map(() => 'false')].join(), JSON.stringify(themes));
+  /* Le bouton lisible SOUS SON PROPRE TEXTE : le noir et or pose du noir
+     sur l'or (texteAction), les autres du blanc. */
   const lisible = () => p.evaluate(() => {
     const s = getComputedStyle(document.getElementById('btnVoirPrix'));
-    const rvb = (/rgb\([^)]*\)/.exec(s.backgroundImage) || [s.backgroundColor])[0].match(/\d+/g).slice(0, 3).map(Number);
+    const rvb = v => v.match(/\d+/g).slice(0, 3).map(Number);
+    const fond = rvb((/rgb\([^)]*\)/.exec(s.backgroundImage) || [s.backgroundColor])[0]), texte = rvb(s.color);
     const l = c => { const t = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; };
-    return 1.05 / (l(rvb) + .05);
+    const [x, y] = [l(fond), l(texte)]; return (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
   });
-  const illisibles = [];
-  for (const c of await p.$$eval('#demoPerso .demo-pastille', l => l.map(b => b.getAttribute('data-couleur')))) {
-    await p.click(`.demo-pastille[data-couleur="${c}"]`); const r = await lisible(); if (r < 4.5) illisibles.push(`${c} ${r.toFixed(2)}`);
+  const illisibles = [], peints = new Set();
+  for (const t of await p.$$eval('#demoPerso .demo-pastille', l => l.map(b => b.getAttribute('data-theme')))) {
+    await p.click(`.demo-pastille[data-theme="${t}"]`); const r = await lisible(); if (r < 4.5) illisibles.push(`${t} ${r.toFixed(2)}`);
+    peints.add(await peinte(p, '#btnVoirPrix'));
   }
-  check('perso : chaque couleur du nuancier donne un bouton lisible (≥ 4,5:1 avec le blanc)', illisibles.length === 0, illisibles.join(', '));
-  await p.click('.demo-pastille[data-couleur="#8B1E3F"]');
-  check('perso : une pastille du nuancier repeint le bouton', (await peinte(p, '#btnVoirPrix')) === 'rgb(139, 30, 63)', await peinte(p, '#btnVoirPrix'));
+  check('perso : chaque thème donne un bouton lisible (≥ 4,5:1 avec son propre texte)', illisibles.length === 0, illisibles.join(', '));
+  check('perso : chaque thème repeint le bouton d\'une couleur à lui', peints.size === themes.length, [...peints].join(' · '));
+  /* Le bordeaux, gardé pour la suite : la réception doit porter le même. */
+  await p.click('.demo-pastille[data-theme="bordeaux"]');
+  const bordeaux = await peinte(p, '#btnVoirPrix');
   check('perso : le cadre de la démo garde le bleu Elatransfer', (await p.evaluate(() => getComputedStyle(document.querySelector('.demo-cadre')).backgroundColor)) === 'rgb(6, 47, 85)');
   /* Une photo : générée dans la page, déposée en APPUYANT SUR LE CADRE
      « Votre photo ici » — c'est là que le prospect la cherche. */
@@ -465,7 +523,7 @@ for (const w of [390, 1280]) {
   await p.click('#demoOngletReception'); await p.waitForURL(/reception\/$/); await p.waitForTimeout(1200);
   check('réception : le fil de la démo passe à « 3 »', (await texte(p, '#demoGuide .demo-guide-num')) === '3' && /réception/i.test(await texte(p, '#demoGuide')), await texte(p, '#demoGuide'));
   check('perso : la réception porte le même nom', (await texte(p, '#recHotel')) === piege);
-  check('perso : … et la même couleur', (await peinte(p, '#btnRecReserver')) === 'rgb(139, 30, 63)', await peinte(p, '#btnRecReserver'));
+  check('perso : … et le même thème', (await peinte(p, '#btnRecReserver')) === bordeaux, await peinte(p, '#btnRecReserver') + ' ≠ ' + bordeaux);
   await p.click('#demoPerso summary'); await p.click('#demoPersoRaz'); await p.waitForTimeout(300);
   check('perso : « Revenir à la page d\'origine » rend le nom d\'origine', (await texte(p, '#recHotel')) === 'Hôtel Ibis Roissy');
   check('perso : … et le bleu d\'origine', (await peinte(p, '#btnRecReserver')) === 'rgb(14, 111, 199)', await peinte(p, '#btnRecReserver'));

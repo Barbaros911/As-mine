@@ -18,7 +18,7 @@ html.demo-ferme body > #demoIndispo{display:block !important}
 html[data-ela-space="demo"] body.hotel{background:#F2F5F9}
 html[data-ela-space="demo"] body.reception{background:#EDF3F7}
 html[data-ela-space="demo"] body.hotel .bouton,
-html[data-ela-space="demo"] body.reception .bouton{background:var(--h-bouton,var(--demo-bleu));color:#fff}
+html[data-ela-space="demo"] body.reception .bouton{background:var(--h-finition,var(--h-bouton,var(--demo-bleu)));color:var(--h-texteAction,#fff)}
 
 /* Le menu du site public n'a rien à faire ici : la démo est un parcours. */
 html[data-ela-space="demo"] .entete-nav{display:none !important}
@@ -207,11 +207,47 @@ html[data-ela-space="demo"][data-demo-vue="client"] body.demo-choix{padding-bott
    y est déjà. */
 html[data-ela-space="demo"][data-demo-vue="client"] body.demo-choix header.entete{display:none!important}
 html #demoArrivee .qr-top{position:relative}
-/* La couleur du partenaire réel devient celle de l'hôtel du prospect. */
-#demoArrivee{--demo-o:var(--h-bouton,var(--demo-bleu));--demo-otexte:var(--h-paleEncre,var(--demo-encre));
-  --demo-opale:var(--h-pale,var(--demo-pale));
-  /* Le début du titre, en teinte claire sur le marine (#ffb38a sur la vraie). */
+/* La couleur du partenaire réel devient celle du THÈME de l'hôtel du
+   prospect (demo-simulateur.js, THEMES) : comme la finition commune, l'action
+   prend « finition » s'il y en a une, sinon « bouton », et le texte posé
+   dessus « texteAction » (noir sur l'or), sinon le blanc. */
+#demoArrivee{--demo-o:var(--h-finition,var(--h-bouton,var(--demo-bleu)));--demo-o2:var(--h-finition2,var(--demo-o));
+  --demo-sur-o:var(--h-texteAction,#fff);
+  --demo-otexte:var(--h-finitionEncre,var(--h-paleEncre,var(--demo-encre)));
+  --demo-opale:var(--h-finitionPale,var(--h-pale,var(--demo-pale)));
+  --demo-fond:var(--h-fond,#0b2d4f);--demo-fond2:var(--h-fond2,#123f68);--demo-neutre:var(--h-neutre,#e8f0f8);
+  /* Le début du titre, en teinte claire sur le fond (#ffb38a sur la vraie). */
   --demo-oclair:color-mix(in srgb,var(--demo-o) 45%,#fff)}
+html #demoArrivee .qr-cta{background:linear-gradient(120deg,var(--demo-o),var(--demo-o2));color:var(--demo-sur-o)}
+html #demoArrivee .qr-etapes em{color:var(--demo-sur-o)}
+/* ═══ LES THÈMES, SUR LE FORMULAIRE ET AU COMPTOIR (25/10/2026) ═══
+   Un thème autre que le Bleu repeint les bandeaux sombres de son fond (le
+   Bleu garde ceux d'Elatransfer, à l'identique). La finition commune pose du
+   texte BLANC sur l'action, côté client : juste sur le bleu, illisible sur
+   l'or. Ici seulement — la vraie page d'easyHotel n'est pas touchée —, ce
+   texte suit « texteAction » du thème, comme le fait déjà le comptoir. */
+html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.hotel-enhanced.eh-sans-photo .hotel-tete,
+html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.reception.hotel-enhanced .hotel-tete,
+html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.reception-premium .hotel-tete,
+html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.reception-premium #ecran-reception .trajet-tete{
+  background:linear-gradient(135deg,var(--h-fond) 0%,var(--h-fond2) 100%)!important}
+html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.hotel.reception-premium{--v2-marine:var(--h-fond);--v2-titre:var(--h-charbon)}
+html[data-ela-space="demo"] body.hotel.hotel-enhanced .hotel-partner-chip,
+html[data-ela-space="demo"] body.hotel.hotel-enhanced .hotel-partner-chip b,
+html[data-ela-space="demo"] body.hotel.hotel-enhanced .hotel-partner-chip span,
+html[data-ela-space="demo"] body.hotel.hotel-enhanced .hotel-tete .hotel-sur,
+html[data-ela-space="demo"] body.hotel.hotel-enhanced .hotel-sens-btn.actif,
+html[data-ela-space="demo"] body.hotel.hotel-enhanced #ecran-accueil .principal,
+html[data-ela-space="demo"] body.hotel.hotel-enhanced #btnVoirPrix,
+html[data-ela-space="demo"] body.hotel.hotel-enhanced #ecran-vehicules .bouton,
+html[data-ela-space="demo"] body.hotel.hotel-enhanced #ecran-recap .bouton,
+html[data-ela-space="demo"] body.hotel.hotel-enhanced #ecran-bon .bouton,
+html[data-ela-space="demo"] body.hotel.reception-premium #btnVoirPrix:disabled{color:var(--h-texteAction,#fff)!important}
+html[data-ela-space="demo"] body.hotel.hotel-enhanced .langues button[aria-pressed="true"]{color:var(--h-finitionEncre,var(--eh-action))!important}
+/* Sur téléphone, la barre du haut est elle-même de la couleur de l'action. */
+@media(max-width:760px){
+  html[data-ela-space="demo"] body.hotel.hotel-enhanced:not(.reception-premium) .langues button:not([aria-pressed="true"]){color:var(--h-texteAction,#fff)!important}
+}
 #demoArrivee .qr-px b.demo-a-fixer{font-size:13px;font-weight:700;color:#5A6A7B}
 .demo-retour-cartes{display:inline-flex;align-items:center;min-height:44px;margin:0 0 8px 12px;padding:0 4px;border:0;background:none;
   color:var(--h-bouton,var(--demo-bleu));font:inherit;font-weight:800;font-size:14.5px;cursor:pointer}
@@ -241,7 +277,7 @@ html #demoArrivee .qr-top{position:relative}
 
 /* La consigne qui mène à la suite du parcours : visible, juste sous le titre. */
 #demoArrivee .demo-cartes-aide{display:flex;align-items:center;gap:8px;margin:2px 0 8px;padding:10px 12px;border-radius:12px;
-  background:var(--h-bouton,var(--demo-bleu));color:#fff;font-size:15px;font-weight:800;line-height:1.35}
+  background:var(--demo-o);color:var(--demo-sur-o);font-size:15px;font-weight:800;line-height:1.35}
 /* Une FLÈCHE vers les cartes, pas un chevron : sur un bandeau bleu plein, le
    chevron se lisait comme un menu à déplier (recette du 8/10/2026). */
 #demoArrivee .demo-cartes-aide::before{content:"\2193";flex:0 0 auto;font-size:18px;font-weight:800;line-height:1;margin:0 2px}

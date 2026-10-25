@@ -412,21 +412,48 @@
      Les textes saisis sont posés en textContent, jamais interprétés. */
   var CLE_PERSO = "ela_demo_perso";
   var MAX_DEST = 4;
-  /* Les couleurs de l'hôtel fictif (celles de HOTELS_DEMO dans construire-demo.mjs). */
-  var MARQUE_ORIGINE = { charbon:"#062F55", vif:"#D7EAFB", bouton:"#0E6FC7", pale:"#E8F2FD", paleEncre:"#0A4F91" };
   var photoMemoire = "";
   /* QUATRE THÈMES, ET AUCUN AUTRE (25/10/2026, Barbaros : « pas de
-     démonstration avec des couleurs moches », puis « proposer au pro 4
-     thèmes »). Essayés sur la page du QR : l'or et le bronze devenaient
-     ternes, l'anthracite, la prune et l'indigo se fondaient dans le marine,
-     le violet jurait ; le choix libre permettait pire. Une page laide montrée
-     à un directeur, c'est la nôtre. Le premier est le thème par défaut. */
-  var NUANCIER = [["#0E6FC7", "Bleu", "Blue"], ["#8B1E3F", "Bordeaux", "Burgundy"],
-                  ["#1F6B4F", "Vert sapin", "Forest green"], ["#0F6E7A", "Pétrole", "Teal"]];
-  /* Une couleur gardée d'avant (l'or, un choix libre) n'est plus appliquée. */
-  function couleurAdmise(hex){
-    var h = String(hex || "").toLowerCase();
-    return NUANCIER.some(function(n){ return n[0].toLowerCase() === h; }) ? h : "";
+     démonstration avec des couleurs moches », puis « le bleu actuel, noir
+     or, et deux autres couleurs classe »). UN THÈME EST UNE MARQUE COMPLÈTE,
+     celle qu'aurait un vrai partenaire dans HOTELS : le fond sombre des
+     bandeaux (fond, fond2), le bouton et le TEXTE posé dessus (texteAction :
+     noir sur l'or, comme sur l'orange d'easyHotel), les fonds clairs et leur
+     encre. Une couleur seule ne fait pas un noir et or : un bouton doré sous
+     du blanc est illisible, un bouton noir disparaît sur le marine. Essayés
+     et écartés : l'or seul, le bronze (ternes), l'anthracite, la prune,
+     l'indigo (fondus dans le marine), le violet ; le choix libre permettait
+     pire. Le premier est le thème par défaut, celui de HOTELS_DEMO. */
+  var THEMES = [
+    { cle:"bleu", fr:"Bleu", en:"Blue", rond:["#0b2d4f", "#0E6FC7"],
+      marque:{ charbon:"#062F55", vif:"#D7EAFB", bouton:"#0E6FC7", pale:"#E8F2FD", paleEncre:"#0A4F91" } },
+    { cle:"noir-or", fr:"Noir et or", en:"Black and gold", rond:["#111111", "#C9A227"],
+      marque:{ charbon:"#141414", vif:"#EADBAA", bouton:"#8A6D1C", pale:"#F6EFDC", paleEncre:"#6B5317",
+               finition:"#C9A227", finition2:"#E2C46C", finitionPale:"#F6EFDC", finitionEncre:"#6B5317",
+               texteAction:"#141414", fond:"#111111", fond2:"#2A251C", neutre:"#EFEBE3" } },
+    { cle:"bordeaux", fr:"Bordeaux", en:"Burgundy", rond:["#2A0A14", "#9E2A4B"],
+      marque:{ charbon:"#3A0D1B", vif:"#F3D9E0", bouton:"#9E2A4B", pale:"#F8E9ED", paleEncre:"#6E1B33",
+               fond:"#2A0A14", fond2:"#4A1526", neutre:"#F3E8EB" } },
+    { cle:"vert-anglais", fr:"Vert anglais", en:"British green", rond:["#0B261E", "#1E7A58"],
+      marque:{ charbon:"#0E2D23", vif:"#D5EDE3", bouton:"#1E7A58", pale:"#E5F3EC", paleEncre:"#145039",
+               fond:"#0B261E", fond2:"#164536", neutre:"#E6F0EB" } }];
+  /* Toutes les clés qu'un thème peut poser : on les retire avant d'en poser
+     un autre, sinon l'or du noir et or resterait sous le bordeaux. */
+  var CLES_MARQUE = THEMES.reduce(function(t, x){
+    Object.keys(x.marque).forEach(function(k){ if(t.indexOf(k) < 0) t.push(k); }); return t; }, []);
+  /* Un choix gardé d'avant (une couleur, l'or, un choix libre) ne correspond
+     à aucun thème : c'est le thème par défaut. */
+  function themeDe(p){
+    for(var i = 0; i < THEMES.length; i++) if(p && p.theme === THEMES[i].cle) return THEMES[i];
+    return THEMES[0];
+  }
+  /* Le thème est aussi posé en attribut : le Bleu garde les fonds
+     d'Elatransfer à l'identique, les autres repeignent les bandeaux
+     (demo.css, « data-demo-theme »). */
+  function poserTheme(t){
+    CLES_MARQUE.forEach(function(k){ racine.style.removeProperty("--h-" + k); });
+    Object.keys(t.marque).forEach(function(k){ racine.style.setProperty("--h-" + k, t.marque[k]); });
+    if(racine.getAttribute("data-demo-theme") !== t.cle) racine.setAttribute("data-demo-theme", t.cle);
   }
 
   function lirePerso(){
@@ -443,36 +470,13 @@
     try{ stockage.setItem(CLE_PERSO, JSON.stringify(p)); return true; }catch(e){ return false; }
   }
 
-  /* LES COULEURS SONT CALCULÉES, PAS PRISES TELLES QUELLES : un jaune clair
-     choisi par le prospect donnerait un bouton illisible. On assombrit
-     jusqu'à 4,5:1 avec le blanc (WCAG AA), et le fond de l'en-tête est la
-     même teinte très éclaircie, sous une encre sombre. */
-  function hexVersRvb(h){ var n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
-  function rvbVersHex(c){ return "#" + c.map(function(x){ return Math.round(Math.max(0, Math.min(255, x))).toString(16).padStart(2, "0"); }).join(""); }
-  function lum(c){ var t = c.map(function(v){ v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
-                   return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; }
-  function contraste(a, b){ var x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }
-  function melanger(c, cible, k){ return c.map(function(v, i){ return v + (cible[i] - v) * k; }); }
-  function couleurs(hex){
-    if(!/^#[0-9a-f]{6}$/i.test(hex || "")) return null;
-    var c = hexVersRvb(hex), blanc = [255, 255, 255], noir = [0, 0, 0];
-    var bouton = c, k = 0;
-    while(contraste(bouton, blanc) < 4.6 && k < 1){ k += .04; bouton = melanger(c, noir, k); }
-    var vif = melanger(c, blanc, .84), charbon = melanger(c, noir, .72);
-    k = .72;
-    while(contraste(charbon, vif) < 7.5 && k < 1){ k += .04; charbon = melanger(c, noir, k); }
-    return { bouton: rvbVersHex(bouton), vif: rvbVersHex(vif), charbon: rvbVersHex(charbon),
-             pale: rvbVersHex(melanger(c, blanc, .9)), paleEncre: rvbVersHex(melanger(c, noir, .6)) };
-  }
-
   function appliquerPerso(){
     if(!info) return;
     var p = lirePerso();
     var nom = p.nom || info.etablissement;
     var rond = document.querySelector(".demo-initiales");
     if(rond) rond.textContent = initiales(nom);
-    var c = couleurs(couleurAdmise(p.couleur));
-    if(c) Object.keys(c).forEach(function(k){ racine.style.setProperty("--h-" + k, c[k]); });
+    poserTheme(themeDe(p));
     /* La photo s'affiche dans le BANDEAU (la finition commune, comme chez
        un partenaire) ; le cadre ne garde que son rôle de bouton. */
     var cadre = document.querySelector(".demo-photo");
@@ -683,15 +687,17 @@
     /* Chaque thème est un bouton qui dit son nom : un rond de couleur seul
        ne se nomme pas, ni à l'œil ni au lecteur d'écran. */
     var palette = el("div", "demo-nuancier"); palette.setAttribute("role", "group");
-    var actuelle = couleurAdmise(p.couleur) || NUANCIER[0][0].toLowerCase();
-    NUANCIER.forEach(function(n){
+    var actuel = themeDe(p).cle;
+    THEMES.forEach(function(t){
       var b = el("button", "demo-pastille"); b.type = "button";
-      b.setAttribute("data-couleur", n[0]);
-      var rond = el("span", "demo-pastille-rond"); rond.style.background = n[0]; rond.setAttribute("aria-hidden", "true");
+      b.setAttribute("data-theme", t.cle);
+      /* Le rond montre les deux couleurs du thème : son fond et son bouton. */
+      var rond = el("span", "demo-pastille-rond"); rond.setAttribute("aria-hidden", "true");
+      rond.style.background = "linear-gradient(135deg," + t.rond[0] + " 50%," + t.rond[1] + " 50%)";
       b.appendChild(rond);
-      b.appendChild(bilingue("span", "demo-pastille-nom", n[1], n[2]));
-      b.setAttribute("aria-pressed", String(actuelle === n[0].toLowerCase()));
-      b.addEventListener("click", function(){ choisirCouleur(n[0]); });
+      b.appendChild(bilingue("span", "demo-pastille-nom", t.fr, t.en));
+      b.setAttribute("aria-pressed", String(actuel === t.cle));
+      b.addEventListener("click", function(){ choisirTheme(t.cle); });
       palette.appendChild(b);
     });
     corps.appendChild(champ("Votre thème", "Your theme", palette));
@@ -748,9 +754,8 @@
       photoMemoire = "";
       ecrirePerso({});
       nom.value = ""; msg.value = "";
-      ["--h-bouton", "--h-vif", "--h-charbon", "--h-pale", "--h-paleEncre"].forEach(function(v){ racine.style.removeProperty(v); });
       try{ window.ELA_DEMO_PAGE.appliquer({}); }catch(e){}
-      Object.keys(MARQUE_ORIGINE).forEach(function(k){ racine.style.setProperty("--h-" + k, MARQUE_ORIGINE[k]); });
+      poserTheme(THEMES[0]);
       palette.querySelectorAll(".demo-pastille").forEach(function(b, i){ b.setAttribute("aria-pressed", String(i === 0)); });
       appliquerPerso();
       direPerso("Page d'origine rétablie.", "Original page restored.");
@@ -772,10 +777,10 @@
     corps.appendChild(actions);
     bloc.appendChild(corps);
 
-    function choisirCouleur(hex){
-      modifier(function(q){ q.couleur = hex; });
+    function choisirTheme(cle){
+      modifier(function(q){ q.theme = cle; delete q.couleur; });
       palette.querySelectorAll(".demo-pastille").forEach(function(b){
-        b.setAttribute("aria-pressed", String(b.getAttribute("data-couleur").toLowerCase() === hex.toLowerCase()));
+        b.setAttribute("aria-pressed", String(b.getAttribute("data-theme") === cle));
       });
     }
     traduire(bloc);

@@ -125,11 +125,15 @@ function remplacerEntre(html, debut, fin, apres, quoi, garderFin = true) {
        pour les destinations de l'hôtel fictif et celles du prospect. */
 const PAGE_QR = path.join('easyhotel-client', 'index.html');
 
-/* La couleur du partenaire réel → celle de l'hôtel du prospect (demo.css).
-   Une teinte orange qui ne serait pas dans cette table fait échouer la
-   construction (orangeRestant) : la démo ne porte jamais la couleur d'un
-   vrai partenaire. */
+/* La couleur du partenaire réel → celle du thème de l'hôtel du prospect
+   (demo.css). Une teinte orange qui ne serait pas dans cette table fait
+   échouer la construction (orangeRestant) : la démo ne porte jamais la
+   couleur d'un vrai partenaire. Le marine du bandeau et son bleu pâle
+   suivent aussi le thème (fond noir du « noir et or », 25/10/2026). */
 const TEINTES = [
+  [/#0b2d4f\b/gi, 'var(--demo-fond)'],
+  [/#123f68\b/gi, 'var(--demo-fond2)'],
+  [/#e8f0f8\b/gi, 'var(--demo-neutre)'],
   [/#ff5a0a\b/gi, 'var(--demo-o)'],
   [/#c2410c\b/gi, 'var(--demo-otexte)'],
   [/#fff1e8\b/gi, 'var(--demo-opale)'],
