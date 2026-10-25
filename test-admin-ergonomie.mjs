@@ -107,6 +107,14 @@ async function espace(chemin = '/ela-admin/', { presences = [] } = {}) {
     if (u.includes('/rpc/presences_operateurs')) return route.fulfill(J(presences));
     if (u.includes('/rpc/') || u.includes('/functions/v1/')) return route.fulfill(J({ ok: true }));
     if (u.includes('/auth/v1/')) return route.fulfill(J({ access_token: 'JETON2', refresh_token: 'R2', email: 'test@ela.fr' }));
+    /* LES DEMANDES DE CE BANC ONT DÉJÀ ÉTÉ VUES (25 octobre 2026) : sinon le
+       bandeau des non vues, prioritaire, remplacerait « Son coupé » — et ce
+       banc mesure les AUTRES bandeaux. Le pire cas avec une non vue est
+       éprouvé dans test-admin-non-vues.mjs. */
+    if (u.includes('/rest/v1/journal_notifications_admin') && u.includes('course_ref=in.')) {
+      const refs = decodeURIComponent((u.match(/course_ref=in\.\(([^)]*)\)/) || [])[1] || '').split(',').filter(Boolean);
+      return route.fulfill(J(refs.map(r => ({ course_ref: r, type_evenement: 'vue', canal: 'telegram', statut: 'envoye', cree_le: new Date().toISOString() }))));
+    }
     if (u.includes('/rest/v1/courses')) {
       const ref = decodeURIComponent((u.match(/ref=eq\.([^&]+)/) || [])[1] || '');
       if (m === 'DELETE') { journal.suppressions.push(ref); const i = donnees.findIndex(c => c.ref === ref); if (i >= 0) donnees.splice(i, 1); return route.fulfill(J([{ ref }])); }

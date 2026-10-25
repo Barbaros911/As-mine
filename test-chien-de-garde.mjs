@@ -30,6 +30,24 @@ check('un dépôt en échec serveur (5xx) : il aboie et le dit', /dépôt/.test(
 check('deux refus par le plafond : rien ; trois : il aboie', juger({ ...sain, depots_quota_1h: 2 }).ok && /plafond/.test(juger({ ...sain, depots_quota_1h: 3 }).pannes.join(' ')));
 check('neuf refus divers : rien ; dix : il aboie', juger({ ...sain, depots_refuses_1h: 9 }).ok && !juger({ ...sain, depots_refuses_1h: 10 }).ok);
 check('dépôts refusés : les nombres en texte sont lus aussi', !juger({ ...sain, depots_indisponibles_1h: '1' }).ok);
+/* LA RELANCE ET LA NOTIFICATION ELA (25 octobre 2026, P0) : clés
+   FACULTATIVES (migration 20261025000000). pg_cron se dit « réussi » dès la
+   mise en file : seul le battement écrit par la fonction voit une relance
+   qui répond 401 à chaque tour. Contre l'ancien juge, les « il aboie »
+   tombent tous. */
+const suivi = { ...sain, relance_ok_s: 15, push_ok_1h: 4, push_echecs_1h: 0, abonnes_push: 1 };
+check('relance et notifications saines : il se tait', juger(suivi).ok, juger(suivi).pannes.join(' | '));
+check('clés absentes (serveur d\'avant la migration) : il se tait', juger(sain).ok);
+check('pg_cron tourne mais la fonction ne bat plus depuis 10 min (401, 500) : il aboie', /10 min/.test(juger({ ...suivi, relance_ok_s: 600 }).pannes.join(' ')) && !juger({ ...suivi, relance_ok_s: 600 }).ok);
+check('battement il y a 4 min : rien (une relance toutes les 20 s, marge de 5 min)', juger({ ...suivi, relance_ok_s: 240 }).ok);
+check('jamais battu alors que pg_cron tourne : il aboie', !juger({ ...suivi, relance_ok_s: null }).ok);
+check('pg_cron lui-même muet : UNE panne, pas deux pour la même cause', juger({ ...suivi, derniere_relance_s: 1200, relance_ok_s: 1200 }).pannes.length === 1, juger({ ...suivi, derniere_relance_s: 1200, relance_ok_s: 1200 }).pannes.join(' | '));
+check('aucun appareil abonné aux notifications ELA : il aboie et dit le geste', !juger({ ...suivi, abonnes_push: 0 }).ok && /Activer les notifications/.test(juger({ ...suivi, abonnes_push: 0 }).simples.join(' ')));
+check('…et une seule panne, pas une seconde pour les envois « sans abonné »', juger({ ...suivi, abonnes_push: 0, push_ok_1h: 0, push_echecs_1h: 5 }).pannes.length === 1);
+check('notifications toutes ratées depuis une heure : il aboie', !juger({ ...suivi, push_ok_1h: 0, push_echecs_1h: 3 }).ok);
+check('un échec parmi des réussites : rien', juger({ ...suivi, push_ok_1h: 2, push_echecs_1h: 1 }).ok);
+check('nuit calme (aucune notification tentée) : rien', juger({ ...suivi, push_ok_1h: 0, push_echecs_1h: 0 }).ok);
+check('abonnés comptés en texte : lus aussi', !juger({ ...suivi, abonnes_push: '0' }).ok);
 
 /* LE VOYANT DE L'ADMIN (4 octobre 2026) juge avec le même fichier : il lit
    la phrase SIMPLE de chaque panne, celle qu'on comprend la nuit sur un
@@ -37,6 +55,8 @@ check('dépôts refusés : les nombres en texte sont lus aussi', !juger({ ...sai
 for (const [nom, m] of [['demande sans alerte', { ...sain, sans_alerte: 1 }], ['relance arrêtée', { ...sain, relance_active: false }],
                         ['relance muette', { ...sain, derniere_relance_s: 1200 }], ['Telegram', { ...sain, telegram_echecs_1h: 2, telegram_ok_1h: 0 }],
                         ['dépôt en échec serveur', { ...sain, depots_indisponibles_1h: 1 }], ['plafond atteint', { ...sain, depots_quota_1h: 3 }],
+                        ['relance qui ne bat plus', { ...suivi, relance_ok_s: 900 }], ['aucun appareil abonné', { ...suivi, abonnes_push: 0 }],
+                        ['notifications ratées', { ...suivi, push_ok_1h: 0, push_echecs_1h: 3 }],
                         ['réponse illisible', null]]) {
   const v = juger(m);
   check(`${nom} : chaque panne a sa phrase simple pour l'admin`, Array.isArray(v.simples) && v.simples.length === v.pannes.length && v.simples.every(x => typeof x === 'string' && x.length > 10), JSON.stringify(v.simples));

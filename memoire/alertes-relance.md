@@ -125,3 +125,49 @@ l'étape 2.
 Proposé : que seuls les boutons « ✅ Vu » (Telegram, et un nouveau sur le bon)
 arrêtent l'alarme, l'ouverture ne suffisant plus. Barbaros : « non ». Ne pas
 le reproposer sans un incident qui le demande.
+
+## Étape 2 : les alertes se surveillent elles-mêmes (25/10/2026, P0)
+
+Barbaros : « Vazi », après la liste : bandeau des non vues, alerte d'essai,
+voyant qui surveille la notification et la relance, chiffres de délai.
+
+- **Le battement de la relance** (`ela_battements`, migration
+  `20261025000000_alertes_suivi.sql`) : la fonction réécrit sa ligne à chaque
+  tour qui a lu les demandes ; le voyant et le chien de garde jugent
+  `relance_ok_s` (panne au-delà de 5 min, jugée seulement quand pg_cron
+  tourne, pour ne pas dire deux fois la même panne). La migration pose un
+  premier battement : sans lui, « jamais battu » pendant 20 s.
+- **La notification ELA est surveillée** : `abonnes_push` (appareils
+  actifs), `push_ok_1h`, `push_echecs_1h` (« aucun_abonne » et
+  « indisponible » sont des échecs). Zéro abonné, ou que des échecs dans
+  l'heure : « Alertes en panne », avec le geste (« Activer les
+  notifications »).
+- **L'alerte d'essai** : l'admin dépose « essai / demande » (RPC
+  `ela_demander_essai_alerte`, exploitant, une par minute) ; la relance
+  l'envoie 30 s plus tard (le temps de verrouiller), après avoir RÉSERVÉ la
+  ligne (PATCH sous condition « demande ») : deux instances de la fonction
+  n'en envoient qu'une — le test tombe sans la réservation. Restée 10 min
+  (relance arrêtée), elle expire sans sonner. Pas d'appel du navigateur à la
+  fonction : ni CORS à ouvrir, ni attente côté page.
+- **Le bandeau des non vues** (`#bordNonVues`) : demandes du site en
+  attente, sans « vue » au journal ; depuis quand, combien d'alertes, la
+  dernière quand ; CRITIQUE à 10 min ; le toucher ouvre la plus ancienne.
+  Deux lignes au plus. **Il remplace « Son coupé »**, comme le bandeau des
+  pannes : empilés, la première demande sortait de l'écran (mesuré : 860 px
+  sur 844 dans le pire cas de test-admin-ergonomie ; 779 avec le
+  remplacement).
+- **L'alarme sonne aussi à l'ouverture** pour une non vue (la première
+  lecture ne sonnait jamais), une fois par demande et par visite, et
+  **sans fabriquer le lecteur de son hors d'un geste** : sur iPhone il
+  resterait muet ; il sonne dès le premier appui. Trouvé parce que, dans le
+  banc, ce lecteur fabriqué trop tôt ôtait « Son coupé ».
+- **La réactivité** (`ela_reactivite`, exploitant) au Registre, même
+  période que lui : délais médians jusqu'à la première alerte, la vue, la
+  confirmation ; vues en 2 min, confirmées en 5 et 15 min ; jamais vues ;
+  alertes en échec. **Piège SQL** : `greatest(0, NULL)` vaut 0 — une
+  demande jamais confirmée comptait « confirmée en 0 s » (trouvé par
+  l'épreuve). Même famille que `<>` sur NULL.
+- Éprouvé : `test-relance-alertes` (154), `test-chien-de-garde` (44 ; 6
+  tombent sur l'ancien juge), `test-admin-non-vues` (53, site construit),
+  `supabase/tests/alertes-suivi-apres.sql` (vrai PostgreSQL, migration jouée
+  deux fois), ergonomie, voyant, alarme.
