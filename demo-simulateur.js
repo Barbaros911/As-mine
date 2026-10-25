@@ -415,7 +415,9 @@
   var photoMemoire = "";
   /* QUATRE THÈMES, ET AUCUN AUTRE (25/10/2026, Barbaros : « pas de
      démonstration avec des couleurs moches », puis « le bleu actuel, noir
-     or, et deux autres couleurs classe »). UN THÈME EST UNE MARQUE COMPLÈTE,
+     or, et deux autres couleurs classe », puis « à la place du rouge un fond
+     noir écriture blanche, et à la place du vert un fond blanc écriture
+     noire »). UN THÈME EST UNE MARQUE COMPLÈTE,
      celle qu'aurait un vrai partenaire dans HOTELS : le fond sombre des
      bandeaux (fond, fond2), le bouton et le TEXTE posé dessus (texteAction :
      noir sur l'or, comme sur l'orange d'easyHotel), les fonds clairs et leur
@@ -423,7 +425,8 @@
      du blanc est illisible, un bouton noir disparaît sur le marine. Essayés
      et écartés : l'or seul, le bronze (ternes), l'anthracite, la prune,
      l'indigo (fondus dans le marine), le violet ; le choix libre permettait
-     pire. Le premier est le thème par défaut, celui de HOTELS_DEMO. */
+     pire ; le bordeaux et le vert anglais, remplacés à sa demande. Le premier
+     est le thème par défaut, celui de HOTELS_DEMO. */
   var THEMES = [
     { cle:"bleu", fr:"Bleu", en:"Blue", rond:["#0b2d4f", "#0E6FC7"],
       marque:{ charbon:"#062F55", vif:"#D7EAFB", bouton:"#0E6FC7", pale:"#E8F2FD", paleEncre:"#0A4F91" } },
@@ -431,12 +434,17 @@
       marque:{ charbon:"#141414", vif:"#EADBAA", bouton:"#8A6D1C", pale:"#F6EFDC", paleEncre:"#6B5317",
                finition:"#C9A227", finition2:"#E2C46C", finitionPale:"#F6EFDC", finitionEncre:"#6B5317",
                texteAction:"#141414", fond:"#111111", fond2:"#2A251C", neutre:"#EFEBE3" } },
-    { cle:"bordeaux", fr:"Bordeaux", en:"Burgundy", rond:["#2A0A14", "#9E2A4B"],
-      marque:{ charbon:"#3A0D1B", vif:"#F3D9E0", bouton:"#9E2A4B", pale:"#F8E9ED", paleEncre:"#6E1B33",
-               fond:"#2A0A14", fond2:"#4A1526", neutre:"#F3E8EB" } },
-    { cle:"vert-anglais", fr:"Vert anglais", en:"British green", rond:["#0B261E", "#1E7A58"],
-      marque:{ charbon:"#0E2D23", vif:"#D5EDE3", bouton:"#1E7A58", pale:"#E5F3EC", paleEncre:"#145039",
-               fond:"#0B261E", fond2:"#164536", neutre:"#E6F0EB" } }];
+    /* Noir : le grand bouton du bandeau noir est BLANC sous du noir (ctaFond,
+       ctaTexte) — noir sur noir, il disparaîtrait ; ailleurs, le noir. */
+    { cle:"noir", fr:"Noir", en:"Black", rond:["#111111", "#FFFFFF"],
+      marque:{ charbon:"#111111", vif:"#E9E9E9", bouton:"#111111", pale:"#EFEFEF", paleEncre:"#111111",
+               fond:"#0B0B0B", fond2:"#262626", neutre:"#EFEFEF", titre:"#A8A8A8",
+               ctaFond:"#FFFFFF", ctaTexte:"#111111" } },
+    /* Blanc : les bandeaux sont blancs, l'écriture noire (« clair » :
+       demo.css retourne les textes que la page écrit en blanc). */
+    { cle:"blanc", fr:"Blanc", en:"White", rond:["#FFFFFF", "#111111"], clair:true,
+      marque:{ charbon:"#111111", vif:"#EDEDED", bouton:"#111111", pale:"#F1F1F1", paleEncre:"#111111",
+               fond:"#FFFFFF", fond2:"#F5F5F3", neutre:"#F1F1F1", titre:"#6A6A6A" } }];
   /* Toutes les clés qu'un thème peut poser : on les retire avant d'en poser
      un autre, sinon l'or du noir et or resterait sous le bordeaux. */
   var CLES_MARQUE = THEMES.reduce(function(t, x){
@@ -454,6 +462,7 @@
     CLES_MARQUE.forEach(function(k){ racine.style.removeProperty("--h-" + k); });
     Object.keys(t.marque).forEach(function(k){ racine.style.setProperty("--h-" + k, t.marque[k]); });
     if(racine.getAttribute("data-demo-theme") !== t.cle) racine.setAttribute("data-demo-theme", t.cle);
+    if(t.clair) racine.setAttribute("data-demo-fond", "clair"); else racine.removeAttribute("data-demo-fond");
   }
 
   function lirePerso(){

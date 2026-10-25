@@ -541,11 +541,22 @@ montrer aussi l'exemple avec la page où les réservations se font ».
 
 - **Quatre thèmes, plus de choix libre.** Proposés d'abord à trois couleurs,
   puis à quatre (Bleu, Bordeaux, Vert sapin, Pétrole) ; Barbaros : « non, je
-  veux le bleu actuel, noir or, et deux autres couleurs classe ». Retenus :
-  **Bleu** (celui d'Elatransfer, par défaut), **Noir et or**, **Bordeaux**,
-  **Vert anglais**. Essayés et écartés : l'or seul et le bronze (ternes),
+  veux le bleu actuel, noir or, et deux autres couleurs classe » — Bordeaux
+  et Vert anglais —, puis « à la place du rouge un fond noir écriture
+  blanche, et à la place du vert un fond blanc écriture noire ». Retenus :
+  **Bleu** (celui d'Elatransfer, par défaut), **Noir et or**, **Noir**,
+  **Blanc**. Essayés et écartés : l'or seul et le bronze (ternes),
   l'anthracite, la prune et l'indigo (fondus dans le marine), le violet ; le
   sélecteur libre permettait pire.
+  - **Noir** : bandeaux noirs, écriture blanche, actions noires — sauf le
+    grand bouton du bandeau, BLANC sous du noir (`ctaFond`, `ctaTexte`) :
+    noir sur le noir, il disparaissait.
+  - **Blanc** : bandeaux blancs, écriture noire, actions noires. Les trois
+    écrans écrivent en blanc sur leurs bandeaux : `data-demo-fond="clair"`
+    retourne ces textes en noir (page du QR, formulaire sans photo, comptoir),
+    et la page du QR prend une encre noire pour ses liens (`--n`, qui était
+    le marine de son bandeau : blanc sur blanc, mesuré 1:1). La barre du haut
+    du comptoir reste noire : son logo est la version blanche.
   - **Un thème est une marque complète** (`THEMES`, `demo-simulateur.js`),
     celle qu'aurait un vrai partenaire dans `HOTELS` : le fond sombre des
     bandeaux (`fond`, `fond2`, clés propres à la démo), le bouton, le texte
@@ -569,12 +580,15 @@ montrer aussi l'exemple avec la page où les réservations se font ».
     deux couleurs (fond et bouton) ; le premier est choisi d'office. Un choix
     gardé d'avant (une couleur, l'or, un choix libre) revient au Bleu.
   - `test-demo-hotel`, bloc 2 ter : pour chaque thème, à 390 et 1280 px, sur
-    la page du QR, le formulaire et le comptoir, le contraste de chaque texte
-    posé sur un fond coloré ; **aucun thème ne doit rendre illisible un texte
-    que le Bleu laisse lisible** (le Bleu a deux défauts d'origine, hors des
-    thèmes : les pastilles « 1 2 3 » du formulaire, 4,16:1, et le blanc sur
-    le vert de WhatsApp). Il a trouvé, avant correction, le « EN » noir sur
-    le noir du comptoir (1,02:1).
+    la page du QR, le formulaire et le comptoir, le contraste de CHAQUE texte
+    sur son fond ; **aucun thème ne doit rendre illisible un texte que le
+    Bleu laisse lisible** (le Bleu a ses défauts d'origine, hors des thèmes :
+    les pastilles « 1 2 3 » du formulaire, 4,16:1, les flèches de la page du
+    QR, le blanc sur le vert de WhatsApp). Et le grand bouton se détache de
+    son bandeau au moins autant que dans le Bleu. Il a trouvé, avant
+    correction : le « EN » noir sur le noir du comptoir (1,02:1), l'onglet
+    doré de la barre du bas sur blanc (2,4:1), les liens blancs sur le blanc
+    du thème Blanc (1:1).
 - **L'arrivée prend aussi l'en-tête blanc de la vraie page** (logo, FR/EN) :
   la barre de couleur du formulaire y ajoutait une couleur que la vraie page
   n'a pas. Ses boutons FR/EN pilotent ceux du moteur ; l'en-tête du formulaire

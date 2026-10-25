@@ -229,14 +229,19 @@ for (const w of [390, 1280]) {
 }
 
 /* ═══ 2 ter. LES THÈMES DU PROSPECT (25/10/2026) ═══
-   Barbaros : « le bleu actuel, noir or, et deux autres couleurs classe ». Un
-   thème repeint les trois écrans (page du QR, formulaire, réception) : AUCUN
-   NE DOIT RENDRE ILLISIBLE UN TEXTE QUE LE BLEU LAISSE LISIBLE. On mesure le
-   contraste de chaque texte posé sur un fond coloré (pas sur le blanc), et on
-   le compare à ce que donne le Bleu — ses petits défauts d'origine (les
-   pastilles « 1 2 3 » du formulaire, le blanc sur le vert de WhatsApp) ne
-   sont pas ceux des thèmes. Mesuré avant correction : l'or sous du blanc
-   (1,9:1), le « EN » noir sur le noir du comptoir (1,02:1). */
+   Barbaros : « le bleu actuel, noir or », puis « un fond noir écriture
+   blanche » et « un fond blanc écriture noire ». Un thème repeint les trois
+   écrans (page du QR, formulaire, réception) : AUCUN NE DOIT RENDRE
+   ILLISIBLE UN TEXTE QUE LE BLEU LAISSE LISIBLE. On mesure le contraste de
+   CHAQUE texte sur son fond, clair compris (le thème Blanc retourne les
+   bandeaux), et on le compare à ce que donne le Bleu — ses petits défauts
+   d'origine (les pastilles « 1 2 3 » du formulaire, les flèches de la page
+   du QR, le blanc sur le vert de WhatsApp) ne sont pas ceux des thèmes.
+   Mesuré avant correction : l'or sous du blanc (1,9:1), le « EN » noir sur
+   le noir du comptoir (1,02:1), l'onglet doré sur blanc (2,4:1), les liens
+   blancs sur le blanc du thème Blanc (1:1). Et le grand bouton du bandeau se
+   détache de son fond au moins autant que dans le Bleu (un bouton noir sur
+   le noir disparaît, quel que soit son texte). */
 const SCAN_CONTRASTE = () => {
   const rvb = s => { const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/.exec(s || ''); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]] : null; };
   const L = c => { const t = c.slice(0, 3).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; };
@@ -248,7 +253,7 @@ const SCAN_CONTRASTE = () => {
     if (![...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
     const r = e.getBoundingClientRect(); if (!r.width || !r.height || r.bottom < 0 || r.top > innerHeight * 3) continue;
     const c = getComputedStyle(e); if (c.visibility === 'hidden' || +c.opacity < .5 || e.closest('#demoBandeau,#demoCadre,#demoPied,svg')) continue;
-    const fond = fondDe(e), t = rvb(c.color); if (L(fond) > .8 || !t) continue;
+    const fond = fondDe(e), t = rvb(c.color); if (!t) continue;
     const x = L(t), y = L(fond), q = (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
     const grand = parseFloat(c.fontSize) >= 24 || (parseFloat(c.fontSize) >= 18.66 && +c.fontWeight >= 700);
     if (q < (grand ? 3 : 4.5)) fautes.push(`${e.id ? '#' + e.id : String(e.className || e.tagName).slice(0, 30)} « ${e.textContent.trim().slice(0, 20)} »`);
@@ -264,19 +269,29 @@ for (const w of [390, 1280]) {
     await p.evaluate(t => localStorage.setItem('ela_demo__ela_demo_perso', JSON.stringify({ theme: t })), t);
     await p.goto(BASE + '/demo/hotel/'); await p.waitForTimeout(1200);
     const fautes = await p.evaluate(SCAN_CONTRASTE);
-    const cta = await p.evaluate(() => getComputedStyle(document.querySelector('#demoArrivee .qr-cta')).backgroundImage);
+    const cta = await peinte(p, '#demoArrivee .qr-cta');
+    const detache = await p.evaluate(() => {
+      const rvb = s => (/rgba?\([^)]*\)/.exec(s) || ['rgb(0,0,0)'])[0].match(/[\d.]+/g).slice(0, 3).map(Number);
+      const L = c => { const t = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; };
+      const peint = e => { const c = getComputedStyle(e); return rvb(/gradient/.test(c.backgroundImage) ? c.backgroundImage : c.backgroundColor); };
+      const [x, y] = [L(peint(document.querySelector('#demoArrivee .qr-cta'))), L(peint(document.querySelector('#demoArrivee .qr-hero')))];
+      return (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
+    });
     await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(500); await p.evaluate(() => scrollTo(0, 0));
     fautes.push(...(await p.evaluate(SCAN_CONTRASTE)).map(f => 'formulaire ' + f));
     await p.goto(BASE + '/demo/hotel/reception/'); await p.waitForTimeout(1500);
     fautes.push(...(await p.evaluate(SCAN_CONTRASTE)).map(f => 'réception ' + f));
-    mesures[t] = { fautes, cta };
+    mesures[t] = { fautes, cta, detache };
   }
   const base = new Set((mesures[themes[0]] || { fautes: [] }).fautes);
   for (const t of themes.slice(1)) {
     const nouvelles = mesures[t].fautes.filter(f => !base.has(f));
     check(`thème « ${t} » ${w} px : aucun texte illisible que le thème par défaut laisse lisible`, nouvelles.length === 0, nouvelles.slice(0, 4).join(' ; '));
   }
-  check(`thèmes ${w} px : chacun repeint la page du QR`, new Set(themes.map(t => mesures[t].cta)).size === themes.length);
+  check(`thèmes ${w} px : chacun repeint la page du QR`, new Set(themes.map(t => mesures[t].cta)).size === themes.length, themes.map(t => mesures[t].cta).join(' · '));
+  const peuDetaches = themes.slice(1).filter(t => mesures[t].detache < mesures[themes[0]].detache - .01);
+  check(`thèmes ${w} px : le grand bouton se détache de son bandeau au moins autant que dans le thème par défaut`, peuDetaches.length === 0,
+    themes.map(t => `${t} ${mesures[t].detache.toFixed(2)}`).join(' · '));
   check(`thèmes ${w} px : aucune erreur JavaScript`, p.errs.length === 0, p.errs.join(' ; '));
   await ctx.close();
 }
@@ -473,9 +488,9 @@ for (const w of [390, 1280]) {
   }
   check('perso : chaque thème donne un bouton lisible (≥ 4,5:1 avec son propre texte)', illisibles.length === 0, illisibles.join(', '));
   check('perso : chaque thème repeint le bouton d\'une couleur à lui', peints.size === themes.length, [...peints].join(' · '));
-  /* Le bordeaux, gardé pour la suite : la réception doit porter le même. */
-  await p.click('.demo-pastille[data-theme="bordeaux"]');
-  const bordeaux = await peinte(p, '#btnVoirPrix');
+  /* Le noir et or, gardé pour la suite : la réception doit porter le même. */
+  await p.click('.demo-pastille[data-theme="noir-or"]');
+  const choisi = await peinte(p, '#btnVoirPrix');
   check('perso : le cadre de la démo garde le bleu Elatransfer', (await p.evaluate(() => getComputedStyle(document.querySelector('.demo-cadre')).backgroundColor)) === 'rgb(6, 47, 85)');
   /* Une photo : générée dans la page, déposée en APPUYANT SUR LE CADRE
      « Votre photo ici » — c'est là que le prospect la cherche. */
@@ -523,7 +538,7 @@ for (const w of [390, 1280]) {
   await p.click('#demoOngletReception'); await p.waitForURL(/reception\/$/); await p.waitForTimeout(1200);
   check('réception : le fil de la démo passe à « 3 »', (await texte(p, '#demoGuide .demo-guide-num')) === '3' && /réception/i.test(await texte(p, '#demoGuide')), await texte(p, '#demoGuide'));
   check('perso : la réception porte le même nom', (await texte(p, '#recHotel')) === piege);
-  check('perso : … et le même thème', (await peinte(p, '#btnRecReserver')) === bordeaux, await peinte(p, '#btnRecReserver') + ' ≠ ' + bordeaux);
+  check('perso : … et le même thème', (await peinte(p, '#btnRecReserver')) === choisi, await peinte(p, '#btnRecReserver') + ' ≠ ' + choisi);
   await p.click('#demoPerso summary'); await p.click('#demoPersoRaz'); await p.waitForTimeout(300);
   check('perso : « Revenir à la page d\'origine » rend le nom d\'origine', (await texte(p, '#recHotel')) === 'Hôtel Ibis Roissy');
   check('perso : … et le bleu d\'origine', (await peinte(p, '#btnRecReserver')) === 'rgb(14, 111, 199)', await peinte(p, '#btnRecReserver'));
