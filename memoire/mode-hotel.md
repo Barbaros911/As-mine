@@ -213,7 +213,15 @@ sept prix, soit un quatrième endroit à tenir.
 - **Nom et téléphone exigés au comptoir aussi** (11/10/2026) : le lien de
   paiement part sur ce numéro. La chambre, facultative, se range sous le nom.
 - **Photo client** (`photoEntete`) : vidée le 20/10/2026 (CDN d'easyHotel, sans
-  accord) ; jamais une adresse `http`, seulement `/photos/…`. **Comptoir**
+  accord) ; jamais une adresse `http`, seulement `/photos/…`. **Remise le
+  25/10/2026 avec LA SIENNE** : le bâtiment, photographié par Barbaros (deux
+  prises, il a choisi celle sans personne devant la porte), recadré sans
+  l'enseigne du toit, sans données de position, 1600 px, 66 Ko
+  (`photos/easyhotel-aeroville-batiment.webp`). Aussi en fond du bandeau de
+  la page du QR : nette en haut, voile bleu nuit plein sous le texte (à
+  droite sur ordinateur) — réglage « C » choisi sur capture contre un voile
+  plus léger où le bâtiment ne se voyait pas. `test-easyhotel-client` mesure
+  chaque texte du bandeau au pixel le plus clair derrière lui. **Comptoir**
   (`photoComptoir`, 20/10/2026) : SA photo, dans le bandeau bleu nuit (≤ 190 px,
   voile plein sous le texte), dès 600 px ; jamais de fond de page (`test-reception-bon`).
 

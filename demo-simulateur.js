@@ -263,6 +263,17 @@
     if(page === "client") a1.setAttribute("aria-current", "page"); else a2.setAttribute("aria-current", "page");
     onglets.appendChild(a1); onglets.appendChild(a2);
     haut.appendChild(onglets);
+    /* LE FIL DE LA DÉMO (25/10/2026, Barbaros : « il faut bien expliquer que
+       la landing page est associée au QR code installé ou celui du flyer »).
+       Trois étapes, dites AVANT la page qu'elles décrivent : 1 la page du QR
+       code, 2 la réservation, 3 la réception. Hors de la page montrée : le
+       prospect lit la démo, ses clients ne liraient jamais ces mots. */
+    var guide = el("p", "demo-guide"); guide.id = "demoGuide";
+    guide.appendChild(el("b", "demo-guide-num"));
+    guide.appendChild(el("span", "demo-guide-texte"));
+    haut.appendChild(guide);
+    /* L'étape suit la page : les cartes (1), le formulaire et le bon (2). */
+    new MutationObserver(ecrireGuide).observe(document.body, { attributes: true, attributeFilter: ["class"] });
     haut.appendChild(construirePanneau());
 
     var suivi = el("section", "demo-suivi");
@@ -302,9 +313,33 @@
     ecrireTextes();
   }
 
+  var GUIDE = [
+    ["La page du QR code : votre client scanne le QR code posé à l'accueil ou imprimé sur votre flyer, et arrive ici, sur la page à votre nom.",
+     "The QR code page: your guest scans the QR code at your reception desk or on your flyer, and lands here, on the page in your name."],
+    ["La réservation : votre client choisit sa date et son heure, laisse son nom et son téléphone, et reçoit son bon.",
+     "The booking: your guest picks a date and time, leaves a name and phone number, and receives a booking voucher."],
+    ["Votre réception : chaque demande arrive ici, et vous voyez où elle en est.",
+     "Your front desk: every request arrives here, and you can see where it stands."]];
+  /* On n'écrit que si le texte change : l'observateur qui l'appelle ne doit
+     jamais se relancer lui-même. */
+  function ecrireGuide(){
+    var g = document.getElementById("demoGuide");
+    if(!g) return;
+    var n = racine.getAttribute("data-demo-vue") === "reception" ? 3 : document.body.classList.contains("demo-choix") ? 1 : 2;
+    var t = texte(GUIDE[n - 1][0], GUIDE[n - 1][1]);
+    if(n === 3 && equipe()) t = texte("Votre équipe : chaque demande arrive ici, et vous voyez où elle en est.",
+                                      "Your team: every request arrives here, and you can see where it stands.");
+    var num = g.querySelector(".demo-guide-num"), sp = g.querySelector(".demo-guide-texte");
+    if(num.textContent !== String(n)) num.textContent = String(n);
+    if(sp.textContent !== t) sp.textContent = t;
+    var aria = texte("Étape " + n + " sur 3", "Step " + n + " of 3");
+    if(num.getAttribute("aria-label") !== aria) num.setAttribute("aria-label", aria);
+  }
+
   function ecrireTextes(){
     var b = document.getElementById("demoBandeau");
     if(!b) return;
+    ecrireGuide();
     b.textContent = texte("Démonstration — aucune réservation réelle", "Demo — no real booking");
     /* L'échéance de l'accès (bloc 4, Barbaros : « il faut préciser à celui
        qui teste que ce n'est pas indéfini »). Elle vient de la réponse
@@ -377,12 +412,45 @@
      Les textes saisis sont posés en textContent, jamais interprétés. */
   var CLE_PERSO = "ela_demo_perso";
   var MAX_DEST = 4;
-  /* Les couleurs de l'hôtel fictif (celles de HOTELS_DEMO dans construire-demo.mjs). */
-  var MARQUE_ORIGINE = { charbon:"#062F55", vif:"#D7EAFB", bouton:"#0E6FC7", pale:"#E8F2FD", paleEncre:"#0A4F91" };
   var photoMemoire = "";
-  var NUANCIER = [["#0E6FC7", "Bleu", "Blue"], ["#8B1E3F", "Bordeaux", "Burgundy"],
-                  ["#1F6B4F", "Vert sapin", "Forest green"], ["#9A6A1F", "Or", "Gold"],
-                  ["#2F3A45", "Anthracite", "Charcoal"], ["#5B3FA0", "Violet", "Purple"]];
+  /* DEUX THÈMES, ET AUCUN AUTRE (25/10/2026). Barbaros, au fil des essais :
+     « pas de démonstration avec des couleurs moches », « proposer au pro 4
+     thèmes », « le bleu actuel, noir or », « un fond noir écriture
+     blanche », puis : on garde le Bleu et le Noir. UN THÈME EST UNE MARQUE
+     COMPLÈTE, celle qu'aurait un vrai partenaire dans HOTELS : le fond sombre
+     des bandeaux (fond, fond2), le bouton, les fonds clairs et leur encre —
+     une couleur de bouton seule ne fait pas un thème (un bouton noir
+     disparaît sur le marine). Essayés puis écartés : l'or, le bronze,
+     l'anthracite, la prune, l'indigo, le violet, le pétrole, le bordeaux, le
+     vert, le noir et or, le blanc ; le choix libre permettait pire. Le
+     premier est le thème par défaut, celui de HOTELS_DEMO. */
+  var THEMES = [
+    { cle:"bleu", fr:"Bleu", en:"Blue", rond:["#0b2d4f", "#0E6FC7"],
+      marque:{ charbon:"#062F55", vif:"#D7EAFB", bouton:"#0E6FC7", pale:"#E8F2FD", paleEncre:"#0A4F91" } },
+    /* Noir : le grand bouton du bandeau noir est BLANC sous du noir (ctaFond,
+       ctaTexte) — noir sur noir, il disparaîtrait ; ailleurs, le noir. */
+    { cle:"noir", fr:"Noir", en:"Black", rond:["#111111", "#FFFFFF"],
+      marque:{ charbon:"#111111", vif:"#E9E9E9", bouton:"#111111", pale:"#EFEFEF", paleEncre:"#111111",
+               fond:"#0B0B0B", fond2:"#262626", neutre:"#EFEFEF", titre:"#A8A8A8",
+               ctaFond:"#FFFFFF", ctaTexte:"#111111" } }];
+  /* Toutes les clés qu'un thème peut poser : on les retire avant d'en poser
+     un autre, sinon le fond du Noir resterait sous le Bleu. */
+  var CLES_MARQUE = THEMES.reduce(function(t, x){
+    Object.keys(x.marque).forEach(function(k){ if(t.indexOf(k) < 0) t.push(k); }); return t; }, []);
+  /* Un choix gardé d'avant (une couleur, l'or, un choix libre) ne correspond
+     à aucun thème : c'est le thème par défaut. */
+  function themeDe(p){
+    for(var i = 0; i < THEMES.length; i++) if(p && p.theme === THEMES[i].cle) return THEMES[i];
+    return THEMES[0];
+  }
+  /* Le thème est aussi posé en attribut : le Bleu garde les fonds
+     d'Elatransfer à l'identique, les autres repeignent les bandeaux
+     (demo.css, « data-demo-theme »). */
+  function poserTheme(t){
+    CLES_MARQUE.forEach(function(k){ racine.style.removeProperty("--h-" + k); });
+    Object.keys(t.marque).forEach(function(k){ racine.style.setProperty("--h-" + k, t.marque[k]); });
+    if(racine.getAttribute("data-demo-theme") !== t.cle) racine.setAttribute("data-demo-theme", t.cle);
+  }
 
   function lirePerso(){
     try{
@@ -398,36 +466,13 @@
     try{ stockage.setItem(CLE_PERSO, JSON.stringify(p)); return true; }catch(e){ return false; }
   }
 
-  /* LES COULEURS SONT CALCULÉES, PAS PRISES TELLES QUELLES : un jaune clair
-     choisi par le prospect donnerait un bouton illisible. On assombrit
-     jusqu'à 4,5:1 avec le blanc (WCAG AA), et le fond de l'en-tête est la
-     même teinte très éclaircie, sous une encre sombre. */
-  function hexVersRvb(h){ var n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
-  function rvbVersHex(c){ return "#" + c.map(function(x){ return Math.round(Math.max(0, Math.min(255, x))).toString(16).padStart(2, "0"); }).join(""); }
-  function lum(c){ var t = c.map(function(v){ v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
-                   return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; }
-  function contraste(a, b){ var x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }
-  function melanger(c, cible, k){ return c.map(function(v, i){ return v + (cible[i] - v) * k; }); }
-  function couleurs(hex){
-    if(!/^#[0-9a-f]{6}$/i.test(hex || "")) return null;
-    var c = hexVersRvb(hex), blanc = [255, 255, 255], noir = [0, 0, 0];
-    var bouton = c, k = 0;
-    while(contraste(bouton, blanc) < 4.6 && k < 1){ k += .04; bouton = melanger(c, noir, k); }
-    var vif = melanger(c, blanc, .84), charbon = melanger(c, noir, .72);
-    k = .72;
-    while(contraste(charbon, vif) < 7.5 && k < 1){ k += .04; charbon = melanger(c, noir, k); }
-    return { bouton: rvbVersHex(bouton), vif: rvbVersHex(vif), charbon: rvbVersHex(charbon),
-             pale: rvbVersHex(melanger(c, blanc, .9)), paleEncre: rvbVersHex(melanger(c, noir, .6)) };
-  }
-
   function appliquerPerso(){
     if(!info) return;
     var p = lirePerso();
     var nom = p.nom || info.etablissement;
     var rond = document.querySelector(".demo-initiales");
     if(rond) rond.textContent = initiales(nom);
-    var c = couleurs(p.couleur);
-    if(c) Object.keys(c).forEach(function(k){ racine.style.setProperty("--h-" + k, c[k]); });
+    poserTheme(themeDe(p));
     /* La photo s'affiche dans le BANDEAU (la finition commune, comme chez
        un partenaire) ; le cadre ne garde que son rôle de bouton. */
     var cadre = document.querySelector(".demo-photo");
@@ -512,8 +557,10 @@
           direPerso("Photo affichée, mais trop lourde pour être gardée : elle disparaîtra en changeant de page.",
                     "Photo shown, but too large to keep: it will disappear when you change page.");
         } else {
-          direPerso("Photo ajoutée. Elle reste sur votre appareil, rien n'est envoyé.",
-                    "Photo added. It stays on your device; nothing is sent.");
+          /* Elle s'affiche où la verrait un partenaire : en fond du bandeau
+             de la page du QR, puis en tête du formulaire (25/10/2026). */
+          direPerso("Photo ajoutée : elle s'affiche en haut de votre page. Elle reste sur votre appareil, rien n'est envoyé.",
+                    "Photo added: it appears at the top of your page. It stays on your device; nothing is sent.");
         }
       };
       img.onerror = function(){ direPerso("Cette image ne s'ouvre pas.", "This image cannot be opened."); };
@@ -633,20 +680,23 @@
     nom.addEventListener("input", function(){ var v = nom.value.replace(/\s+/g, " ").trim().slice(0, 60); modifier(function(q){ if(v) q.nom = v; else delete q.nom; }); });
     corps.appendChild(champ("Nom de l'établissement", "Business name", nom));
 
+    /* Chaque thème est un bouton qui dit son nom : un rond de couleur seul
+       ne se nomme pas, ni à l'œil ni au lecteur d'écran. */
     var palette = el("div", "demo-nuancier"); palette.setAttribute("role", "group");
-    NUANCIER.forEach(function(n){
+    var actuel = themeDe(p).cle;
+    THEMES.forEach(function(t){
       var b = el("button", "demo-pastille"); b.type = "button";
-      b.style.background = n[0]; b.setAttribute("data-couleur", n[0]);
-      b.setAttribute("aria-label", n[1]);
-      b.setAttribute("aria-pressed", String((p.couleur || "").toLowerCase() === n[0].toLowerCase()));
-      b.addEventListener("click", function(){ choisirCouleur(n[0]); });
+      b.setAttribute("data-theme", t.cle);
+      /* Le rond montre les deux couleurs du thème : son fond et son bouton. */
+      var rond = el("span", "demo-pastille-rond"); rond.setAttribute("aria-hidden", "true");
+      rond.style.background = "linear-gradient(135deg," + t.rond[0] + " 50%," + t.rond[1] + " 50%)";
+      b.appendChild(rond);
+      b.appendChild(bilingue("span", "demo-pastille-nom", t.fr, t.en));
+      b.setAttribute("aria-pressed", String(actuel === t.cle));
+      b.addEventListener("click", function(){ choisirTheme(t.cle); });
       palette.appendChild(b);
     });
-    var libre = el("input"); libre.type = "color"; libre.id = "demoPersoCouleur"; libre.value = p.couleur || "#0E6FC7";
-    libre.className = "demo-couleur-libre";
-    libre.addEventListener("input", function(){ choisirCouleur(libre.value); });
-    palette.appendChild(libre);
-    corps.appendChild(champ("Votre couleur", "Your colour", palette));
+    corps.appendChild(champ("Votre thème", "Your theme", palette));
 
     /* Le bouton du navigateur est écrit dans SA langue (« Choose File ») : on
        le cache et on pose le nôtre, qui suit la langue de la page. */
@@ -699,11 +749,10 @@
     raz.addEventListener("click", function(){
       photoMemoire = "";
       ecrirePerso({});
-      nom.value = ""; msg.value = ""; libre.value = "#0E6FC7";
-      ["--h-bouton", "--h-vif", "--h-charbon", "--h-pale", "--h-paleEncre"].forEach(function(v){ racine.style.removeProperty(v); });
+      nom.value = ""; msg.value = "";
       try{ window.ELA_DEMO_PAGE.appliquer({}); }catch(e){}
-      Object.keys(MARQUE_ORIGINE).forEach(function(k){ racine.style.setProperty("--h-" + k, MARQUE_ORIGINE[k]); });
-      palette.querySelectorAll(".demo-pastille").forEach(function(b){ b.setAttribute("aria-pressed", "false"); });
+      poserTheme(THEMES[0]);
+      palette.querySelectorAll(".demo-pastille").forEach(function(b, i){ b.setAttribute("aria-pressed", String(i === 0)); });
       appliquerPerso();
       direPerso("Page d'origine rétablie.", "Original page restored.");
     });
@@ -724,11 +773,10 @@
     corps.appendChild(actions);
     bloc.appendChild(corps);
 
-    function choisirCouleur(hex){
-      modifier(function(q){ q.couleur = hex; });
-      libre.value = hex;
+    function choisirTheme(cle){
+      modifier(function(q){ q.theme = cle; delete q.couleur; });
       palette.querySelectorAll(".demo-pastille").forEach(function(b){
-        b.setAttribute("aria-pressed", String(b.getAttribute("data-couleur").toLowerCase() === hex.toLowerCase()));
+        b.setAttribute("aria-pressed", String(b.getAttribute("data-theme") === cle));
       });
     }
     traduire(bloc);
@@ -908,7 +956,7 @@
      endroit que le prospect veut la voir : le chercher dans le panneau du
      haut serait un détour. */
   document.addEventListener("click", function(e){
-    var cadre = e.target && e.target.closest && e.target.closest(".demo-photo");
+    var cadre = e.target && e.target.closest && e.target.closest(".demo-photo, .demo-photo-arrivee");
     var champ = document.getElementById("demoPersoPhoto");
     if(cadre && champ) champ.click();
   });

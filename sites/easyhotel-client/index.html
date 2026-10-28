@@ -29,7 +29,9 @@
   l'accord des trois à chaque construction. Changer un prix ici seul fait
   tomber la CI — le prix est ferme, donc opposable.
 
-  PAS DE PHOTOS, ET C'EST UNE DÉCISION : le dépôt n'a aucune image propre
+  LA SEULE PHOTO EST CELLE DU BÂTIMENT (25/10/2026), prise par Barbaros,
+  en fond du bandeau. PAS DE PHOTOS DE DESTINATION, ET C'EST UNE DÉCISION :
+  le dépôt n'a aucune image propre
   d'Orly, du Bourget, de Beauvais ou de Villepinte, et on ne pose pas une
   image dont on ne connaît pas l'auteur (L335-2 CPI) — ni le château Disney,
   ni la tour Eiffel illuminée. Les codes des aéroports et des pictogrammes
@@ -57,9 +59,15 @@ a{color:inherit;text-decoration:none}
 .lang[aria-pressed="true"]{background:var(--n);border-color:var(--n);color:#fff}
 
 /* HERO — compact : les destinations doivent se voir tout de suite. */
-.hero{background:linear-gradient(135deg,#0b2d4f 0%,#123f68 100%);color:#fff;position:relative;overflow:hidden}
+/* LA PHOTO DU BÂTIMENT (25/10/2026, prise par Barbaros, choisie par lui
+   entre deux réglages). Téléphone et tablette : nette en haut du bandeau,
+   puis un voile bleu nuit PLEIN sous le texte — comme le bandeau du
+   formulaire ; le blanc se lit quelle que soit la lumière de la photo.
+   Ordinateur : à droite, le voile plein à gauche sous le texte. Sans elle
+   (réseau lent), le bandeau garde son aplat. */
+.hero{background:linear-gradient(180deg,rgba(11,45,79,.08) 0px,rgba(11,45,79,.35) 90px,rgba(11,45,79,.86) 165px,rgba(11,45,79,.95) 100%),url(../../photos/easyhotel-aeroville-batiment.webp) center 30%/cover,#0b2d4f;color:#fff;position:relative;overflow:hidden}
 .hero:after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,90,10,.35),transparent 70%)}
-.hero .wrap{position:relative;z-index:1;padding-top:22px;padding-bottom:22px}
+.hero .wrap{position:relative;z-index:1;padding-top:150px;padding-bottom:22px}
 .hero h1{margin:0 0 12px;font-size:26px;line-height:1.12;letter-spacing:-.6px;font-weight:850}
 .hero h1 span{color:#ffb38a}
 .adresse{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:11px 12px;font-size:13px;line-height:1.4}
@@ -114,12 +122,15 @@ a{color:inherit;text-decoration:none}
 
 @media(min-width:640px){
   .grille{grid-template-columns:repeat(2,1fr)}
-  .hero .wrap{padding-top:34px;padding-bottom:34px}
+  .hero{background:linear-gradient(180deg,rgba(11,45,79,.08) 0px,rgba(11,45,79,.35) 120px,rgba(11,45,79,.86) 215px,rgba(11,45,79,.95) 100%),url(../../photos/easyhotel-aeroville-batiment.webp) center 30%/cover,#0b2d4f}
+  .hero .wrap{padding-top:200px;padding-bottom:34px}
   .hero h1{font-size:34px}
   .hero-in{max-width:520px}
   .ela{width:108px}
 }
 @media(min-width:1000px){
+  .hero{background:linear-gradient(90deg,rgba(11,45,79,.95) 0%,rgba(11,45,79,.90) 45%,rgba(18,63,104,.40) 100%),url(../../photos/easyhotel-aeroville-batiment.webp) center 45%/cover,#0b2d4f}
+  .hero .wrap{padding-top:34px}
   .grille{grid-template-columns:repeat(3,1fr)}
   .li-autre{grid-column:span 2}
   .hero-in{max-width:560px}

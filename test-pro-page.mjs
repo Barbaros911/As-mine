@@ -71,7 +71,12 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
   for (const langue of ['fr', 'en']) {
     const p = await ouvrir(w, 900, langue);
     const m = await p.evaluate(() => ({ doc: document.documentElement.scrollWidth, vue: innerWidth,
-      fautif: [...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().right > innerWidth + 1)
+      /* Ce qui dépasse DANS un cadre qu'on fait glisser (les trois étapes de
+         l'aperçu, sur téléphone) n'est pas un débordement : le cadre, lui,
+         doit tenir dans l'écran — il est contrôlé comme le reste. */
+      fautif: [...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().right > innerWidth + 1
+        && !(function(){ for (let x = e.parentElement; x && x !== document.body; x = x.parentElement)
+          if (/auto|scroll/.test(getComputedStyle(x).overflowX) && x.getBoundingClientRect().right <= innerWidth + 1) return true; return false; })())
         .slice(0, 3).map(e => e.tagName + '.' + e.className + ' [' + Math.round(e.getBoundingClientRect().right) + ']') }));
     check(`${w} px ${langue.toUpperCase()} : aucun débordement horizontal`, m.doc <= m.vue && m.fautif.length === 0, JSON.stringify(m));
     // Un numéro ou une adresse coupés en deux ne se relisent plus d'un trait.
@@ -122,18 +127,31 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
   // Aucune image dont on ne connaît pas la source : le logo du site, et depuis le
   // 21/10/2026 les captures de NOTRE démonstration (données fictives), rangées
   // dans professionnels/ sous le nom apercu-… — jamais une photo d'ailleurs.
-  // Depuis le 23/10/2026, sur trois écrans : apercu-<client|equipe>-<écran>-<langue>.
+  // Depuis le 23/10/2026, sur trois écrans ; depuis le 25/10/2026, en trois étapes :
+  // apercu-<client|reservation|equipe>-<écran>-<langue>.
   const imgs = await p.$$eval('img', l => l.map(i => i.getAttribute('src')));
-  check('aucune image hors du logo du site et des captures de la démo', imgs.every(s => /^\/brand-logo|^\/professionnels\/apercu-(client|equipe)-(telephone|tablette|ordinateur)-(fr|en)\.webp$/.test(s)), imgs.join(', '));
+  check('aucune image hors du logo du site et des captures de la démo', imgs.every(s => /^\/brand-logo|^\/professionnels\/apercu-(client|reservation|equipe)-(telephone|tablette|ordinateur)-(fr|en)\.webp$/.test(s)), imgs.join(', '));
   // Les captures : dimensions déclarées (la page ne saute pas), chargement
   // différé, un texte de remplacement qui décrit.
   const ap = await p.$$eval('.apercu img', l => l.map(i => ({ src: i.getAttribute('src'), w: i.getAttribute('width'), h: i.getAttribute('height'),
     lazy: i.loading === 'lazy', alt: i.alt.length })));
-  check('six captures de la démo (page client et espace équipe, sur trois écrans), chacune avec dimensions, chargement différé et texte de remplacement',
-    ap.length === 6 && ap.every(i => i.w && i.h && i.lazy && i.alt >= 60), JSON.stringify(ap));
+  check('les captures de la démo (page du QR code, réservation, espace équipe, sur trois écrans), chacune avec dimensions, chargement différé et texte de remplacement',
+    ap.length === 9 && ap.every(i => i.w && i.h && i.lazy && i.alt >= 60), JSON.stringify(ap));
+  /* LES TROIS ÉTAPES, DANS L'ORDRE (25/10/2026, Barbaros : « bien expliquer
+     que la landing page est associée au QR code […] et montrer aussi la page
+     où les réservations se font ») : sur chaque écran, 1 la page du QR code,
+     2 la réservation, 3 l'équipe, et la première légende dit d'où vient le
+     client — le QR code de l'accueil ou du flyer. */
+  const etapes = await p.$$eval('.apercu-grille[data-ecran]', l => l.map(g => [...g.querySelectorAll('figure')].map(f => ({
+    vue: (/apercu-(\w+)-/.exec(f.querySelector('img').getAttribute('src')) || [])[1], legende: f.querySelector('figcaption').textContent.trim() }))));
+  check('chaque écran raconte les trois étapes dans l\'ordre : 1 page du QR code, 2 réservation, 3 équipe',
+    etapes.length === 3 && etapes.every(e => e.map(f => f.vue).join() === 'client,reservation,equipe' && e.every((f, i) => f.legende.startsWith(`${i + 1}. `))),
+    JSON.stringify(etapes));
+  check('la première étape dit que la page s\'ouvre au QR code, de l\'accueil ou du flyer',
+    etapes.every(e => /QR code[\s\S]*accueil[\s\S]*flyer/.test(e[0].legende)), etapes[0] && etapes[0][0].legende);
   // TROIS ÉCRANS (23/10/2026, Barbaros : « qu'ils puissent voir la version
   // ordinateur, téléphone, tablette ») : un bouton par écran, un seul écran
-  // visible à la fois, et chaque bouton montre SES deux captures, qui
+  // visible à la fois, et chaque bouton montre SES trois captures, qui
   // s'affichent vraiment. Sur un téléphone, on ouvre sur le téléphone.
   await p.evaluate(() => document.querySelector('.apercu').scrollIntoView());
   const etat = () => p.evaluate(() => ({
@@ -152,11 +170,23 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
     await bouton.click();
     await p.waitForFunction(() => [...document.querySelectorAll('.apercu-grille[data-ecran] img')].filter(i => i.offsetHeight > 0).every(i => i.complete && i.naturalWidth > 0), null, { timeout: 5000 }).catch(() => {});
     const e = await etat();
-    check(`« ${ecran} » : le bouton reçoit l'appui, et seules ses deux captures s'affichent`,
-      recoit && e.presse.join() === ecran && e.visibles.join() === ecran && e.imgs.length === 2
+    check(`« ${ecran} » : le bouton reçoit l'appui, et seules ses trois captures s'affichent`,
+      recoit && e.presse.join() === ecran && e.visibles.join() === ecran && e.imgs.length === 3
       && e.imgs.every(i => i.vu > 0 && i.src.includes(`-${ecran}-`)), JSON.stringify(e));
   }
   check('390 px : aucun débordement horizontal avec l\'aperçu', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  /* Sur un téléphone, les trois étapes se font glisser : la première est
+     entière à l'écran, la troisième s'atteint du doigt et s'affiche. */
+  const glisse = await p.evaluate(async () => {
+    const g = document.querySelector('.apercu-grille[data-ecran="telephone"]'); const f = g.querySelectorAll('figure');
+    const premiere = f[0].getBoundingClientRect(); g.scrollLeft = g.scrollWidth;
+    await new Promise(r => setTimeout(r, 400));
+    const derniere = f[f.length - 1].getBoundingClientRect(), img = f[f.length - 1].querySelector('img');
+    return { premiere: premiere.left >= 0 && premiere.right <= innerWidth, derniere: derniere.left >= 0 && derniere.right <= innerWidth + 1,
+      chargee: img.complete && img.naturalWidth > 0, glisse: g.scrollWidth > g.clientWidth };
+  });
+  check('390 px : les trois étapes se font glisser, la première entière, la troisième atteinte et affichée',
+    glisse.premiere && glisse.derniere && glisse.glisse && glisse.chargee, JSON.stringify(glisse));
   await p.context().close();
 }
 
@@ -181,7 +211,7 @@ const lignesFr = new Set(textes.fr.corps.split('\n').map(s => s.trim()).filter(s
 const restes = textes.en.corps.split('\n').map(s => s.trim()).filter(s => lignesFr.has(s));
 check('EN : aucune ligne ne reste en français', restes.length === 0, restes.join(' | '));
 check('EN : les captures de la démo passent en anglais (image et texte de remplacement)',
-  textes.en.images.length === 6 && textes.en.images.every((s, i) => /-en\.webp$/.test(s) && textes.en.alts[i] !== textes.fr.alts[i])
+  textes.en.images.length === 9 && textes.en.images.every((s, i) => /-en\.webp$/.test(s) && textes.en.alts[i] !== textes.fr.alts[i])
   && textes.fr.images.every(s => /-fr\.webp$/.test(s)), JSON.stringify([textes.fr.images, textes.en.images]));
 check('EN : aucun libellé de lecteur d\'écran ne reste en français', !textes.en.aria.some(a => /accueil|Lire en/.test(a) && !/français/.test(a)), textes.en.aria.join(' | '));
 const INTERDITS = {

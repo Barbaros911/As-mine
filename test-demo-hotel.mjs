@@ -98,13 +98,25 @@ const jjmm = ms => { const d = new Date(ms); return ('0' + d.getDate()).slice(-2
 /* ═══ 0. UNE ÉCHÉANCE ILLISIBLE NE S'INVENTE PAS ═══ */
 {
   const { ctx, p } = await ouvrir({ reponse: { expire: 'demain' } });
-  check('échéance illisible : la démo s\'ouvre, et le bandeau n\'invente aucune date', await visible(p, '#hotelTete') && !(await p.$('#demoAcces')));
+  check('échéance illisible : la démo s\'ouvre, et le bandeau n\'invente aucune date', await visible(p, '#demoArrivee') && !(await p.$('#demoAcces')));
   await ctx.close();
 }
 /* ═══ 1. LE NOM VIENT DE LA RÉPONSE, EN TEXTE ═══ */
 {
   const { ctx, p } = await ouvrir();
-  check('la démo s\'ouvre avec une session valable', await visible(p, '#hotelTete'));
+  check('la démo s\'ouvre avec une session valable', await visible(p, '#demoArrivee'));
+  check('… sur la page d\'arrivée, au nom rendu par « ouvrir »', await p.evaluate(() =>
+    [...document.querySelectorAll('#demoArrivee [data-demo-arrivee="nom"]')].every(e => e.textContent === 'Hôtel Ibis Roissy')));
+  /* LE TITRE A DEUX COULEURS, COMME LA VRAIE PAGE (25/10/2026, vu par
+     Barbaros sur sa capture) : « Votre transfert depuis » en accent, le nom
+     de l'hôtel de la couleur du titre. Dans un <span>, le nom prenait
+     l'accent. */
+  const titre = await p.evaluate(() => { const h1 = document.querySelector('#demoArrivee .qr-hero h1'); if (!h1) return null;
+    const nom = [...h1.childNodes].find(n => n.nodeType === 3 && n.nodeValue.includes('Hôtel Ibis Roissy'));
+    const accent = h1.querySelector('#demoArrivee-titreHaut');
+    return { nomDansLeTitre: !!nom, couleurTitre: getComputedStyle(h1).color, couleurAccent: accent && getComputedStyle(accent).color }; });
+  check('le titre de la page d\'arrivée a deux couleurs : l\'accent, puis le nom de l\'hôtel en couleur du titre',
+    !!titre && titre.nomDansLeTitre && titre.couleurTitre !== titre.couleurAccent, JSON.stringify(titre));
   check('le nom rendu par « ouvrir » est affiché', (await texte(p, '#hotelTeteNom')) === 'Hôtel Ibis Roissy', await texte(p, '#hotelTeteNom'));
   check('un rond porte les initiales, pas un logo', (await texte(p, '.demo-initiales')) === 'HI', await texte(p, '.demo-initiales'));
   check('la zone photo dit « Votre photo ici »', (await texte(p, '#demoPhotoTexte')) === 'Votre photo ici');
@@ -117,6 +129,16 @@ const jjmm = ms => { const d = new Date(ms); return ('0' + d.getDate()).slice(-2
   check('le bandeau reste en haut après défilement', await p.evaluate(() => { scrollTo(0, 900); const r = document.getElementById('demoBandeau').getBoundingClientRect(); return r.top <= 1 && r.bottom > 10; }));
   check('« ouvrir » est appelé avec la session et sans clé Supabase', p.appels.length >= 1 && p.appels[0].action === 'ouvrir' && p.appels[0].session === 's.test' && !JSON.stringify(p.appels).includes('apikey'));
   check('un QR code mène à la page des professionnels', await p.evaluate(() => !!document.querySelector('#demoQr svg')));
+  /* LA VRAIE PAGE DU QR PORTE LA PHOTO DU BÂTIMENT D'EASYHOTEL (25/10/2026) :
+     la démo, fabriquée depuis elle, ne la montre JAMAIS ; à sa place, le cadre
+     « Votre photo ici », qui ouvre le choix du fichier. */
+  check('la page d\'arrivée ne montre aucune photo de l\'hôtel réel', await p.evaluate(() => {
+    const f = getComputedStyle(document.querySelector('#demoArrivee .qr-hero')).backgroundImage; return !/url\(/.test(f); }));
+  check('« Votre photo ici » est en haut de la page d\'arrivée, là où la vraie montre le bâtiment',
+    (await texte(p, '#demoPhotoArrivee')) === 'Votre photo ici' && await visible(p, '#demoPhotoArrivee')
+    && await p.evaluate(() => document.getElementById('demoPhotoArrivee').getBoundingClientRect().bottom < document.querySelector('#demoArrivee .qr-hero h1').getBoundingClientRect().top + 4));
+  const [choixArrivee] = await Promise.all([p.waitForEvent('filechooser', { timeout: 3000 }).catch(() => null), p.click('#demoPhotoArrivee')]);
+  check('… et ce cadre ouvre le choix du fichier', !!choixArrivee);
   check('les forfaits ne sont pas ceux d\'un partenaire réel', !/easyhotel/i.test(await p.content()));
   check('aucune erreur JavaScript à l\'ouverture', p.errs.length === 0, p.errs.join(' ; '));
   await ctx.close();
@@ -131,6 +153,8 @@ const jjmm = ms => { const d = new Date(ms); return ('0' + d.getDate()).slice(-2
   const { ctx, p } = await ouvrir({ reponse: { etablissement: piege } });
   check('un nom à chevrons s\'affiche en texte', (await texte(p, '#hotelTeteNom')) === piege.slice(0, 60), await texte(p, '#hotelTeteNom'));
   check('… et n\'injecte aucun élément', await p.evaluate(() => !window.__pirate && !document.querySelector('#hotelTete img, #hotelTete b')));
+  check('… ni sur la page d\'arrivée', await p.evaluate((n) => !document.querySelector('#demoArrivee [data-demo-arrivee] *')
+    && [...document.querySelectorAll('#demoArrivee [data-demo-arrivee="nom"]')].every(e => e.textContent === n), piege.slice(0, 60)));
   await ctx.close();
 }
 {
@@ -156,7 +180,7 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   const { ctx, p } = await ouvrir({ reponse: panne });
   check(`serveur ${panne} → « Démonstration momentanément indisponible »`, /Démonstration momentanément indisponible/.test(await texte(p, '#demoIndispo')) && await visible(p, '#demoIndispo'));
   check(`serveur ${panne} → un contact est proposé`, await p.evaluate(() => !!document.querySelector('#demoIndispo a[href="/professionnels/#contact"]')));
-  check(`serveur ${panne} → la démo n'est jamais montrée`, !(await visible(p, '#hotelTete')) && !(await visible(p, '#btnVoirPrix')));
+  check(`serveur ${panne} → la démo n'est jamais montrée`, !(await visible(p, '#demoArrivee')) && !(await visible(p, '#hotelTete')) && !(await visible(p, '#btnVoirPrix')));
   await ctx.close();
 }
 {
@@ -165,30 +189,176 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   await ctx.close();
 }
 
+/* ═══ 2 bis. L'ARRIVÉE EST LA VRAIE PAGE DU QR (25/10/2026) ═══
+   Barbaros : « ce que je présente en démo est bien derrière ». La démo
+   montrait une copie de la page du QR dessinée le 8/10 ; la vraie avait
+   changé, la copie non. Elle est désormais fabriquée depuis la page publiée
+   (construire-demo.mjs) : chaque bloc VISIBLE de la vraie page doit y être,
+   avec le même dessin mesuré — sans quoi la démo reprend du retard en
+   silence, ou la feuille du moteur déborde sur elle. */
+const versDemo = sel => '#demoArrivee ' + sel.replace(/\.([a-z][\w-]*)/g, '.qr-$1');
+const DESSIN = ['.hero h1', '.adresse', '.fixe', '.cta', '.note', '.dest h2', '.carte[data-dest="cdg"]', '.carte[data-dest="cdg"] .pict',
+  '.carte[data-dest="cdg"] .nom b', '.carte[data-dest="cdg"] .nom small', '.carte[data-dest="cdg"] .px i', '.autre', '.etapes', '.etapes em', '.aide h2', '.btns a', '.pied img', '.pied nav a', '.top .ela', '.top .lang'];
+const PROPRIETES = ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'textAlign', 'display', 'paddingTop', 'paddingLeft',
+  'borderTopLeftRadius', 'borderTopWidth', 'gridTemplateColumns', 'marginTop', 'marginBottom'];
+for (const w of [390, 1280]) {
+  const ctxReel = await b.newContext({ viewport: { width: w, height: 844 }, locale: 'fr-FR' });
+  await ctxReel.route('**/*', r => r.request().url().startsWith(BASE) ? r.continue() : r.abort());
+  const reel = await ctxReel.newPage();
+  await reel.goto(BASE + '/easyhotel-client/'); await reel.waitForTimeout(400);
+  const { ctx, p } = await ouvrir({ w });
+  const blocs = await reel.evaluate(() => [...new Set([...document.querySelectorAll('header, header [class], main [class], footer')].filter(e => {
+    const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden'; }).flatMap(e => [...e.classList]))]);
+  const manquent = await p.evaluate(cs => cs.filter(c => ![...document.querySelectorAll('#demoArrivee .qr-' + c)].some(e => {
+    const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; })), blocs);
+  check(`arrivée ${w} px : chaque bloc de la vraie page du QR y est (${blocs.length})`, blocs.length > 10 && manquent.length === 0, manquent.length ? 'manquent : ' + manquent.join(', ') : '');
+  const mesurer = (pg, liste) => pg.evaluate(([liste, props]) => liste.map(s => { const e = document.querySelector(s); if (!e) return null;
+    const c = getComputedStyle(e), r = e.getBoundingClientRect(); const m = { largeur: Math.round(r.width) };
+    props.forEach(k => { m[k] = k === 'gridTemplateColumns' ? c[k].split(' ').filter(Boolean).length : c[k]; }); return m; }), [liste, PROPRIETES]);
+  const [vrai, demo] = [await mesurer(reel, DESSIN), await mesurer(p, DESSIN.map(versDemo))];
+  const ecarts = [];
+  DESSIN.forEach((s, i) => {
+    if (!vrai[i] || !demo[i]) { ecarts.push(`${s} absent`); return; }
+    /* La colonne du nom prend la place que lui laisse celle des prix (« à
+       fixer » est plus court que « 35 € ») : sa largeur dépend du texte. */
+    for (const k of Object.keys(vrai[i])) if (!(k === 'largeur' && / \.nom /.test(s)) && String(vrai[i][k]) !== String(demo[i][k]))
+      ecarts.push(`${s} ${k} ${vrai[i][k]} ≠ ${demo[i][k]}`);
+  });
+  check(`arrivée ${w} px : le même dessin que la vraie page (polices, marges, colonnes, largeurs)`, ecarts.length === 0, ecarts.slice(0, 6).join(' ; '));
+  const colonnes = (pg, s) => pg.evaluate(s => { const e = document.querySelector(s); return e ? getComputedStyle(e).gridTemplateColumns.split(' ').length : 0; }, s);
+  const [colReel, colDemo] = [await colonnes(reel, '.grille'), await colonnes(p, '#demoArrivee .qr-grille')];
+  check(`arrivée ${w} px : les cartes ont autant de colonnes que sur la vraie page`, colReel > 0 && colReel === colDemo, colReel === colDemo ? '' : `${colReel} ≠ ${colDemo}`);
+  /* JAMAIS LA COULEUR D'UN PARTENAIRE RÉEL : on lit ce que l'écran peint. */
+  const orange = await p.evaluate(() => {
+    const teintes = []; const lire = v => [...String(v).matchAll(/rgba?\((\d+), (\d+), (\d+)/g)].map(m => [+m[1], +m[2], +m[3]]);
+    for (const e of [document.getElementById('demoArrivee'), ...document.querySelectorAll('#demoArrivee *')].filter(Boolean)) {
+      const c = getComputedStyle(e);
+      for (const v of [c.color, c.backgroundColor, c.borderTopColor, c.backgroundImage, c.boxShadow, c.stroke])
+        for (const [r, g, bl] of lire(v)) { const max = Math.max(r, g, bl), min = Math.min(r, g, bl);
+          if (max === r && max - min >= 90) { const t = 60 * (g - bl) / (max - min); if (t >= 10 && t <= 45) teintes.push(`${e.className || e.tagName} rgb(${r},${g},${bl})`); } }
+      const apres = getComputedStyle(e, '::after').backgroundImage;
+      for (const [r, g, bl] of lire(apres)) { const max = Math.max(r, g, bl), min = Math.min(r, g, bl);
+        if (max === r && max - min >= 90) { const t = 60 * (g - bl) / (max - min); if (t >= 10 && t <= 45) teintes.push(`${e.className}::after rgb(${r},${g},${bl})`); } }
+    }
+    return teintes;
+  });
+  check(`arrivée ${w} px : aucune couleur orange d'un partenaire réel`, orange.length === 0, orange.slice(0, 4).join(' ; '));
+  check(`arrivée ${w} px : rien ne déborde`, await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  check(`arrivée ${w} px : aucune erreur JavaScript`, p.errs.length === 0, p.errs.join(' ; '));
+  await ctx.close(); await ctxReel.close();
+}
+
+/* ═══ 2 ter. LES THÈMES DU PROSPECT (25/10/2026) ═══
+   Barbaros, au fil des essais (noir et or, blanc…), garde le Bleu et le Noir.
+   Un thème repeint les trois
+   écrans (page du QR, formulaire, réception) : AUCUN NE DOIT RENDRE
+   ILLISIBLE UN TEXTE QUE LE BLEU LAISSE LISIBLE. On mesure le contraste de
+   CHAQUE texte sur son fond, clair compris (le thème Blanc retourne les
+   bandeaux), et on le compare à ce que donne le Bleu — ses petits défauts
+   d'origine (les pastilles « 1 2 3 » du formulaire, les flèches de la page
+   du QR, le blanc sur le vert de WhatsApp) ne sont pas ceux des thèmes.
+   Mesuré avant correction : l'or sous du blanc (1,9:1), le « EN » noir sur
+   le noir du comptoir (1,02:1), l'onglet doré sur blanc (2,4:1), les liens
+   blancs sur le blanc du thème Blanc (1:1). Et le grand bouton du bandeau se
+   détache de son fond au moins autant que dans le Bleu (un bouton noir sur
+   le noir disparaît, quel que soit son texte). */
+const SCAN_CONTRASTE = () => {
+  const rvb = s => { const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/.exec(s || ''); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]] : null; };
+  const L = c => { const t = c.slice(0, 3).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; };
+  const fondDe = e => { for (let x = e; x; x = x.parentElement) { const c = getComputedStyle(x);
+    const g = /gradient/.test(c.backgroundImage) ? rvb(c.backgroundImage) : null; if (g && g[3] > .9) return g;
+    const f = rvb(c.backgroundColor); if (f && f[3] > .9) return f; } return [255, 255, 255, 1]; };
+  const fautes = [];
+  for (const e of document.querySelectorAll('body *')) {
+    if (![...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+    const r = e.getBoundingClientRect(); if (!r.width || !r.height || r.bottom < 0 || r.top > innerHeight * 3) continue;
+    const c = getComputedStyle(e); if (c.visibility === 'hidden' || +c.opacity < .5 || e.closest('#demoBandeau,#demoCadre,#demoPied,svg')) continue;
+    const fond = fondDe(e), t = rvb(c.color); if (!t) continue;
+    const x = L(t), y = L(fond), q = (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
+    const grand = parseFloat(c.fontSize) >= 24 || (parseFloat(c.fontSize) >= 18.66 && +c.fontWeight >= 700);
+    if (q < (grand ? 3 : 4.5)) fautes.push(`${e.id ? '#' + e.id : String(e.className || e.tagName).slice(0, 30)} « ${e.textContent.trim().slice(0, 20)} »`);
+  }
+  return fautes;
+};
+for (const w of [390, 1280]) {
+  const { ctx, p } = await ouvrir({ w });
+  const themes = await p.$$eval('#demoPerso .demo-pastille[data-theme]', l => l.map(b => b.getAttribute('data-theme')));
+  check(`thèmes ${w} px : plusieurs thèmes, le premier par défaut`, themes.length >= 2, themes.join(', '));
+  const mesures = {};
+  for (const t of themes) {
+    await p.evaluate(t => localStorage.setItem('ela_demo__ela_demo_perso', JSON.stringify({ theme: t })), t);
+    await p.goto(BASE + '/demo/hotel/'); await p.waitForTimeout(1200);
+    const fautes = await p.evaluate(SCAN_CONTRASTE);
+    const cta = await peinte(p, '#demoArrivee .qr-cta');
+    const detache = await p.evaluate(() => {
+      const rvb = s => (/rgba?\([^)]*\)/.exec(s) || ['rgb(0,0,0)'])[0].match(/[\d.]+/g).slice(0, 3).map(Number);
+      const L = c => { const t = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; };
+      const peint = e => { const c = getComputedStyle(e); return rvb(/gradient/.test(c.backgroundImage) ? c.backgroundImage : c.backgroundColor); };
+      const [x, y] = [L(peint(document.querySelector('#demoArrivee .qr-cta'))), L(peint(document.querySelector('#demoArrivee .qr-hero')))];
+      return (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
+    });
+    await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(500); await p.evaluate(() => scrollTo(0, 0));
+    fautes.push(...(await p.evaluate(SCAN_CONTRASTE)).map(f => 'formulaire ' + f));
+    await p.goto(BASE + '/demo/hotel/reception/'); await p.waitForTimeout(1500);
+    fautes.push(...(await p.evaluate(SCAN_CONTRASTE)).map(f => 'réception ' + f));
+    mesures[t] = { fautes, cta, detache };
+  }
+  const base = new Set((mesures[themes[0]] || { fautes: [] }).fautes);
+  for (const t of themes.slice(1)) {
+    const nouvelles = mesures[t].fautes.filter(f => !base.has(f));
+    check(`thème « ${t} » ${w} px : aucun texte illisible que le thème par défaut laisse lisible`, nouvelles.length === 0, nouvelles.slice(0, 4).join(' ; '));
+  }
+  check(`thèmes ${w} px : chacun repeint la page du QR`, new Set(themes.map(t => mesures[t].cta)).size === themes.length, themes.map(t => mesures[t].cta).join(' · '));
+  const peuDetaches = themes.slice(1).filter(t => mesures[t].detache < mesures[themes[0]].detache - .01);
+  check(`thèmes ${w} px : le grand bouton se détache de son bandeau au moins autant que dans le thème par défaut`, peuDetaches.length === 0,
+    themes.map(t => `${t} ${mesures[t].detache.toFixed(2)}`).join(' · '));
+  check(`thèmes ${w} px : aucune erreur JavaScript`, p.errs.length === 0, p.errs.join(' ; '));
+  await ctx.close();
+}
+
+/* Une couleur gardée d'avant le 25/10/2026 (l'or, un choix libre) n'est plus
+   appliquée : le prospect revenu voit le bleu, pas une page moutarde. */
+{
+  const { ctx, p } = await ouvrir();
+  await p.evaluate(() => localStorage.setItem('ela_demo__ela_demo_perso', JSON.stringify({ couleur: '#9A6A1F' })));
+  await p.reload(); await p.waitForTimeout(1200);
+  check('perso : une couleur hors des thèmes, gardée d\'avant, n\'est plus appliquée : c\'est le thème par défaut',
+    (await peinte(p, '#demoArrivee .qr-cta')) === 'rgb(14, 111, 199)', await peinte(p, '#demoArrivee .qr-cta'));
+  await ctx.close();
+}
+
 /* ═══ 3. LE PARCOURS CLIENT → RÉCEPTION ═══ */
 {
   const { ctx, p } = await ouvrir();
   /* LA PAGE D'ARRIVÉE : les cartes d'abord, le formulaire ensuite. */
-  check('arrivée : « Où souhaitez-vous aller ? » et les cartes à l\'ouverture', /Où souhaitez-vous aller/.test(await texte(p, '#demoCartes')) && await visible(p, '.demo-carte[data-dest="cdg"]'));
+  check('arrivée : « Où souhaitez-vous aller ? » et les cartes à l\'ouverture', /Où souhaitez-vous aller/.test(await texte(p, '#demoArrivee')) && await visible(p, '.demo-carte[data-dest="cdg"]'));
   check('arrivée : le formulaire attend qu\'on choisisse', !(await visible(p, '#btnVoirPrix')));
   check('arrivée : une carte par destination, plus « Autre destination »',
     await p.evaluate(() => document.querySelectorAll('.demo-carte').length === document.querySelectorAll('#hotelDest option').length));
   /* AUCUN PRIX PROPOSÉ (8/10/2026) : l'hôtel fixe les siens, ceux de son flyer. */
   check('arrivée : aucun prix proposé, toutes les cartes disent « à fixer »', await p.evaluate(() =>
-    [...document.querySelectorAll('.demo-carte:not(.demo-autre)')].every(c => /à fixer[\s\S]*à fixer/.test(c.innerText) && !/\d+,\d\d\s€/.test(c.innerText))));
+    [...document.querySelectorAll('.demo-carte:not(.demo-autre)')].every(c => /à fixer[\s\S]*à fixer/.test(c.innerText) && !/\d\s€/.test(c.innerText))));
   check('arrivée : une consigne dit de toucher une destination pour continuer', /Touchez une destination/.test(await texte(p, '#demoCartesAide')) && await visible(p, '#demoCartesAide'));
   /* « Prix fixes » au-dessus de cartes « à fixer » se contredisait (recette du
      8/10/2026) : la phrase d'en-tête ne promet pas un prix qui n'existe pas. */
   check('arrivée : l\'en-tête des cartes ne dit pas « Prix fixes » quand les prix sont à fixer',
-    !/prix fixes/i.test(await texte(p, '#demoCartes .demo-cartes-cap')) && /destination/i.test(await texte(p, '#demoCartes .demo-cartes-cap')),
-    await texte(p, '#demoCartes .demo-cartes-cap'));
+    !/prix fixes/i.test(await texte(p, '#demoArrivee .qr-cap')) && /à fixer/i.test(await texte(p, '#demoArrivee .qr-cap')),
+    await texte(p, '#demoArrivee .qr-cap'));
   check('arrivée : à 390 px, cet en-tête tient sur une ligne', await p.evaluate(() => {
-    const e = document.querySelector('#demoCartes .demo-cartes-cap'); const lh = parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.3;
+    const e = document.querySelector('#demoArrivee .qr-cap'); if (!e) return false; const lh = parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.3;
     return e.getBoundingClientRect().height < lh * 1.5; }));
-  check('arrivée : la page dit que ces prix sont ceux du flyer et de son QR code', /ceux de votre flyer[\s\S]*QR code/.test(await texte(p, '#demoCartesFlyer')));
+  check('arrivée : la page dit que ces prix sont ceux du flyer', /ceux de votre flyer/.test(await texte(p, '#demoCartesFlyer')));
+  /* LE LIEN QR CODE → CETTE PAGE EST DIT AVANT ELLE (25/10/2026, Barbaros :
+     « il faut bien expliquer que la landing page est associée au QR code
+     installé ou celui du flyer »), et l'étape suit la page. */
+  check('arrivée : le fil de la démo dit « 1 », le QR code de l\'accueil ou du flyer, et qu\'on arrive ici',
+    (await texte(p, '#demoGuide .demo-guide-num')) === '1' && /QR code[\s\S]*accueil[\s\S]*flyer[\s\S]*ici/.test(await texte(p, '#demoGuide'))
+    && await p.evaluate(() => document.getElementById('demoGuide').getBoundingClientRect().bottom < document.getElementById('demoArrivee').getBoundingClientRect().top),
+    await texte(p, '#demoGuide'));
   check('arrivée : aucun prix proposé dans « Vos prix »', await p.evaluate(() => [...document.querySelectorAll('#demoPrixTable input')].every(i => i.value === '')));
   await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(400);
   check('arrivée : une carte ouvre le formulaire sur SA destination', (await p.inputValue('#hotelDest')) === 'orly' && await visible(p, '#btnVoirPrix'));
+  check('formulaire : le fil passe à « 2 », la réservation', (await texte(p, '#demoGuide .demo-guide-num')) === '2' && /réservation/i.test(await texte(p, '#demoGuide')), await texte(p, '#demoGuide'));
   check('arrivée : « Toutes les destinations » est à l\'écran après le choix', await p.evaluate(() => { const r = document.getElementById('demoRetourCartes').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.height > 0; }));
   await p.click('#demoRetourCartes'); await p.waitForTimeout(300);
   check('arrivée : « Toutes les destinations » ramène aux cartes', await visible(p, '.demo-carte[data-dest="cdg"]') && !(await visible(p, '#btnVoirPrix')));
@@ -264,10 +434,11 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
     'manque : ' + attendusFr.filter(m => !recFr.includes(m)).join(', ') + ' · reste : ' + (recFr.match(/NEW RIDE|Room 214|Pending/gi) || []).join(', '));
   check('réception EN : aucune erreur JavaScript', p.errs.length === 0, p.errs.join(' ; '));
   await p.click('#demoOngletClient'); await p.waitForURL(/\/demo\/hotel\/$/); await p.waitForTimeout(800);
-  check('retour à la vue client par l\'onglet', await visible(p, '#hotelTete'));
+  check('retour à la vue client par l\'onglet', await visible(p, '#demoArrivee'));
   /* EN ANGLAIS */
-  await p.click('.langues [data-langue="en"]'); await p.waitForTimeout(300);
-  check('en anglais, les cartes suivent', /Tap a destination/.test(await texte(p, '#demoCartesAide')) && /Where would you like to go/.test(await texte(p, '#demoCartes')) && /Sedan/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
+  /* Sur l'arrivée, les boutons FR/EN sont ceux de la vraie page du QR ; ils pilotent ceux du moteur. */
+  await p.click('#demoArrivee .qr-lang[data-lang="en"]'); await p.waitForTimeout(300);
+  check('en anglais, les cartes suivent', /Tap a destination/.test(await texte(p, '#demoCartesAide')) && /Where would you like to go/.test(await texte(p, '#demoArrivee')) && /Sedan/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
   check('en anglais, l\'échéance suit', /^Access valid until \d\d\/\d\d on this device$/.test(await texte(p, '#demoAcces')), await texte(p, '#demoAcces'));
   check('en anglais, le cadre de la démo suit', (await bandeau(p)) === 'Demo — no real booking' && (await texte(p, '#demoOngletClient')) === 'What your guest sees');
   check('aucune erreur JavaScript sur le parcours', p.errs.length === 0, p.errs.join(' ; '));
@@ -309,25 +480,44 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('perso : le nom saisi remplace celui de l\'en-tête, en texte', (await texte(p, '#hotelTeteNom')) === piege && await p.evaluate(() => !window.__pirate && !document.querySelector('#hotelTete img')));
   check('perso : les initiales sautent les articles', (await texte(p, '.demo-initiales')) === 'RI', await texte(p, '.demo-initiales'));
   check('perso : le départ du formulaire porte le nouveau nom', (await p.inputValue('#depart')).startsWith(piege));
-  /* Un jaune pâle : le bouton doit rester lisible (blanc à 4,5:1 au moins). */
-  await p.evaluate(() => { const c = document.getElementById('demoPersoCouleur'); c.value = '#ffe14d'; c.dispatchEvent(new Event('input', { bubbles: true })); });
-  /* LA COULEUR PEINTE, PAS LA SEULE « backgroundColor » : sous la finition
-     commune (11/10/2026), le bouton est un dégradé, et sa couleur de fond
-     est transparente — lue seule, elle rendait un rapport de 21 et ce
-     contrôle passait sans rien vérifier. */
-  const ratio = await p.evaluate(() => {
+  /* DES THÈMES CHOISIS, AUCUN AUTRE (25/10/2026, Barbaros : « pas de
+     démonstration avec des couleurs moches », « proposer au pro 4 thèmes ») :
+     pas de choix libre, chaque thème dit son nom, le premier est choisi
+     d'office, et chacun donne un bouton lisible. LA COULEUR PEINTE, PAS LA SEULE
+     « backgroundColor » : sous la finition commune (11/10/2026), le bouton
+     est un dégradé, et sa couleur de fond est transparente — lue seule, elle
+     rendait un rapport de 21 et ce contrôle passait sans rien vérifier. */
+  check('perso : pas de couleur au choix libre, seulement les thèmes', await p.evaluate(() =>
+    !document.querySelector('#demoPerso input[type="color"]') && document.querySelectorAll('#demoPerso .demo-pastille').length >= 2));
+  const themes = await p.$$eval('#demoPerso .demo-pastille', l => l.map(b => ({ nom: b.innerText.trim(), presse: b.getAttribute('aria-pressed') })));
+  check('perso : chaque thème dit son nom, et le premier est choisi d\'office', themes.every(t => t.nom.length >= 3)
+    && themes.map(t => t.presse).join() === ['true', ...themes.slice(1).map(() => 'false')].join(), JSON.stringify(themes));
+  /* Le bouton lisible SOUS SON PROPRE TEXTE : le noir et or pose du noir
+     sur l'or (texteAction), les autres du blanc. */
+  const lisible = () => p.evaluate(() => {
     const s = getComputedStyle(document.getElementById('btnVoirPrix'));
-    const rvb = (/rgb\([^)]*\)/.exec(s.backgroundImage) || [s.backgroundColor])[0].match(/\d+/g).slice(0, 3).map(Number);
+    const rvb = v => v.match(/\d+/g).slice(0, 3).map(Number);
+    const fond = rvb((/rgb\([^)]*\)/.exec(s.backgroundImage) || [s.backgroundColor])[0]), texte = rvb(s.color);
     const l = c => { const t = c.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * t[0] + .7152 * t[1] + .0722 * t[2]; };
-    return 1.05 / (l(rvb) + .05);
+    const [x, y] = [l(fond), l(texte)]; return (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
   });
-  check('perso : un jaune pâle donne un bouton lisible (≥ 4,5:1 avec le blanc)', ratio >= 4.5, ratio.toFixed(2));
-  await p.click('.demo-pastille[data-couleur="#8B1E3F"]');
-  check('perso : une pastille du nuancier repeint le bouton', (await peinte(p, '#btnVoirPrix')) === 'rgb(139, 30, 63)', await peinte(p, '#btnVoirPrix'));
+  const illisibles = [], peints = new Set();
+  for (const t of await p.$$eval('#demoPerso .demo-pastille', l => l.map(b => b.getAttribute('data-theme')))) {
+    await p.click(`.demo-pastille[data-theme="${t}"]`); const r = await lisible(); if (r < 4.5) illisibles.push(`${t} ${r.toFixed(2)}`);
+    peints.add(await peinte(p, '#btnVoirPrix'));
+  }
+  check('perso : chaque thème donne un bouton lisible (≥ 4,5:1 avec son propre texte)', illisibles.length === 0, illisibles.join(', '));
+  check('perso : chaque thème repeint le bouton d\'une couleur à lui', peints.size === themes.length, [...peints].join(' · '));
+  /* Le Noir, gardé pour la suite : la réception doit porter le même. */
+  await p.click('.demo-pastille[data-theme="noir"]');
+  const choisi = await peinte(p, '#btnVoirPrix');
   check('perso : le cadre de la démo garde le bleu Elatransfer', (await p.evaluate(() => getComputedStyle(document.querySelector('.demo-cadre')).backgroundColor)) === 'rgb(6, 47, 85)');
   /* Une photo : générée dans la page, déposée en APPUYANT SUR LE CADRE
      « Votre photo ici » — c'est là que le prospect la cherche. */
   const png = await p.evaluate(() => { const c = document.createElement('canvas'); c.width = 1400; c.height = 900; const g = c.getContext('2d'); g.fillStyle = '#7799bb'; g.fillRect(0, 0, 1400, 900); return c.toDataURL('image/png').split(',')[1]; });
+  /* Le cadre photo est dans l'en-tête de l'hôtel, qui vient avec le formulaire
+     (comme chez un partenaire : la page du QR n'en a pas). */
+  await p.click('.demo-carte[data-dest="cdg"]'); await p.waitForTimeout(400);
   check('perso : le cadre photo se présente comme un bouton', await p.evaluate(() => { const c = document.querySelector('.demo-photo'); return c.getAttribute('role') === 'button' && c.tabIndex === 0 && !!c.getAttribute('aria-label'); }));
   const [choix] = await Promise.all([p.waitForEvent('filechooser', { timeout: 3000 }).catch(() => null), p.click('.demo-photo')]);
   check('perso : appuyer sur le cadre « Votre photo ici » ouvre le choix du fichier', !!choix);
@@ -340,6 +530,11 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('perso : la photo s\'affiche dans le bandeau de l\'hôtel, comme chez un partenaire', await p.evaluate(() =>
     /url\("data:image\/jpeg/.test(getComputedStyle(document.getElementById('hotelTete')).backgroundImage) && !document.body.classList.contains('eh-sans-photo')));
   check('perso : … et le cadre devient « Changer la photo »', (await texte(p, '#demoPhotoTexte')) === 'Changer la photo');
+  await p.click('#demoRetourCartes'); await p.waitForTimeout(300);
+  check('perso : la photo passe aussi en haut de la page d\'arrivée, et le cadre dit « Changer la photo »', await p.evaluate(() =>
+    /url\("data:image\/jpeg/.test(getComputedStyle(document.querySelector('#demoArrivee .qr-hero')).backgroundImage))
+    && (await texte(p, '#demoPhotoArrivee')) === 'Changer la photo');
+  await p.click('.demo-carte[data-dest="cdg"]'); await p.waitForTimeout(300);
   check('perso : … réduite à 1000 px au plus', await p.evaluate(() => new Promise(ok => { const i = new Image(); i.onload = () => ok(Math.max(i.width, i.height) <= 1000); i.onerror = () => ok(false);
     i.src = /url\("([^"]+)"\)/.exec(document.documentElement.style.getPropertyValue('--h-photo-entete'))[1]; })));
   await p.fill('#demoPersoMessage', 'Bienvenue <b>chez nous</b>');
@@ -351,22 +546,24 @@ for (const panne of ['muet', 503, 403, 413, 429]) {
   check('perso : un prix à 0 € est refusé, et on dit pourquoi', /entre 1 et 2 000/.test(await texte(p, '#demoPersoEtat')));
   await p.click('#demoPersoVoir');
   check('perso : « Voir ma page » referme le panneau', !(await p.evaluate(() => document.getElementById('demoPerso').open)));
-  check('perso : la destination ajoutée a sa carte, avec ses prix', /Stade de France[\s\S]*60,00\s€[\s\S]*90,00\s€/.test(await texte(p, '.demo-carte[data-dest^="perso-"]')));
+  check('perso : la destination ajoutée a sa carte, avec ses prix', /Stade de France[\s\S]*60\s€[\s\S]*90\s€/.test(await texte(p, '.demo-carte[data-dest^="perso-"]')));
   /* Le prix fixé dans « Vos prix » passe sur la carte, puis au formulaire. */
   await p.click('#demoPerso summary');
   await p.fill('#demoPrixTable input[data-cle="cdg"][data-gamme="berline"]', '52'); await p.press('#demoPrixTable input[data-cle="cdg"][data-gamme="berline"]', 'Tab');
   await p.waitForTimeout(200);
-  check('perso : un prix fixé dans « Vos prix » passe sur la carte', /52,00\s€[\s\S]*à fixer/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
+  check('perso : un prix fixé dans « Vos prix » passe sur la carte', /52\s€[\s\S]*à fixer/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
   await p.fill('#demoPrixTable input[data-cle="cdg"][data-gamme="van"]', '0'); await p.press('#demoPrixTable input[data-cle="cdg"][data-gamme="van"]', 'Tab');
   check('perso : « Vos prix » refuse un prix à 0 €', /entre 1 et 2 000/.test(await texte(p, '#demoPersoEtat')) && /à fixer/.test(await texte(p, '.demo-carte[data-dest="cdg"]')));
   await p.click('#demoPersoVoir');
+  await p.click('#demoRetourCartes'); await p.waitForTimeout(300);
   await p.click('.demo-carte[data-dest^="perso-"]'); await p.waitForTimeout(400);
   check('perso : son forfait s\'affiche avec la destination', (await p.inputValue('#hotelDest')).startsWith('perso-') && /60,00\s€.*90,00\s€/.test(await p.evaluate(() => document.body.innerText)));
   check('perso : le vrai stockage du site n\'a rien reçu', await p.evaluate(() => Object.keys(localStorage).every(k => k === 'ela_demo_session' || k.startsWith('ela_demo__'))));
   check('perso : aucune connexion interdite tentée', p.violations.length === 0 && p.supabase.length === 0, p.violations.concat(p.supabase).join(' | '));
   await p.click('#demoOngletReception'); await p.waitForURL(/reception\/$/); await p.waitForTimeout(1200);
+  check('réception : le fil de la démo passe à « 3 »', (await texte(p, '#demoGuide .demo-guide-num')) === '3' && /réception/i.test(await texte(p, '#demoGuide')), await texte(p, '#demoGuide'));
   check('perso : la réception porte le même nom', (await texte(p, '#recHotel')) === piege);
-  check('perso : … et la même couleur', (await peinte(p, '#btnRecReserver')) === 'rgb(139, 30, 63)', await peinte(p, '#btnRecReserver'));
+  check('perso : … et le même thème', (await peinte(p, '#btnRecReserver')) === choisi, await peinte(p, '#btnRecReserver') + ' ≠ ' + choisi);
   await p.click('#demoPerso summary'); await p.click('#demoPersoRaz'); await p.waitForTimeout(300);
   check('perso : « Revenir à la page d\'origine » rend le nom d\'origine', (await texte(p, '#recHotel')) === 'Hôtel Ibis Roissy');
   check('perso : … et le bleu d\'origine', (await peinte(p, '#btnRecReserver')) === 'rgb(14, 111, 199)', await peinte(p, '#btnRecReserver'));

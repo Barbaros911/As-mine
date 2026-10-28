@@ -41,6 +41,8 @@ alerte Telegram.
   envoyée**. C'est la sienne, ou rien (8/10/2026, à sa demande : « la
   personne doit mettre sa photo ») : le cadre « Votre photo ici » ouvre le
   choix du fichier (rôle bouton, clavier compris), le champ du panneau reste.
+  Depuis le 25/10/2026, ce cadre est en tête du formulaire, après le choix
+  d'une destination : la page du QR n'a pas de photo (voir plus bas).
 - **Initiales au lieu d'un logo** (« Le Relais de Roissy » → RR, les articles
   sautés).
 - **La réception de la démo passe en anglais aussi** (8/10/2026, à sa
@@ -179,7 +181,9 @@ alerte Telegram.
   une fois pour toutes : une page qui bascule ne tenait pas.
 - **Fabriquées à la construction** par `construire-demo.mjs`, à partir des
   pages DÉJÀ construites `site/application.html` et
-  `site/easyhotel-reception/index.html` (elles ont déjà perdu l'admin).
+  `site/easyhotel-reception/index.html` (elles ont déjà perdu l'admin) — et,
+  depuis le 25/10/2026, de la page du QR `site/easyhotel-client/index.html`
+  pour l'arrivée du client.
   `index.html` n'est jamais touché : l'hôtel fictif `demo-hotel` n'existe
   que dans la sortie démo.
 - **Le simulateur** (`demo-simulateur.js`) remplace TOUTE la couche serveur
@@ -208,11 +212,12 @@ alerte Telegram.
   jamais la démo. Aucune clé Supabase envoyée.
 - **Le nom vient de la réponse du serveur**, jamais de l'adresse : posé en
   `textContent`, coupé à 60 caractères ; vide → « Hôtel Démo · Roissy ».
-- **La page d'arrivée** fait comme celle d'un partenaire : « Où
-  souhaitez-vous aller ? » et les destinations en cartes, construites depuis
-  `HOTELS` (jamais recopiées), puis le formulaire ; « ← Toutes les
-  destinations » revient. Consigne : « Touchez une destination pour faire une
-  réservation d'essai, comme vos clients. » Pas de cartes au comptoir.
+- **La page d'arrivée EST la vraie page du QR** (25/10/2026, plus bas) :
+  fabriquée depuis elle, remplie depuis `HOTELS` (jamais recopiée), puis le
+  formulaire ; « ← Toutes les destinations » revient. Consigne : « Touchez une
+  destination pour faire une réservation d'essai, comme vos clients. » Pas de
+  cartes au comptoir. **Ne jamais la redessiner à la main** : c'est ainsi
+  qu'elle avait pris du retard.
 - **« Personnaliser ma page »** (sur les deux vues) : nom (60 car.), couleur
   (six pastilles + sélecteur ; assombrie jusqu'à 4,6:1 pour le bouton, encre
   à 7,5:1 sur l'en-tête), photo (réduite à 1000 px, jamais envoyée, perdue au
@@ -402,7 +407,8 @@ l'hôtel en service, avec son accord écrit).
   390 px ×2, réception 1280 px ; WebP ≈ 45 Ko chacune, une par langue
   (`data-src-en`), chargement différé. `test-pro-page` n'accepte que le logo et
   `professionnels/apercu-*-fr|en.webp`, et exige qu'elles s'affichent et
-  changent de langue. **Refaire les captures si la démo change d'aspect.**
+  changent de langue. **Refaire les captures si la démo change d'aspect** :
+  `sh construire.sh && node .claude/outils/captures-pro.mjs` (depuis le 25/10).
   Reste : dans la démo anglaise, le trajet s'écrit encore « L'hôtel → Orly ».
 - **Trois écrans** (23/10/2026, Barbaros : « qu'ils puissent voir la version
   ordinateur, téléphone, tablette ») : six captures par langue
@@ -467,3 +473,144 @@ l'agent). Tout, et pourquoi : `memoire/demo-pro.md`.
   minimum attendu par la page, 5 demandes/h/IP et 3/jour/e-mail. L'accès dure
   7 jours, et c'est écrit partout. Aucun secret à poser : celui des sessions
   se dérive de la clé service_role (`DEMO_SESSION_SECRET` posé l'emporte).
+
+---
+
+## 25 octobre 2026 — la démo rattrape la vraie page du QR
+
+Barbaros, capture de « Aperçu sur téléphone, tablette et ordinateur » à
+l'appui : « ce que je présente en démo est bien derrière […] comment le
+mettre à jour ? comme un expert ». Priorité annoncée P1 (outil de vente aux
+hôtels ; le P0 #399 était porté par la PR #425, aucun fichier commun).
+
+- **Mesuré, page par page, sur le site construit** : la réception de la démo
+  était À JOUR (fabriquée depuis la vraie à chaque construction ; seules
+  différences voulues : pas de prix, pas de photo, le bleu). **La page
+  client, non** : la démo montrait l'en-tête du formulaire (« Votre photo
+  ici », « Tarifs partenaires », Départ/Arrivée) et ses propres cartes,
+  dessinées le 8/10 ; la vraie page du QR avait depuis « Votre transfert
+  depuis… », l'adresse, « Départ hôtel déjà renseigné », « Réserver mon
+  transfert », les cartes sur trois colonnes, les étapes 1-2-3, « Besoin
+  d'aide ? » et le pied. Une copie ne suit pas l'original.
+- **La correction est structurelle, comme pour la réception** :
+  `arriveeDepuisPageQr()` lit la page publiée, garde son style et son
+  contenu, préfixe classes (`qr-`) et identifiants (`demoArrivee-`) — le
+  moteur a déjà ses `.carte`, `.prix`, `.etapes` —, cloisonne le style sous
+  `#demoArrivee` (une remise à zéro `all:revert` empêche la feuille du moteur
+  d'y entrer), retire nom, adresse, prix, liens et script de l'hôtel réel, et
+  change sa couleur en celle de l'hôtel du prospect (`TEINTES`). Les cartes
+  deviennent des modèles (`<template>`) que la démo clone : destinations de
+  l'hôtel fictif et celles du prospect, prix « à fixer » ou les siens, au
+  format de la vraie page (« 52 € »).
+- **La construction échoue** si un repère de la page du QR disparaît, si un
+  lien relatif, le nom ou l'adresse d'un partenaire réel y reste, ou si une
+  teinte orange y reste (éprouvé : retirer `#ff5a0a` de `TEINTES` fait
+  tomber `construire.sh`).
+- **Ce qui change pour le prospect** : sur l'arrivée, ni l'en-tête du
+  formulaire ni la barre du bas — comme sur la vraie page ; ils viennent avec
+  le formulaire. Le cadre photo, les initiales, « Vos prix : ceux de votre
+  flyer » et le message d'accueil y sont donc ; la phrase « Photo ajoutée »
+  le dit. La ligne « Prix fixes » devient « Prix à fixer » tant qu'un prix
+  manque (même longueur : une ligne à 390 px).
+- **Le « + » de « Nouvelle course »** était un carré blanc vide dans la
+  réception de la démo (visible sur la capture de Barbaros) : la finition
+  commune le peint de la couleur du texte du bouton — noir sur l'orange
+  d'easyHotel, blanc sur le bleu. `demo.css` le peint en bleu ; la vraie
+  réception n'est pas touchée. Un futur partenaire à bouton foncé aurait le
+  même carré vide : à corriger dans la finition commune ce jour-là.
+- **`test-demo-hotel`, bloc 2 bis**, à 390 et 1280 px : chaque bloc visible
+  de la vraie page du QR doit être dans l'arrivée (« manquent : hero, cta… »
+  sur l'ancien code), avec le même dessin mesuré (polices, marges, colonnes,
+  largeurs ; seule la largeur du nom dans une carte dépend du prix), aucune
+  couleur orange peinte, rien qui déborde. Sur l'ancien code : 15 contrôles
+  tombent en nommant le défaut.
+- **Les captures** de `/professionnels/` sont refaites par
+  `.claude/outils/captures-pro.mjs` (WebP fabriqué par Chromium, 29 à 49 Ko ;
+  un navigateur par langue, lancé avec `LANG` : sinon la date des champs
+  s'écrivait « 10/25/2026 · 10:00 AM » sur une capture française).
+- Vu et laissé : après le choix d'une destination, l'en-tête collé du moteur
+  recouvre la moitié haute de « ← Toutes les destinations » ; le doigt
+  l'atteint (mesuré). Identique avant ce changement.
+
+### Même jour, seconde passe : les thèmes, le QR code dit, trois étapes
+
+Barbaros, sur les captures avant/après : « pas de démonstration avec des
+couleurs moches, seulement quelques couleurs, et il faut bien expliquer que
+la landing page est associée au QR code installé ou celui du flyer et
+montrer aussi l'exemple avec la page où les réservations se font ».
+
+- **Deux thèmes : Bleu (par défaut) et Noir, plus de choix libre.** Au fil
+  des essais, Barbaros a vu trois couleurs, puis quatre (avec le Pétrole),
+  puis « le bleu actuel, noir or, et deux autres couleurs classe »
+  (Bordeaux, Vert anglais), puis Noir et Blanc à leur place ; il a gardé le
+  Bleu et le Noir. Écartés : l'or, le bronze (ternes), l'anthracite, la
+  prune, l'indigo (fondus dans le marine), le violet, le pétrole, le
+  bordeaux, le vert, le noir et or, le blanc ; le sélecteur libre
+  permettait pire.
+  - **Un thème est une marque complète** (`THEMES`, `demo-simulateur.js`),
+    celle qu'aurait un vrai partenaire dans `HOTELS` : le fond sombre des
+    bandeaux (`fond`, `fond2`), le bouton, les fonds clairs et leur encre.
+    Une couleur de bouton seule ne fait pas un thème : un bouton noir
+    disparaît sur le marine.
+  - **Noir** : bandeaux noirs, écriture blanche, actions noires — sauf le
+    grand bouton du bandeau, BLANC sous du noir (`ctaFond`, `ctaTexte`).
+  - Le thème suit les trois écrans : sur la page du QR, le marine et son
+    bleu pâle sont des variables (`TEINTES` : `--demo-fond`, `--demo-fond2`,
+    `--demo-neutre`) ; au formulaire et au comptoir, `demo.css` repeint les
+    bandeaux (`html[data-demo-theme]`, posé par `poserTheme`). **Le Bleu
+    garde ceux d'Elatransfer à l'identique.**
+  - Appris en essayant le noir et or et le blanc (retirés) : **la finition
+    commune pose du blanc sur l'action côté client** (bandeau du téléphone,
+    « Tarifs partenaires », « Départ de l'hôtel », « Voir mon prix »…) ;
+    seul le comptoir lit `texteAction`. Un partenaire à couleur claire (l'or)
+    aura besoin de cette correction dans la finition commune ; un thème à
+    bandeaux blancs, de retourner tous les textes que les trois écrans
+    écrivent en blanc.
+  - Chaque thème est un bouton qui dit son nom, avec un rond qui montre ses
+    deux couleurs ; le premier est choisi d'office. Un choix gardé d'avant
+    (une couleur, un thème retiré) revient au Bleu.
+  - `test-demo-hotel`, bloc 2 ter : pour chaque thème, à 390 et 1280 px, sur
+    la page du QR, le formulaire et le comptoir, le contraste de CHAQUE texte
+    sur son fond ; **aucun thème ne doit rendre illisible un texte que le
+    Bleu laisse lisible** (le Bleu a ses défauts d'origine : les pastilles
+    « 1 2 3 » du formulaire, 4,16:1, les flèches de la page du QR, le blanc
+    sur le vert de WhatsApp). Et le grand bouton se détache de son bandeau au
+    moins autant que dans le Bleu. Il a trouvé, sur les thèmes essayés : le
+    « EN » noir sur le noir du comptoir (1,02:1), l'onglet doré sur blanc
+    (2,4:1), les liens blancs sur le blanc (1:1), et le bouton noir sur le
+    noir.
+- **L'arrivée prend aussi l'en-tête blanc de la vraie page** (logo, FR/EN) :
+  la barre de couleur du formulaire y ajoutait une couleur que la vraie page
+  n'a pas. Ses boutons FR/EN pilotent ceux du moteur ; l'en-tête du formulaire
+  revient avec le formulaire. Le test de dessin l'a mesuré : la feuille du
+  moteur grossissait ses boutons (16 px au lieu de 13,3) — `button` et
+  `header` sont entrés dans la remise à zéro.
+- **Le fil de la démo** (`#demoGuide`, sous les onglets, hors de la page
+  montrée) : « 1 La page du QR code : votre client scanne le QR code posé à
+  l'accueil ou imprimé sur votre flyer, et arrive ici, sur la page à votre
+  nom », puis « 2 La réservation », puis « 3 Votre réception » (« votre
+  équipe » pour une agence). L'étape suit la page (classe `demo-choix`,
+  onglet). La phrase bleue sous les cartes ne redit plus le QR code : « Ces
+  prix sont ceux de votre flyer. »
+- **`/professionnels/` raconte trois étapes par écran** : 1 la page du QR code,
+  2 la page de réservation (nouvelle capture, une destination touchée, cadre
+  photo et pastilles de la démo masqués), 3 l'espace équipe — légendes
+  numérotées, la première dit « le QR code posé à l'accueil ou imprimé sur
+  votre flyer ». Sur un téléphone, les trois se font glisser (une ligne qui
+  défile, la suivante dépasse au bord) ; le contrôle de débordement de
+  `test-pro-page` ignore ce qui dépasse DANS un cadre qui défile, si le cadre
+  tient dans l'écran. 18 images, chargées à la demande.
+
+### Même jour : la photo du bâtiment sur la vraie page, « Votre photo ici » dans la démo
+
+Barbaros : « pourquoi il n'y a plus la photo de l'hôtel ? […] c'est pour la
+vraie page client easyHotel », puis deux photos du bâtiment, prises par lui.
+La vraie page du QR porte désormais la photo du bâtiment en haut de son
+bandeau (`memoire/mode-hotel.md`). **La démo, fabriquée depuis cette page, ne
+la montre jamais** : `arriveeDepuisPageQr` remplace toute image `/photos/…` du
+style par `var(--h-photo-entete,none)` — la photo du prospect, sinon rien — et
+refuse toute autre image ; le voile bleu nuit devient celui du thème
+(`TEINTES`). Là où la vraie page montre le bâtiment, la démo pose le cadre
+« Votre photo ici » (`#demoPhotoArrivee`), qui ouvre le choix du fichier et
+devient « Changer la photo » une fois la photo posée : le prospect retrouve sa
+photo dès le premier écran, ce que Barbaros regrettait.

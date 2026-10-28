@@ -244,10 +244,11 @@ try {
     check('easyHotel : « Prix fixes » en tête, pas « Tarifs partenaires »', e.sur === 'Prix fixes', e.sur);
     check('easyHotel : son nom reste en tête, comme lieu de départ', e.nom === 'easyHotel Aéroville', e.nom);
     check('easyHotel : son logo ramène à la page du QR', e.logo === '/easyhotel-client/', e.logo);
-    /* 20/10/2026 : la photo venait du site d'easyHotel, sans accord écrit.
-       Vidée à la demande de Barbaros : le bandeau passe en aplat, et aucune
-       image de la page ne vient d'un autre site que le nôtre. */
-    check('easyHotel : sans photo, son bandeau passe en aplat', e.sansPhoto && !/url\(/.test(e.photo), e.photo.slice(0, 80));
+    /* 20/10/2026 : la photo venait du site d'easyHotel, sans accord écrit,
+       et a été vidée. 25/10/2026 : remise avec LA SIENNE, le bâtiment
+       photographié par Barbaros, servie par notre site (/photos/) — jamais
+       une image d'un autre site. */
+    check('easyHotel : son bandeau porte sa photo, servie par notre site', !e.sansPhoto && /url\("[^"]*\/photos\/[^"]+"\)/.test(e.photo) && !/easyhotel\.com|cdn\./i.test(e.photo), e.photo.slice(0, 120));
     check('easyHotel : aucune image de sa page ne vient d\'un autre site', p.photos.length === 0, p.photos.join(', ').slice(0, 160));
     check('easyHotel : « Voir mon prix » garde son dégradé orange', (await fond(p, '#btnVoirPrix')).includes(ORANGE));
     await ctx.close();
