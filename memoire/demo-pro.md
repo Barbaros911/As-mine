@@ -671,13 +671,34 @@ construit, à 390 × 844 et 1366 × 768, avant et après.
   cite d'hôtel ») : ni nom, ni témoignage, ni « cas client », même avec un
   accord écrit. Ne plus le proposer comme preuve. La règle « aucun client
   cité » de `CLAUDE.md` le disait déjà.
-- **La vidéo de la démo** (même jour, à sa demande, montrée avant toute
-  décision de la publier) : 53 s, téléphone, la démo réelle sur le site
-  construit — page du QR code, réservation, confirmation, réception —, hôtel
-  et client fictifs, numéro dans la plage réservée à la fiction (06 39 98),
-  montants remplacés par « votre tarif » (la démo ne propose aucun prix).
-  L'enregistreur de Playwright ne garde que les pixels CSS (390 px) : elle
-  est faite de captures d'écran en rafale (780 px), horodatées, assemblées
-  par ffmpeg. **Reste, code, à décider** : une
+- **« Voir l'outil en vidéo »** (même jour, Barbaros : « une vidéo de l'outil
+  de réception aussi », « version ordinateur aussi », « 10/10 partout ») : une
+  section juste après « Comment ça marche », deux onglets (le client réserve ·
+  la réception réserve), une vidéo à la fois. Huit fichiers : deux parcours ×
+  téléphone (portrait, 780 × 1688) et ordinateur (1920 × 1080) × français et
+  anglais, 2 à 3 Mo chacun, et une image d'attente (le titre et un bouton de
+  lecture dessiné). Le script choisit le format (≤ 700 px : téléphone) et la
+  langue (il observe `lang`) ; `preload="none"` : rien n'est téléchargé avant
+  l'appui. La vraie démo, filmée sur le site construit : hôtel et clients
+  fictifs, numéros de la plage réservée à la fiction (06 39 98), montants
+  remplacés par « votre tarif » (la démo ne propose aucun prix), et la page le
+  dit. **Refaire les vidéos si la démo change d'aspect** :
+  `sh construire.sh && node .claude/outils/videos-pro.mjs` (ffmpeg requis).
+  L'enregistreur de Playwright et le flux d'écran du navigateur ne gardent
+  que les pixels CSS (390 px) : l'outil prend des captures d'écran en rafale
+  (13 à 17 par seconde), horodatées, que ffmpeg remet au bon rythme ; une
+  capture lancée pendant un changement de page restait bloquée et coupait la
+  fin du film sans erreur (la caméra s'arrête désormais pendant la
+  navigation) ; la légende du bas recouvrait « Valider » sur téléphone
+  (`pointer-events:none`). Qualité 26 (`-tune animation`) : indiscernable de
+  21 à l'œil, deux fois plus léger. Restes de la démo visibles en anglais :
+  « L'hôtel → Orly », « Zone hôtelière », la date au format américain.
+  **À vérifier en ligne, sur un iPhone** : Safari ne lit une vidéo que si
+  l'hébergeur accepte les requêtes partielles (Range) ; non vérifiable d'ici.
+  Pour Google : les deux vidéos françaises sur ordinateur sont décrites dans
+  les données de la page (`subjectOf` du Service, `VideoObject`, éditeur
+  `#organisation`) — un seul graphe, comme ailleurs. `test-pro-page` exige
+  que leurs fichiers existent, et qu'une vidéo se lise vraiment (le Chromium
+  des suites décode le H.264 : mesuré, 2 s jouées en 2 s). **Reste, code, à décider** : une
   adresse anglaise pour cette page (`/en/professionals/`, hreflang), le lien
   « Voir nos avis sur Google » (#426).

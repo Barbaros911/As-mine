@@ -19,7 +19,7 @@ import { extname, join, normalize } from 'node:path';
 execSync('sh construire.sh', { stdio: 'ignore' });
 const TYPES = {'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json',
   '.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png',
-  '.webp':'image/webp','.jpg':'image/jpeg','.txt':'text/plain','.xml':'application/xml'};
+  '.webp':'image/webp','.jpg':'image/jpeg','.txt':'text/plain','.xml':'application/xml','.mp4':'video/mp4'};
 const serveur = createServer(async (req, res) => {
   try {
     const chemin = normalize(decodeURIComponent(req.url.split('?')[0])).replace(/^(\.\.[/\\])+/, '');
@@ -64,6 +64,20 @@ const plan = await (await fetch(SITE + 'sitemap.xml')).text();
 check('elle est au plan du site', plan.includes('<loc>https://elatransfer.com/professionnels/</loc>'));
 let ld = {}; try { ld = JSON.parse((brut.match(/<script type="application\/ld\+json">([^<]+)<\/script>/) || [, '{}'])[1]); } catch (e) {}
 check('ses données désignent l\'entreprise #organisation', (ld.provider || {})['@id'] === 'https://elatransfer.com/#organisation');
+// Les vidéos décrites à Google (28/10/2026) existent sur le site construit, et
+// rattachées à la même entreprise : une adresse morte dans les données serait
+// une vidéo fantôme dans les résultats.
+{
+  const vids = (ld.subjectOf || []).filter(v => v['@type'] === 'VideoObject');
+  const morts = [];
+  for (const v of vids) for (const u of [v.contentUrl, v.thumbnailUrl]) {
+    const chemin = String(u || '').replace('https://elatransfer.com/', '');
+    const r = await fetch(SITE + chemin); if (r.status !== 200 || !/^professionnels\/(video|affiche)-/.test(chemin)) morts.push(u);
+  }
+  check('les vidéos décrites à Google existent, avec leur image, et désignent #organisation',
+    vids.length >= 2 && morts.length === 0 && vids.every(v => (v.publisher || {})['@id'] === 'https://elatransfer.com/#organisation' && /^PT\d+S$/.test(v.duration) && v.uploadDate),
+    morts.join(' ') || String(vids.length));
+}
 const constr = await readFile('construire.sh', 'utf8');
 const lignesCmd = constr.split('\n').filter(l => !/^\s*#/.test(l)).join('\n');
 check('construire.sh réserve les noms « professionnels » et « demo »', /reserves="[^"]*\bprofessionnels\b[^"]*\bdemo\b/.test(lignesCmd));
@@ -301,6 +315,63 @@ for (const langue of ['fr', 'en']) {
     : ['/en/cdg-airport-transfer-paris/', '/en/orly-airport-transfer-paris/', '/en/'];
   check(`${langue.toUpperCase()} : le pied relie les pages des voyageurs${langue === 'en' ? ', en anglais' : ''}`, attendus.every(h => pied.includes(h)), pied.join(' '));
   await p.context().close();
+}
+
+// 7. VOIR L'OUTIL EN VIDÉO (28/10/2026, Barbaros : « une vidéo de l'outil de
+//    réception aussi », « version ordinateur aussi »). Nos vidéos seulement,
+//    rien de téléchargé avant l'appui (une vidéo pèse 2 à 3 Mo), le format de
+//    l'écran (portrait sur téléphone), la langue de la page, et chaque fichier
+//    publié : une vidéo oubliée par construire.sh serait une 404 en ligne.
+{
+  const publies = new Set();
+  for (const [w, h, ecran] of [[390, 844, 'telephone'], [1366, 768, 'ordinateur']]) for (const langue of ['fr', 'en']) {
+    const ctx = await b.newContext({ viewport: { width: w, height: h }, locale: langue === 'en' ? 'en-US' : 'fr-FR' });
+    await ctx.addInitScript(l => { try { localStorage.setItem('ela_langue', l); } catch (e) {} }, langue);
+    const p = await ctx.newPage();
+    const videos = []; p.on('request', r => { if (/\.(mp4|webm|mov)(\?|$)/.test(r.url())) videos.push(r.url()); });
+    await p.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+    await p.goto(PAGE, { waitUntil: 'load' });
+    const lire = () => p.evaluate(() => { const e = document.getElementById('videoDemo'); return e && { src: e.getAttribute('src'), affiche: e.getAttribute('poster'),
+      preload: e.getAttribute('preload'), controls: e.controls, inline: e.hasAttribute('playsinline'), label: e.getAttribute('aria-label'),
+      presse: [...document.querySelectorAll('.choix-video button[aria-pressed="true"]')].map(x => x.dataset.video).join() }; });
+    const nom = (parcours) => new RegExp(`^/professionnels/video-${parcours}-${ecran}-${langue}\\.mp4$`);
+    const v1 = await lire();
+    check(`${w} px ${langue.toUpperCase()} : la vidéo du client, au format ${ecran}, dans la langue de la page`,
+      !!v1 && nom('client').test(v1.src) && v1.affiche === v1.src.replace('/video-', '/affiche-').replace('.mp4', '.webp') && v1.presse === 'client', JSON.stringify(v1));
+    check(`${w} px ${langue.toUpperCase()} : commandes visibles, lecture dans la page, rien de chargé d'avance`,
+      !!v1 && v1.controls && v1.inline && v1.preload === 'none', JSON.stringify(v1));
+    check(`${w} px ${langue.toUpperCase()} : le lecteur d'écran entend ce que montre la vidéo, dans la langue de la page`,
+      !!v1 && (langue === 'en' ? /^Demonstration video/ : /^Vidéo de la démonstration/).test(v1.label), v1 && v1.label);
+    const bouton = p.locator('.choix-video button[data-video="reception"]');
+    let recoit = false;
+    if (await bouton.count()) {
+      await p.evaluate(() => document.querySelector('.choix-video').scrollIntoView({ block: 'center', behavior: 'instant' }));
+      recoit = await bouton.evaluate(e => { const r = e.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === e; });
+      await bouton.click(); await p.waitForTimeout(200);
+    }
+    const v2 = await lire();
+    check(`${w} px ${langue.toUpperCase()} : « réception » reçoit l'appui et met sa vidéo, au même format`,
+      recoit && !!v2 && nom('reception').test(v2.src) && v2.presse === 'reception' && v2.affiche === v2.src.replace('/video-', '/affiche-').replace('.mp4', '.webp'), JSON.stringify(v2));
+    const dims = await p.evaluate(() => { const v = document.getElementById('videoDemo'); if (!v) return { l: 0, h: 0, droite: Infinity }; const e = v.getBoundingClientRect(); return { l: e.width, h: e.height, droite: e.right }; });
+    check(`${w} px ${langue.toUpperCase()} : la vidéo tient dans l'écran, ${ecran === 'telephone' ? 'en portrait' : 'en paysage'}`,
+      dims.droite <= w && (ecran === 'telephone' ? dims.h > dims.l : dims.l > dims.h), JSON.stringify(dims));
+    check(`${w} px ${langue.toUpperCase()} : aucune vidéo téléchargée sans appui`, videos.length === 0, videos.join(' '));
+    for (const v of [v1, v2]) if (v) { publies.add(v.src); publies.add(v.affiche); }
+    // Elle se lit vraiment : un appui, et le temps avance (une seule fois, sur
+    // ordinateur en français — le décodeur est le même pour les huit).
+    if (w === 1366 && langue === 'fr') {
+      const t = await p.evaluate(async () => { const e = document.getElementById('videoDemo'); if (!e) return null;
+        try { await e.play(); } catch (x) { return 'refus : ' + x.message; }
+        await new Promise(r => setTimeout(r, 2000)); e.pause(); return e.currentTime; });
+      check('la vidéo se lit vraiment (le temps avance après l\'appui)', typeof t === 'number' && t > 0.8, String(t));
+    }
+    await ctx.close();
+  }
+  check('les huit vidéos et leurs images d\'attente sont nommées', publies.size === 16, [...publies].join(' '));
+  const manquent = [];
+  for (const f of publies) { const r = await fetch(SITE + f.slice(1)); const n = (await r.arrayBuffer()).byteLength;
+    if (r.status !== 200 || n < (f.endsWith('.mp4') ? 200e3 : 5e3)) manquent.push(`${f} (${r.status}, ${n} o)`); }
+  check('chaque vidéo et chaque image d\'attente est publiée par construire.sh', manquent.length === 0, manquent.join(' | '));
 }
 
 await b.close();

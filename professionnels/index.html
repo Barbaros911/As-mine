@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","@id":"https://elatransfer.com/professionnels/#service","name":"Transferts avec chauffeur pour hôtels, agences et entreprises","serviceType":"Page de réservation, QR code et espace équipe, avec organisation des transferts","audience":{"@type":"BusinessAudience","audienceType":"Hôtels, agences, entreprises et organisateurs d'événements"},"areaServed":[{"@type":"City","name":"Paris"},{"@type":"AdministrativeArea","name":"Île-de-France"}],"provider":{"@type":"Organization","@id":"https://elatransfer.com/#organisation","name":"Elatransfer","url":"https://elatransfer.com/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","@id":"https://elatransfer.com/professionnels/#service","name":"Transferts avec chauffeur pour hôtels, agences et entreprises","serviceType":"Page de réservation, QR code et espace équipe, avec organisation des transferts","audience":{"@type":"BusinessAudience","audienceType":"Hôtels, agences, entreprises et organisateurs d'événements"},"areaServed":[{"@type":"City","name":"Paris"},{"@type":"AdministrativeArea","name":"Île-de-France"}],"provider":{"@type":"Organization","@id":"https://elatransfer.com/#organisation","name":"Elatransfer","url":"https://elatransfer.com/"},"subjectOf":[{"@type":"VideoObject","name":"Elatransfer pour les hôtels : le client réserve depuis la page du QR code","description":"Démonstration réelle, avec un hôtel et un client fictifs : la page du QR code, la réservation, la confirmation par Elatransfer, puis la course vue par la réception.","thumbnailUrl":"https://elatransfer.com/professionnels/affiche-client-ordinateur-fr.webp","contentUrl":"https://elatransfer.com/professionnels/video-client-ordinateur-fr.mp4","uploadDate":"2026-10-28","duration":"PT50S","inLanguage":"fr","publisher":{"@id":"https://elatransfer.com/#organisation"}},{"@type":"VideoObject","name":"Elatransfer pour les hôtels : l’espace réception","description":"Démonstration réelle, avec un hôtel et des clients fictifs : la réception réserve un transfert pour un client, voit la course validée et la retrouve par la chambre.","thumbnailUrl":"https://elatransfer.com/professionnels/affiche-reception-ordinateur-fr.webp","contentUrl":"https://elatransfer.com/professionnels/video-reception-ordinateur-fr.mp4","uploadDate":"2026-10-28","duration":"PT46S","inLanguage":"fr","publisher":{"@id":"https://elatransfer.com/#organisation"}}]}</script>
   <!-- LA PAGE DES PROFESSIONNELS — 8 octobre 2026, mission « Démo
        professionnels », bloc 1. Mémoire : memoire/demo-pro.md.
        Elle est autonome (styles et textes ici) : la page du site public
@@ -357,6 +357,20 @@
       .apercu-grille.ecran-ordinateur{grid-template-columns:repeat(2,minmax(0,1fr));}
       .apercu-grille.ecran-ordinateur > figure:last-child{grid-column:1/-1;}
     }
+    /* Voir l'outil en vidéo : les onglets ont le dessin de ceux des captures ;
+       une vidéo à la fois, en portrait sur téléphone, en paysage au-delà. */
+    .choix-video{display:inline-grid;grid-template-columns:repeat(2,auto);gap:4px;margin-top:4px;padding:4px;border:1px solid var(--line);
+      border-radius:999px;background:#fff;max-width:100%;}
+    .choix-video button{min-height:44px;padding:0 18px;border:0;border-radius:999px;background:transparent;color:var(--navy);
+      font:inherit;font-size:15px;font-weight:700;cursor:pointer;}
+    .choix-video button[aria-pressed="true"]{background:var(--navy);color:#fff;}
+    .choix-video button:focus-visible{outline:3px solid #12C4EE;outline-offset:2px;}
+    @media (max-width:420px){ .choix-video{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;} .choix-video button{padding:0 6px;font-size:14px;} }
+    .video-cadre{margin-top:18px;}
+    .video-cadre video{display:block;width:100%;height:auto;border-radius:16px;background:var(--navy-deep);
+      box-shadow:0 1px 2px rgba(6,47,85,.05),0 14px 36px rgba(6,47,85,.14);}
+    .video-cadre video.portrait{width:min(100%,360px);margin:0 auto;border-radius:24px;}
+    .video-note{margin:12px 0 0;color:var(--muted);font-size:14px;}
     /* Le pied : les pages des voyageurs sur une ligne, les mentions dessous. */
     .pied-pages{display:flex;flex-wrap:wrap;justify-content:center;margin:8px 0 2px;}
   </style>
@@ -455,6 +469,32 @@
         <li><span class="num">4</span><div><b data-t="etape4_t">La prise en charge</b><p data-t="etape4">Payé directement par le client avant le départ, le chauffeur vient à l'heure convenue. La course passe à « Effectuée ».</p></div></li>
       </ol>
       <p class="parcours-fin" data-t="parcours_fin">Votre équipe transmet la demande. Elatransfer coordonne le reste.</p>
+    </section>
+
+    <!-- VOIR L'OUTIL EN VIDÉO (28 octobre 2026, Barbaros : « une vidéo de
+         l'outil de réception aussi », « version ordinateur aussi »). La vraie
+         démo, filmée sur le site construit : la page du QR code et la
+         réservation du client, puis la réception qui réserve elle-même et
+         retrouve une course. Hôtel et clients fictifs, numéros de la plage
+         réservée à la fiction, montants remplacés par « votre tarif » (la
+         démo ne propose aucun prix). Une vidéo à la fois ; le bon format
+         (téléphone ou ordinateur) et la bonne langue sont choisis par le
+         script ; rien n'est téléchargé avant l'appui (preload="none").
+         Refaire les vidéos si la démo change d'aspect :
+         .claude/outils/videos-pro.mjs (memoire/demo-pro.md). -->
+    <section class="bloc video-bloc" id="video" aria-labelledby="t-video">
+      <h2 id="t-video" data-t="video_titre">Voir l'outil en vidéo</h2>
+      <p class="intro" id="videoIntro" data-t="video_intro">La vraie démonstration, avec un hôtel et des clients fictifs. Aucun prix n’y figure : vos tarifs sont convenus avec vous.</p>
+      <div class="choix-video" role="group" aria-label="Choisir la vidéo" data-t-aria="aria_videos">
+        <button type="button" data-video="client" aria-pressed="true" data-t="video_client">Le client réserve</button>
+        <button type="button" data-video="reception" aria-pressed="false" data-t="video_reception">La réception réserve</button>
+      </div>
+      <div class="video-cadre">
+        <video id="videoDemo" controls playsinline muted preload="none" width="1920" height="1080"
+          src="/professionnels/video-client-ordinateur-fr.mp4" poster="/professionnels/affiche-client-ordinateur-fr.webp"
+          aria-label="Vidéo de la démonstration : le client réserve" aria-describedby="videoIntro"></video>
+      </div>
+      <p class="video-note" data-t="video_note">Sans le son · légendes à l'écran</p>
     </section>
 
     <section class="bloc" aria-labelledby="t-cree">
@@ -833,6 +873,41 @@
     var w = window.innerWidth || 0;
     montrer(w >= 1024 ? 'ordinateur' : w >= 600 ? 'tablette' : 'telephone');
   })();
+  /* VOIR L'OUTIL EN VIDÉO : une vidéo à la fois, au format de l'écran (en
+     portrait sur un téléphone, en paysage au-delà) et dans la langue de la
+     page, suivie par un observateur. Rien n'est téléchargé avant l'appui sur
+     lecture (preload="none"). Sans script, la vidéo du client sur ordinateur. */
+  (function(){
+    var v = document.getElementById('videoDemo');
+    var boutons = document.querySelectorAll('.choix-video button[data-video]');
+    if (!v || !boutons.length) return;
+    var etroit = window.matchMedia('(max-width: 700px)');
+    var NOMS = { fr: { client: 'Vidéo de la démonstration : le client réserve', reception: 'Vidéo de la démonstration : la réception réserve' },
+                 en: { client: 'Demonstration video: the guest books', reception: 'Demonstration video: the front desk books' } };
+    var choix = 'client';
+    function poser(){
+      var l = document.documentElement.lang === 'en' ? 'en' : 'fr';
+      var f = etroit.matches ? 'telephone' : 'ordinateur';
+      var src = '/professionnels/video-' + choix + '-' + f + '-' + l + '.mp4';
+      if (v.getAttribute('src') !== src) {
+        if (!v.paused) v.pause();
+        v.setAttribute('width', f === 'telephone' ? '780' : '1920');
+        v.setAttribute('height', f === 'telephone' ? '1688' : '1080');
+        v.classList.toggle('portrait', f === 'telephone');
+        v.setAttribute('poster', '/professionnels/affiche-' + choix + '-' + f + '-' + l + '.webp');
+        v.setAttribute('src', src);
+      }
+      v.setAttribute('aria-label', NOMS[l][choix]);
+    }
+    boutons.forEach(function(b){ b.addEventListener('click', function(){
+      choix = b.getAttribute('data-video');
+      boutons.forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      poser();
+    }); });
+    if (etroit.addEventListener) etroit.addEventListener('change', poser);
+    new MutationObserver(poser).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+    poser();
+  })();
   </script>
   <script>
   /* Deux langues, sans dépendance. Le français est écrit dans la page (c'est
@@ -864,6 +939,8 @@
       cree2_t:"Your team space", cree2:"Your team books in a guest's name (or by room number, in a hotel), sees where every request stands and finds the history. At each shift change, the next team picks up without starting from scratch.",
       cree3_t:"A single point of contact", cree3:"We check every request, find the right professional chauffeur in our network, assign them and confirm with the guest. A question or a last-minute change: your team calls one number.",
       apercu_titre:"What your guests and your team see",
+      video_titre:"See the tool on video", video_intro:"The real demonstration, with a fictitious hotel and guests. No prices are shown: your rates are agreed with you.",
+      aria_videos:"Choose the video", video_client:"The guest books", video_reception:"The front desk books", video_note:"No sound · on-screen captions",
       aria_ecrans:"Choose the screen", ecran_telephone:"Phone", ecran_tablette:"Tablet", ecran_ordinateur:"Computer",
       aria_etapes:"The three steps",
       apercu_client:"1. Your guest scans the QR code at your reception desk or on your flyer: this page opens, in your name.",
