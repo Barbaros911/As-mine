@@ -666,7 +666,18 @@ construit, à 390 × 844 et 1366 × 768, avant et après.
 - `test-pro-page` : le titre doit nommer la marque et le public dans n'importe
   quel ordre (il exigeait la marque d'abord).
 - **Reste, hors code** : SIRET et mentions légales complètes (le premier
-  contrôle d'un directeur), un retour signé d'un hôtel avec son accord écrit,
-  la note Google à partir de ~50 avis. **Reste, code, à décider** : une
+  contrôle d'un directeur), la note Google à partir de ~50 avis.
+- **Aucun hôtel cité, jamais** (28/10/2026, Barbaros : « Je veux pas qu'on
+  cite d'hôtel ») : ni nom, ni témoignage, ni « cas client », même avec un
+  accord écrit. Ne plus le proposer comme preuve. La règle « aucun client
+  cité » de `CLAUDE.md` le disait déjà.
+- **La vidéo de la démo** (même jour, à sa demande, montrée avant toute
+  décision de la publier) : 53 s, téléphone, la démo réelle sur le site
+  construit — page du QR code, réservation, confirmation, réception —, hôtel
+  et client fictifs, numéro dans la plage réservée à la fiction (06 39 98),
+  montants remplacés par « votre tarif » (la démo ne propose aucun prix).
+  L'enregistreur de Playwright ne garde que les pixels CSS (390 px) : elle
+  est faite de captures d'écran en rafale (780 px), horodatées, assemblées
+  par ffmpeg. **Reste, code, à décider** : une
   adresse anglaise pour cette page (`/en/professionals/`, hreflang), le lien
   « Voir nos avis sur Google » (#426).
