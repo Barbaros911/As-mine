@@ -52,7 +52,10 @@ async function ouvrir(w, h = 900, langue = 'fr', url = PAGE) {
 // 1. La page publiée existe, et elle est indexable.
 const brut = await (await fetch(PAGE)).text();
 check('la page est publiée par construire.sh', /Elatransfer gère tout le reste/.test(brut), brut.slice(0, 60));
-check('le titre nomme la marque et le public', /<title>[^<]*Elatransfer[^<]*(hôtel|Hôtel)/.test(brut));
+// La marque et le public, dans n'importe quel ordre (28/10/2026 : le titre suit
+// la forme des pages d'acquisition, « Transferts … pour hôtels … | Elatransfer »).
+const titrePage = (brut.match(/<title>([^<]*)<\/title>/) || [, ''])[1];
+check('le titre nomme la marque et le public', /Elatransfer/.test(titrePage) && /hôtel/i.test(titrePage), titrePage);
 check('elle a une description', /<meta name="description" content="[^"]{80,}"/.test(brut));
 check('elle est indexable', /<meta name="robots" content="index/.test(brut) && !/noindex/i.test(brut));
 check('sa canonique est son adresse', brut.includes('<link rel="canonical" href="https://elatransfer.com/professionnels/">'));
@@ -254,6 +257,49 @@ for (const langue of ['fr', 'en']) {
     await p.click('#modele .modele-cta'); await p.waitForLoadState('load');
     check('accueil : un appui ouvre vraiment le formulaire /professionnels/#demo', p.url() === PAGE + '#demo', p.url());
   }
+  await p.context().close();
+}
+
+// 6. L'ESPACE PROFESSIONNELS PREMIUM (28/10/2026, audit de Barbaros). Trois
+//    règles : la démo reste à portée depuis l'en-tête collant, à toutes les
+//    largeurs (sur téléphone, il ne gardait que le logo et EN) ; le bandeau
+//    montre le produit, nos captures de la démo, en le disant ; le pied relie
+//    les pages des voyageurs, en anglais quand la page l'est.
+for (const [w, h] of [[320, 640], [390, 844], [768, 1024], [1366, 768]]) {
+  const p = await ouvrir(w, h);
+  const d = await p.evaluate(() => {
+    const a = document.querySelector('.tete a[href="#demo"]'); if (!a) return null;
+    const r = a.getBoundingClientRect(), x = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    return { haut: r.height, recoit: !!x && a.contains(x), dedans: r.left >= 0 && r.right <= innerWidth, texte: a.innerText.trim() };
+  });
+  check(`${w} px : l'en-tête garde un accès à la démo, visible, d'au moins 44 px, qui reçoit l'appui`,
+    !!d && d.haut >= 44 && d.recoit && d.dedans && /d[ée]mo/i.test(d.texte), JSON.stringify(d));
+  // On descend loin, puis on touche le bouton de l'en-tête : il mène au formulaire.
+  if (d && d.recoit) {
+    await p.evaluate(() => scrollTo({ top: document.body.scrollHeight * 0.6, behavior: 'instant' }));
+    await p.click('.tete a[href="#demo"]');
+    for (let i = 0, y = -1; i < 50; i++) { await p.waitForTimeout(100); const z = await p.evaluate(() => scrollY); if (z === y) break; y = z; }
+  }
+  const haut = d && d.recoit ? await p.evaluate(() => Math.round(document.getElementById('demo').getBoundingClientRect().top)) : null;
+  check(`${w} px : depuis le bas de la page, l'en-tête ramène au formulaire de la démo`, haut !== null && haut >= 0 && haut < 200, String(haut));
+  if (w === 1366) {
+    await p.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+    await p.waitForFunction(() => [...document.querySelectorAll('.hero img')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 5000 }).catch(() => {});
+    const v = await p.evaluate(() => ({ imgs: [...document.querySelectorAll('.hero img')].map(i => { const r = i.getBoundingClientRect();
+      return { src: i.getAttribute('src'), vue: r.top < innerHeight && r.bottom > 0 && r.width >= 100, chargee: i.naturalWidth > 0, alt: i.alt.length }; }),
+      legende: (document.querySelector('.hero figcaption') || {}).textContent || '' }));
+    check('1366 px : le bandeau montre le produit — les captures de la démo, dans le premier écran, chargées et décrites',
+      v.imgs.length >= 2 && v.imgs.every(i => /^\/professionnels\/apercu-[a-z]+-[a-z]+-fr\.webp$/.test(i.src) && i.vue && i.chargee && i.alt >= 40), JSON.stringify(v.imgs));
+    check('le bandeau dit que ces captures viennent de la démonstration, avec des données fictives', /démonstration/i.test(v.legende) && /fictive/i.test(v.legende), v.legende);
+  }
+  await p.context().close();
+}
+for (const langue of ['fr', 'en']) {
+  const p = await ouvrir(1280, 900, langue);
+  const pied = await p.$$eval('footer a[href]', l => l.map(a => a.getAttribute('href')));
+  const attendus = langue === 'fr' ? ['/transfert-cdg-paris', '/transfert-orly-paris', '/chauffeur-prive-paris']
+    : ['/en/cdg-airport-transfer-paris/', '/en/orly-airport-transfer-paris/', '/en/'];
+  check(`${langue.toUpperCase()} : le pied relie les pages des voyageurs${langue === 'en' ? ', en anglais' : ''}`, attendus.every(h => pied.includes(h)), pied.join(' '));
   await p.context().close();
 }
 

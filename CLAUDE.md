@@ -800,8 +800,8 @@ une couleur par sujet, jamais le bleu des boutons (`test-public-icones.mjs`).
   sans compte pro. `test-public-textes.mjs`. `memoire/textes-publics.md`,
   `memoire/accueil-pro.md`, `memoire/ordre-accueil.md`.
 - **Une centrale, un large réseau** (23/10) : « un large réseau » de
-  chauffeurs, jamais un nombre ; ni nombre ni lieu d'un partenaire (« Déjà en
-  service dans l'hôtellerie, en Île-de-France », à retirer s'il cesse) ;
+  chauffeurs, jamais un nombre ; ni nombre ni lieu d'un partenaire (« Déjà …
+  dans l'hôtellerie, en Île-de-France », à retirer s'il cesse) ;
   aucune disponibilité garantie ; suivi « jusqu'à la prise en charge » (CGV
   art. 2) ; `chiffres.json` éteint tant qu'un chiffre n'a pas sa source.
   `test-public-centrale.mjs`, `memoire/centrale-et-reseau.md`.

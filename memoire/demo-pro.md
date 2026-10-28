@@ -614,3 +614,59 @@ refuse toute autre image ; le voile bleu nuit devient celui du thème
 « Votre photo ici » (`#demoPhotoArrivee`), qui ouvre le choix du fichier et
 devient « Changer la photo » une fois la photo posée : le prospect retrouve sa
 photo dès le premier écran, ce que Barbaros regrettait.
+
+## 28 octobre 2026 — audit « espace Professionnels premium »
+
+Mission de Barbaros : auditer `/professionnels/` comme un expert B2B (UX,
+conversion, SEO, crédibilité), garder ce qui marche, renforcer le reste, sans
+toucher à la réservation, au serveur ni à la démo. Priorité P1 (acquisition
+hôtels), demandée alors que le P0 #399 restait ouvert. Mesuré sur le site
+construit, à 390 × 844 et 1366 × 768, avant et après.
+
+- **Constaté** : sur ordinateur, la moitié droite du bandeau était vide ; les
+  vraies captures de la démo (la meilleure preuve de la page) n'arrivaient
+  qu'au troisième écran, et l'espace équipe s'y lisait réduit au quart
+  (1 280 px montrés sur 340). Sur téléphone, l'en-tête ne gardait que le logo
+  et EN : sur 8 765 px, aucun accès à la démo entre le haut et le formulaire.
+  « Comment ça marche » était un sous-titre au fond d'une autre section, après
+  trois blocs qui disaient ce qu'on n'aurait plus à faire. « Ce que vous
+  n'avez plus à gérer » redisait tout ce que disent la frise, l'espace équipe,
+  les avantages et les questions. Le sur-titre nommait quatre publics, le
+  reste ne parlait qu'à un hôtel ; nulle part les trajets ni les véhicules.
+  Le pied ne reliait aucune page des voyageurs.
+- **Fait** : le bandeau montre l'espace équipe (ordinateur) et la page du QR
+  code (téléphone), les mêmes captures que plus bas, avec « Captures de la
+  démonstration · données fictives » ; l'en-tête garde « Essayer la démo » en
+  contour (« Démo » sur téléphone) et les liens de section au-delà de
+  1 000 px ; « Comment ça marche » devient une section, juste après les
+  défis, conclue par la phrase du panneau retiré ; l'aperçu s'intitule « Ce
+  que voient vos clients et votre équipe » et, sur ordinateur, met l'espace
+  équipe sur toute la largeur ; une section « Pour qui » (hôtels, agences,
+  entreprises, événements : une phrase chacun, rien qui n'existe déjà) et
+  « Les trajets de vos clients » (aéroports, gares, Paris, Disneyland ;
+  berline 4 passagers, van 7) ; le pied relie CDG, Orly et chauffeur privé
+  (pages anglaises en anglais, `data-href-en`). Titre Google « Transferts avec
+  chauffeur pour hôtels et entreprises | Elatransfer », description qui dit
+  l'Île-de-France, `areaServed` dans les données.
+- **Repris de l'Issue #426 (décisions du 25/10), sur cette page seulement** :
+  « Déjà utilisé en conditions réelles dans l'hôtellerie, en Île-de-France. »
+  et le premier défi « Un client demande combien coûte un trajet pour Orly.
+  Personne au comptoir ne peut lui répondre. » (l'ancien, « à 5 h », contredisait
+  l'assistance 7 h–22 h). L'anglais du défi reste à valider. Le lien vers les
+  avis Google, l'encart de l'accueil et la fiche papier restent à #426.
+- **Gardé tel quel** : la promesse, le sous-titre, les deux boutons du haut,
+  les défis 2 et 3, la frise, l'offre, les trois écrans et trois étapes,
+  « Plus qu'un numéro de chauffeur », le programme partenaire, la démo et son
+  formulaire, les questions, le contact.
+- **Écarté** : un label « Pro » à côté du logo (« ni Elatransfer Pro », règle
+  du 18/10) ; un nouveau visuel ou une photo (aucune source propre, et les
+  captures de la démo prouvent mieux) ; un chiffre, un témoignage, un logo de
+  client (rien d'établi ni d'autorisé) ; une page anglaise à son adresse (à
+  décider : voir plus bas).
+- `test-pro-page` : le titre doit nommer la marque et le public dans n'importe
+  quel ordre (il exigeait la marque d'abord).
+- **Reste, hors code** : SIRET et mentions légales complètes (le premier
+  contrôle d'un directeur), un retour signé d'un hôtel avec son accord écrit,
+  la note Google à partir de ~50 avis. **Reste, code, à décider** : une
+  adresse anglaise pour cette page (`/en/professionals/`, hreflang), le lien
+  « Voir nos avis sur Google » (#426).

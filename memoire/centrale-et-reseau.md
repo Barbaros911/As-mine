@@ -235,3 +235,15 @@ après l'appui sur « Voir la démo hôtel » — en plein défilement doux (905
 s'arrête ; la règle (« sous l'en-tête collant ») n'a pas bougé. Sur `main`, la
 même lecture donnait déjà 581 px à 700 ms sur une machine chargée : le
 contrôle passait de justesse.
+
+## 28 octobre 2026 — la phrase de preuve de la page Professionnels
+
+Décision de Barbaros du 25/10 (Issue #426), appliquée à `/professionnels/`
+seulement, pendant l'audit « espace Professionnels premium » : « Déjà utilisé
+en conditions réelles dans l'hôtellerie, en Île-de-France. » (EN « Already used
+in real conditions in the hotel sector, in the Paris region. »). Il a confirmé
+qu'au moins une vraie course venue de l'hôtel a été réalisée. Toujours ni nom,
+ni lieu précis, ni nombre ; toujours à retirer si le service cesse. L'encart
+de l'accueil (« Déjà en service dans l'hôtellerie. ») et la fiche papier
+gardent l'ancienne phrase jusqu'à #426. `CLAUDE.md` cite la règle sans
+recopier la phrase (« Déjà … dans l'hôtellerie, en Île-de-France »).

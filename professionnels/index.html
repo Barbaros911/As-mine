@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Elatransfer — Transferts pour hôtels, agences, entreprises</title>
-  <meta name="description" content="Hôtels, agences, entreprises : votre page de réservation, un QR code et un espace équipe. Elatransfer trouve le chauffeur et coordonne chaque transfert.">
+  <title>Transferts avec chauffeur pour hôtels et entreprises | Elatransfer</title>
+  <meta name="description" content="Hôtels, agences, entreprises : votre page de réservation, un QR code et un espace équipe. Elatransfer organise vos transferts avec chauffeur en Île-de-France.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://elatransfer.com/professionnels/">
   <meta name="theme-color" content="#062f55">
@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","@id":"https://elatransfer.com/professionnels/#service","name":"Transferts avec chauffeur pour hôtels, agences et entreprises","serviceType":"Page de réservation, QR code et espace équipe, avec organisation des transferts","audience":{"@type":"BusinessAudience","audienceType":"Hôtels, agences et entreprises"},"provider":{"@type":"Organization","@id":"https://elatransfer.com/#organisation","name":"Elatransfer","url":"https://elatransfer.com/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","@id":"https://elatransfer.com/professionnels/#service","name":"Transferts avec chauffeur pour hôtels, agences et entreprises","serviceType":"Page de réservation, QR code et espace équipe, avec organisation des transferts","audience":{"@type":"BusinessAudience","audienceType":"Hôtels, agences, entreprises et organisateurs d'événements"},"areaServed":[{"@type":"City","name":"Paris"},{"@type":"AdministrativeArea","name":"Île-de-France"}],"provider":{"@type":"Organization","@id":"https://elatransfer.com/#organisation","name":"Elatransfer","url":"https://elatransfer.com/"}}</script>
   <!-- LA PAGE DES PROFESSIONNELS — 8 octobre 2026, mission « Démo
        professionnels », bloc 1. Mémoire : memoire/demo-pro.md.
        Elle est autonome (styles et textes ici) : la page du site public
@@ -219,11 +219,10 @@
        plus : « Ce que vous n'avez plus à organiser » est UN panneau, « Pour la
        direction » deux listes. Le programme partenaire passe sous la direction
        (même section) et son bouton devient secondaire : sur cette page, un seul
-       bouton plein par écran, et c'est la démonstration. */
-    .sans-panneau{margin-top:18px;padding:clamp(20px,3.4vw,32px);border:1px solid var(--line);border-radius:20px;background:var(--fond);}
-    .sans-liste{display:grid;grid-template-columns:1fr 1fr;gap:4px 32px;margin:0;}
-    .sans-liste li{font-size:17px;}
-    .sans-fin{margin:18px 0 0;padding-top:16px;border-top:1px solid var(--line);color:var(--navy);
+       bouton plein par écran, et c'est la démonstration.
+       28/10/2026 : le panneau est retiré (tout s'y redisait ailleurs) ; sa
+       phrase de fin conclut la frise « Comment ça marche », même dessin. */
+    .parcours-fin{margin:28px 0 0;padding-top:18px;border-top:1px solid var(--line);color:var(--navy);
       font-size:clamp(18px,2.2vw,21px);font-weight:800;line-height:1.35;}
     .grille.deux{grid-template-columns:repeat(2,1fr);}
     .direction .carte h3{margin-bottom:10px;}
@@ -252,7 +251,7 @@
     .apercu-note{margin:18px 0 0;color:var(--muted);font-size:14px;}
     .apercu-note a{display:flex;align-items:center;width:max-content;max-width:100%;min-height:44px;color:#0a5f8f;font-weight:700;}
     @media (max-width:700px){
-      .sans-liste,.grille.deux,.apercu-grille.ecran-ordinateur,.apercu-grille.ecran-tablette{grid-template-columns:1fr;}
+      .grille.deux,.apercu-grille.ecran-ordinateur,.apercu-grille.ecran-tablette{grid-template-columns:1fr;}
       .apercu-tab{width:min(340px,88%);margin:0 auto;}
       /* SUR UN TÉLÉPHONE, LES TROIS ÉTAPES SE FONT GLISSER, DANS L'ORDRE : trois
          captures côte à côte n'y feraient plus que 110 px de large. La
@@ -261,7 +260,6 @@
         overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 14px;}
       .apercu-grille.ecran-telephone > figure{scroll-snap-align:start;}
       .apercu-tel figcaption{font-size:13.5px;}
-      .sans-liste li{font-size:16px;}
     }
     /* ═══ PLUS QU'UN NUMÉRO DE CHAUFFEUR (23 octobre 2026) — deux colonnes de
        même poids, sans couleur de mise en garde à gauche : on compare une
@@ -276,7 +274,6 @@
     .versus .coches,.tirets{margin:0;padding:0;list-style:none;}
     .tirets li{position:relative;padding:5px 0 5px 26px;color:var(--muted);}
     .tirets li::before{content:"";position:absolute;left:4px;top:16px;width:10px;height:2px;border-radius:2px;background:#9fb2c3;}
-    .parcours-titre{margin:40px 0 0;color:var(--navy);font-size:19px;line-height:1.3;}
     .etapes{grid-template-columns:repeat(4,1fr);}
     @media (max-width:1000px){
       .etapes{grid-template-columns:1fr;gap:0;}
@@ -294,33 +291,131 @@
     .chiffres-liste b{display:block;color:var(--navy);font-size:clamp(30px,4vw,40px);line-height:1.1;font-weight:800;}
     .chiffres-liste span{display:block;margin-top:4px;color:var(--muted);}
     .chiffres-note{margin:14px 0 0;color:var(--muted);font-size:14px;}
+    /* ═══ ESPACE PROFESSIONNELS PREMIUM (28 octobre 2026) — le produit dans le
+       bandeau, la démo dans l'en-tête, « Pour qui » et les trajets. Mêmes
+       couleurs, même police, même recette de carte que le reste de la page :
+       rien qui fasse « une autre entreprise ». */
+    /* L'en-tête : un bouton en contour vers la démo, jamais plein (le seul
+       bouton plein de l'écran est celui du bandeau). Les liens de section
+       s'effacent avant de déborder ; sur téléphone, « Démo » seul. */
+    .tete-nav .tete-demo{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1.5px solid var(--cyan);
+      border-radius:10px;color:#fff;white-space:nowrap;}
+    @media (hover:hover){ .tete-nav .tete-demo:hover{background:rgba(32,196,244,.16);} }
+    .tete-demo .court{display:none;}
+    @media (max-width:999px){ .tete-nav a.tete-sec{display:none;} }
+    @media (max-width:640px){
+      .tete-nav{gap:10px;}
+      .tete-nav a.tete-demo{display:inline-flex;padding:0 14px;}
+      .tete-demo .long{display:none;}
+      .tete-demo .court{display:inline;}
+    }
+    /* Le bandeau : le texte, puis l'espace équipe sur ordinateur et la page du
+       QR code sur téléphone, posés l'un sur l'autre. Sous 1000 px, l'image
+       passe sous le texte : le bouton de la démo reste dans le premier écran. */
+    .hero-texte{min-width:0;}
+    .hero-visuel{margin:36px auto 0;max-width:560px;}
+    .hv-scene{position:relative;padding:0 0 15% 13%;}
+    .hv-ecran{position:relative;padding:22px 6px 6px;border-radius:14px;background:#e9eff5;
+      box-shadow:0 2px 4px rgba(0,10,25,.25),0 30px 70px rgba(0,10,25,.5);}
+    .hv-ecran::before{content:"";position:absolute;left:12px;top:8px;width:7px;height:7px;border-radius:50%;
+      background:#c3ced9;box-shadow:12px 0 0 #c3ced9,24px 0 0 #c3ced9;}
+    .hv-ecran img{display:block;width:100%;height:auto;border-radius:8px;background:var(--fond);}
+    .hv-tel{position:absolute;left:0;bottom:0;width:29%;aspect-ratio:9/16;overflow:hidden;border:5px solid #00152a;
+      border-radius:22px;background:#00152a;box-shadow:0 24px 50px rgba(0,10,25,.55);}
+    .hv-tel img{display:block;width:100%;height:auto;}
+    .hero-visuel figcaption{margin-top:14px;color:#9fc3dc;font-size:13px;font-weight:600;text-align:right;}
+    @media (min-width:1000px){
+      .hero-in{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);column-gap:clamp(32px,4vw,56px);align-items:center;}
+      .hero-in h1{font-size:clamp(40px,4.1vw,54px);}
+      .hero-visuel{margin:0;max-width:none;}
+    }
+    @media (max-width:420px){ .hv-tel{border-width:4px;border-radius:16px;} }
+    /* « Comment ça marche » : la frise, puis la phrase qui la résume. */
+    #comment .etapes{margin-top:22px;}
+    /* Pour qui : quatre cartes, puis les trajets en pastilles. */
+    .publics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:22px;}
+    .publics .carte p{font-size:15.5px;}
+    .trajets{margin-top:22px;padding:clamp(20px,3vw,28px);border:1px solid var(--line);border-radius:20px;background:var(--fond);}
+    .trajets h3{margin:0 0 14px;color:var(--navy);font-size:18px;line-height:1.3;}
+    .trajets ul{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;list-style:none;}
+    .trajets li{padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--navy);
+      font-size:15px;font-weight:700;line-height:1.35;}
+    @media (max-width:1000px){ .publics{grid-template-columns:repeat(2,minmax(0,1fr));} }
+    /* Sur téléphone, la pastille passe à gauche du titre : quatre cartes
+       empilées gardaient chacune 70 px de vide au-dessus du texte. */
+    @media (max-width:600px){
+      .publics{grid-template-columns:1fr;gap:12px;}
+      .publics .carte{display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:14px;align-items:start;}
+      .publics .pastille{grid-row:1 / span 2;margin:0;}
+      .publics .carte h3{margin:8px 0 6px;}
+    }
+    /* « Ce que voient vos clients », sur ordinateur : trois captures de 1280 px
+       réduites au quart ne se lisaient pas. Les deux pages du client côte à
+       côte, l'espace équipe — ce qu'utilise l'établissement — sur toute la
+       largeur. */
+    @media (min-width:701px){
+      .apercu-grille.ecran-ordinateur{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .apercu-grille.ecran-ordinateur > figure:last-child{grid-column:1/-1;}
+    }
+    /* Le pied : les pages des voyageurs sur une ligne, les mentions dessous. */
+    .pied-pages{display:flex;flex-wrap:wrap;justify-content:center;margin:8px 0 2px;}
   </style>
 </head>
 <body>
   <header class="tete">
     <a class="tete-logo" href="/" aria-label="Elatransfer — accueil" data-t-aria="aria_accueil"><img src="/brand-logo-negatif.webp" alt="Elatransfer" width="91" height="40"></a>
+    <!-- L'EN-TÊTE GARDE LA DÉMO À PORTÉE (28 octobre 2026, audit « espace
+         Professionnels premium »). Sur téléphone il ne montrait que le logo
+         et EN : sur 8 000 px de page, plus aucun accès à la démo entre le
+         haut et le formulaire. Le bouton est en contour : le seul bouton
+         plein de l'écran reste celui du bandeau. « Réserver un trajet » est
+         la porte vers le site des voyageurs (une marque, deux espaces). -->
     <nav class="tete-nav" aria-label="Navigation" data-t-aria="aria_nav">
       <a href="/" data-t="nav_reserver">Réserver un trajet</a>
-      <a href="#questions" data-t="nav_questions">Questions</a>
-      <a href="#contact" data-t="nav_contact">Contact</a>
+      <a class="tete-sec" href="#comment" data-t="nav_comment">Comment ça marche</a>
+      <a class="tete-sec" href="#questions" data-t="nav_questions">Questions</a>
+      <a class="tete-sec" href="#contact" data-t="nav_contact">Contact</a>
+      <a class="tete-demo" href="#demo" data-vers-demo><span class="long" data-t="nav_demo">Essayer la démo</span><span class="court" data-t="nav_demo_court">Démo</span></a>
       <button type="button" class="langue" id="langue" aria-label="Read in English" data-t-aria="aria_langue">EN</button>
     </nav>
   </header>
 
   <main>
     <p class="avis" id="avisConfirmation" role="status" hidden><span></span><button type="button" aria-label="Fermer" data-t-aria="aria_fermer">×</button></p>
+    <!-- LE PRODUIT DÈS LE HAUT DE PAGE (28 octobre 2026, audit « espace
+         Professionnels premium »). Sur ordinateur, la moitié droite du bandeau
+         était vide, et la meilleure preuve de la page — les vraies captures de
+         la démo — n'arrivait qu'au troisième écran, réduite au quart. Le
+         bandeau montre maintenant l'espace équipe et la page du QR code : les
+         MÊMES captures que « Ce que voient vos clients » (aucune nouvelle
+         image, données fictives, et la légende le dit). Le sur-titre dit le
+         métier, pour le lecteur comme pour Google ; les quatre publics
+         qu'il nommait ont maintenant leur section, « Pour qui ».
+         La preuve d'activité : texte décidé par Barbaros le 25/10/2026
+         (Issue #426), ni nom, ni lieu, ni nombre. -->
     <section class="hero">
       <div class="hero-in">
-        <p class="surtitre" data-t="surtitre">Hôtels · Agences · Entreprises · Événements</p>
-        <h1 data-t="titre">Votre équipe réserve. Elatransfer gère tout le reste.</h1>
-        <p class="lead" data-t="sous_titre">Votre page de réservation, votre QR code et votre espace équipe, à votre nom. Vos clients, collaborateurs et invités réservent ; Elatransfer cherche le chauffeur dans un large réseau de professionnels, confirme et coordonne chaque transfert.</p>
-        <div class="actions">
-          <a class="bouton" href="#demo" data-t="cta_demo">Essayer la démo</a>
-          <a class="bouton creux" href="#contact" data-t="cta_parler">Demander une proposition</a>
+        <div class="hero-texte">
+          <p class="surtitre" data-t="surtitre">Transferts avec chauffeur pour les professionnels</p>
+          <h1 data-t="titre">Votre équipe réserve. Elatransfer gère tout le reste.</h1>
+          <p class="lead" data-t="sous_titre">Votre page de réservation, votre QR code et votre espace équipe, à votre nom. Vos clients, collaborateurs et invités réservent ; Elatransfer cherche le chauffeur dans un large réseau de professionnels, confirme et coordonne chaque transfert.</p>
+          <div class="actions">
+            <a class="bouton" href="#demo" data-t="cta_demo" data-vers-demo>Essayer la démo</a>
+            <a class="bouton creux" href="#contact" data-t="cta_parler">Demander une proposition</a>
+          </div>
+          <p class="points" data-t="points">Mise en place gratuite · Sans engagement · Tarifs négociés avec vous</p>
+          <p class="reference" data-t="reference">Déjà utilisé en conditions réelles dans l'hôtellerie, en Île-de-France.</p>
+          <p class="note-google" data-avis-google="fr en" data-forme="pro" hidden></p>
         </div>
-        <p class="points" data-t="points">Mise en place gratuite · Sans engagement · Tarifs négociés avec vous</p>
-        <p class="reference" data-t="reference">Déjà en service dans l'hôtellerie, en Île-de-France.</p>
-        <p class="note-google" data-avis-google="fr en" data-forme="pro" hidden></p>
+        <figure class="hero-visuel">
+          <div class="hv-scene">
+            <div class="hv-ecran"><img src="/professionnels/apercu-equipe-ordinateur-fr.webp" data-src-en="/professionnels/apercu-equipe-ordinateur-en.webp" width="1280" height="760" loading="lazy" decoding="async"
+              alt="L'espace équipe d'un hôtel d'exemple, sur ordinateur : le bouton « Nouvelle course » et les transferts à venir, chacun avec son état." data-t-alt="alt_hero_equipe"></div>
+            <div class="hv-tel"><img src="/professionnels/apercu-client-telephone-fr.webp" data-src-en="/professionnels/apercu-client-telephone-en.webp" width="540" height="1052" loading="lazy" decoding="async"
+              alt="La page du QR code du même hôtel, sur téléphone, où le client choisit sa destination." data-t-alt="alt_hero_client"></div>
+          </div>
+          <figcaption data-t="hero_visuel">Captures de la démonstration · données fictives</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -337,31 +432,29 @@
     <section class="bloc vecu" aria-labelledby="t-vecu">
       <h2 id="t-vecu" data-t="vecu_titre">Vos défis au quotidien</h2>
       <div class="grille">
-        <div class="carte"><p data-t="vecu1">Un client doit être à Roissy à 7 h. Il le demande à 5 h.</p></div>
+        <div class="carte"><p data-t="vecu1">Un client demande combien coûte un trajet pour Orly. Personne au comptoir ne peut lui répondre.</p></div>
         <div class="carte"><p data-t="vecu2">On cherche un numéro, on rappelle, et personne ne sait si la voiture viendra.</p></div>
         <div class="carte"><p data-t="vecu3">Si le chauffeur ne vient pas, c'est à vous qu'on le reproche.</p></div>
       </div>
     </section>
 
-    <!-- CE QUE VOUS N'AVEZ PLUS À ORGANISER (21 octobre 2026, mission
-         « page pro 10/10 »). La réponse directe aux trois phrases du dessus :
-         la douleur, puis ce qui disparaît. Un seul panneau, pas une rangée de
-         cartes. Chaque ligne est vraie aujourd'hui : le client paie son
-         chauffeur par lien (memoire/paiement-lien.md), l'espace réception
-         garde l'état et l'historique de chaque course. -->
-    <section class="bloc sans" aria-labelledby="t-sans">
-      <h2 id="t-sans" data-t="sans_titre">Ce que vous n'avez plus à gérer</h2>
-      <div class="sans-panneau">
-        <ul class="coches sans-liste">
-          <li data-t="sans1">Chercher un chauffeur disponible à chaque demande.</li>
-          <li data-t="sans2">Rappeler plusieurs personnes pour obtenir une confirmation.</li>
-          <li data-t="sans3">Suivre chaque course par téléphone et par message.</li>
-          <li data-t="sans4">Transmettre les demandes en cours à chaque relève.</li>
-          <li data-t="sans5">Acheter un véhicule ou employer un chauffeur.</li>
-          <li data-t="sans6">Encaisser le trajet : le client paie son chauffeur avant le départ.</li>
-        </ul>
-        <p class="sans-fin" data-t="sans_fin">Votre équipe transmet la demande. Elatransfer coordonne le reste.</p>
-      </div>
+    <!-- COMMENT ÇA MARCHE, EN HAUT DE PAGE (28 octobre 2026, audit « espace
+         Professionnels premium »). La frise vivait en sous-titre au fond de
+         « Plus qu'un numéro de chauffeur », au cinquième écran : un directeur
+         lisait trois fois ce qu'il n'aurait plus à faire avant d'apprendre
+         comment ça se passe. Elle a maintenant sa section, juste après les
+         défis. « Ce que vous n'avez plus à gérer » (21/10) est retiré : ses six
+         lignes se redisaient toutes ailleurs (frise, espace équipe, avantages,
+         questions) ; sa phrase de fin conclut la frise. -->
+    <section class="bloc" id="comment" aria-labelledby="t-comment-marche">
+      <h2 id="t-comment-marche" data-t="parcours_titre">Comment ça marche</h2>
+      <ol class="etapes">
+        <li><span class="num">1</span><div><b data-t="etape1_t">La demande</b><p data-t="etape1">Le client scanne le QR code, ou votre équipe saisit la demande pour lui. Elle arrive chez Elatransfer.</p></div></li>
+        <li><span class="num">2</span><div><b data-t="etape2_t">La recherche</b><p data-t="etape2">Nous vérifions la demande et cherchons dans notre réseau un chauffeur professionnel disponible.</p></div></li>
+        <li><span class="num">3</span><div><b data-t="etape3_t">La confirmation</b><p data-t="etape3">Une fois le chauffeur attribué, le client reçoit la confirmation ; votre équipe voit « Réservation validée ».</p></div></li>
+        <li><span class="num">4</span><div><b data-t="etape4_t">La prise en charge</b><p data-t="etape4">Payé directement par le client avant le départ, le chauffeur vient à l'heure convenue. La course passe à « Effectuée ».</p></div></li>
+      </ol>
+      <p class="parcours-fin" data-t="parcours_fin">Votre équipe transmet la demande. Elatransfer coordonne le reste.</p>
     </section>
 
     <section class="bloc" aria-labelledby="t-cree">
@@ -407,7 +500,7 @@
          téléphone, elles se font glisser. Fabriquées par
          .claude/outils/captures-pro.mjs. -->
     <section class="bloc apercu" aria-labelledby="t-apercu">
-      <h2 id="t-apercu" data-t="apercu_titre">Aperçu sur téléphone, tablette et ordinateur</h2>
+      <h2 id="t-apercu" data-t="apercu_titre">Ce que voient vos clients et votre équipe</h2>
       <div class="ecrans" role="group" aria-label="Choisir l'écran" data-t-aria="aria_ecrans">
         <button type="button" data-ecran="telephone" aria-pressed="true" data-t="ecran_telephone">Téléphone</button>
         <button type="button" data-ecran="tablette" aria-pressed="false" data-t="ecran_tablette">Tablette</button>
@@ -477,7 +570,9 @@
          plus n'est dit sur lui. Chaque ligne d'Elatransfer est tenue : un
          interlocuteur, un large réseau (jamais un nombre), un remplaçant au
          même prix (CGV art. 8 : « peut remplacer », d'où « nous cherchons »),
-         l'état de chaque demande dans l'espace réception. -->
+         l'état de chaque demande dans l'espace réception.
+         28 octobre 2026 : la frise est remontée dans sa propre section,
+         « Comment ça marche », juste après les défis. -->
     <section class="bloc" aria-labelledby="t-comment">
       <h2 id="t-comment" data-t="comment_titre">Plus qu'un numéro de chauffeur</h2>
       <p class="intro" data-t="comment_intro">Elatransfer ne remplace pas le chauffeur : elle organise tout ce qu'il y a autour de la course.</p>
@@ -498,13 +593,52 @@
           </ul>
         </div>
       </div>
-      <h3 class="parcours-titre" data-t="parcours_titre">Comment ça marche</h3>
-      <ol class="etapes">
-        <li><span class="num">1</span><div><b data-t="etape1_t">La demande</b><p data-t="etape1">Le client scanne le QR code, ou votre équipe saisit la demande pour lui. Elle arrive chez Elatransfer.</p></div></li>
-        <li><span class="num">2</span><div><b data-t="etape2_t">La recherche</b><p data-t="etape2">Nous vérifions la demande et cherchons dans notre réseau un chauffeur professionnel disponible.</p></div></li>
-        <li><span class="num">3</span><div><b data-t="etape3_t">La confirmation</b><p data-t="etape3">Une fois le chauffeur attribué, le client reçoit la confirmation ; votre équipe voit « Réservation validée ».</p></div></li>
-        <li><span class="num">4</span><div><b data-t="etape4_t">La prise en charge</b><p data-t="etape4">Payé directement par le client avant le départ, le chauffeur vient à l'heure convenue. La course passe à « Effectuée ».</p></div></li>
-      </ol>
+    </section>
+
+    <!-- POUR QUI, ET POUR QUELS TRAJETS (28 octobre 2026, audit « espace
+         Professionnels premium »). Le sur-titre nommait quatre publics, mais
+         tout le reste de la page parlait d'un hôtel : une agence ou une
+         entreprise ne s'y reconnaissait pas. Une phrase par public, rien qui
+         n'existe déjà : la page à son nom et le QR code, l'espace équipe qui
+         réserve et suit chaque demande, le prix annoncé avant. Puis ce que
+         la page ne disait nulle part : les trajets et les deux véhicules
+         (berline, van ; jamais une marque). Rien sur la façon de payer ici :
+         le lien de paiement ne se vend pas (test-public-centrale). -->
+    <section class="bloc publics-bloc" id="pour-qui" aria-labelledby="t-publics">
+      <h2 id="t-publics" data-t="publics_titre">Pour les hôtels, les agences, les entreprises et les événements</h2>
+      <div class="publics">
+        <article class="carte">
+          <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 18V7M3 14h18v4M21 14v-2a3 3 0 00-3-3h-7v5"/><circle cx="7" cy="11" r="1.6"/></svg></div>
+          <h3 data-t="pub_hotel_t">Hôtels</h3>
+          <p data-t="pub_hotel">Un QR code à l'accueil ou sur votre flyer : vos clients réservent eux-mêmes. Votre réception peut aussi réserver pour eux, par le numéro de chambre.</p>
+        </article>
+        <article class="carte">
+          <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg></div>
+          <h3 data-t="pub_agence_t">Agences</h3>
+          <p data-t="pub_agence">Votre équipe réserve les transferts de vos voyageurs et suit chaque demande au même endroit, de la confirmation à la prise en charge.</p>
+        </article>
+        <article class="carte">
+          <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M3 13h18"/></svg></div>
+          <h3 data-t="pub_entreprise_t">Entreprises</h3>
+          <p data-t="pub_entreprise">Collaborateurs en déplacement, visiteurs, clients à accueillir : votre équipe réserve pour eux, avec un prix annoncé avant chaque trajet.</p>
+        </article>
+        <article class="carte">
+          <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+          <h3 data-t="pub_evenement_t">Événements</h3>
+          <p data-t="pub_evenement">Salons, congrès, séminaires : vos invités réservent sur une page à votre nom, et votre équipe voit tous les transferts au même endroit.</p>
+        </article>
+      </div>
+      <div class="trajets">
+        <h3 data-t="trajets_titre">Les trajets de vos clients</h3>
+        <ul>
+          <li data-t="trajet_aeroports">Aéroports : Roissy-CDG, Orly, Beauvais, Le Bourget</li>
+          <li data-t="trajet_gares">Gares parisiennes</li>
+          <li data-t="trajet_paris">Paris et Île-de-France</li>
+          <li data-t="trajet_disney">Parcs Disneyland Paris</li>
+          <li data-t="trajet_berline">Berline, jusqu'à 4 passagers</li>
+          <li data-t="trajet_van">Van, jusqu'à 7 passagers</li>
+        </ul>
+      </div>
     </section>
 
     <!-- POUR LA DIRECTION (21 octobre 2026, mission « page pro 10/10 »).
@@ -666,9 +800,19 @@
     </section>
   </main>
 
+  <!-- LE PIED RELIE L'ESPACE DES VOYAGEURS (28 octobre 2026, audit « espace
+       Professionnels premium ») : une marque, deux espaces. Les pages de
+       transfert menaient ici ; ici ne menait qu'à l'accueil. De vrais liens,
+       vers l'adresse servie (jamais le nom du fichier) ; en anglais, vers
+       les pages anglaises (data-href-en). -->
   <footer>
-    <span data-t="pied">Elatransfer · Transferts avec chauffeur, pour les voyageurs et les professionnels</span><br>
-    <a href="/" data-t="pied_accueil">Accueil</a>
+    <span data-t="pied">Elatransfer · Transferts avec chauffeur, pour les voyageurs et les professionnels</span>
+    <nav class="pied-pages" aria-label="Nos transferts" data-t-aria="aria_pied_pages">
+      <a href="/" data-t="pied_accueil">Accueil</a>
+      <a href="/transfert-cdg-paris" data-href-en="/en/cdg-airport-transfer-paris/" data-t="pied_cdg">Transfert Roissy-CDG</a>
+      <a href="/transfert-orly-paris" data-href-en="/en/orly-airport-transfer-paris/" data-t="pied_orly">Transfert Orly</a>
+      <a href="/chauffeur-prive-paris" data-href-en="/en/" data-t="pied_chauffeur">Chauffeur privé à Paris</a>
+    </nav>
     <a href="/?doc=mentions" data-t="pied_mentions">Mentions légales</a>
     <a href="/?doc=privacy" data-t="pied_privacy">Politique de confidentialité</a>
   </footer>
@@ -696,34 +840,30 @@
      et le choix se mémorise sous la même clé que le site (ela_langue). */
   (function(){
     var EN = {
-      _titre_page:"Elatransfer — Transfers for hotels, agencies and businesses",
-      _description:"Hotels, agencies, businesses: your booking page, a QR code and a team space. Elatransfer finds the chauffeur and coordinates every transfer.",
+      _titre_page:"Chauffeur transfers for hotels and businesses | Elatransfer",
+      _description:"Hotels, agencies, businesses: your booking page, a QR code and a team space. Elatransfer organises your chauffeur transfers in Paris and the Paris region.",
       aria_accueil:"Elatransfer — home", aria_nav:"Navigation", aria_langue:"Lire en français",
-      nav_reserver:"Book a ride", nav_questions:"FAQ", nav_contact:"Contact",
-      surtitre:"Hotels · Agencies · Businesses · Events",
+      nav_reserver:"Book a ride", nav_comment:"How it works", nav_questions:"FAQ", nav_contact:"Contact",
+      nav_demo:"Try the demo", nav_demo_court:"Demo",
+      surtitre:"Chauffeur transfers for businesses",
       titre:"Your team books. Elatransfer takes care of everything else.",
       sous_titre:"Your own booking page, QR code and team space, under your name. Your guests, colleagues and visitors book; Elatransfer searches a wide network of professionals for the chauffeur, then confirms and coordinates every transfer.",
       cta_demo:"Try the demo", cta_parler:"Request a proposal",
       points:"Free set-up · No commitment · Rates negotiated with you",
-      reference:"Already in use in the hotel sector, in the Paris region.",
+      reference:"Already used in real conditions in the hotel sector, in the Paris region.",
+      alt_hero_equipe:"The team space of an example hotel, on a computer: the “New ride” button and the upcoming transfers, each with its status.",
+      alt_hero_client:"The QR code page of the same hotel, on a phone, where the guest chooses their destination.",
+      hero_visuel:"Screenshots from the demonstration · fictitious data",
       chiffres_titre:"Elatransfer in numbers",
       vecu_titre:"Your day-to-day challenges",
-      vecu1:"A guest has to be at Roissy at 7 am. They ask at 5 am.",
+      vecu1:"A guest asks how much a ride to Orly costs. No one at the desk can tell them.",
       vecu2:"Someone looks for a number, calls back, and nobody knows whether the car will come.",
       vecu3:"If the driver doesn't show up, you're the one who gets the blame.",
-      sans_titre:"What you no longer have to manage",
-      sans1:"Finding an available chauffeur for every request.",
-      sans2:"Calling several people back to get a confirmation.",
-      sans3:"Following every ride by phone and by message.",
-      sans4:"Handing over pending requests at every shift change.",
-      sans5:"Buying a vehicle or employing a chauffeur.",
-      sans6:"Taking payment for the ride: the guest pays their chauffeur before departure.",
-      sans_fin:"Your team passes on the request. Elatransfer coordinates the rest.",
       cree_titre:"A turnkey service",
       cree1_t:"Your booking page", cree1:"A page with your name and colours, with your photo and your logo if you would like to send it to us. Your guests or visitors open it from a link or a QR code and book by themselves from their phone, without taking up your team's time.",
       cree2_t:"Your team space", cree2:"Your team books in a guest's name (or by room number, in a hotel), sees where every request stands and finds the history. At each shift change, the next team picks up without starting from scratch.",
       cree3_t:"A single point of contact", cree3:"We check every request, find the right professional chauffeur in our network, assign them and confirm with the guest. A question or a last-minute change: your team calls one number.",
-      apercu_titre:"Preview on phone, tablet and computer",
+      apercu_titre:"What your guests and your team see",
       aria_ecrans:"Choose the screen", ecran_telephone:"Phone", ecran_tablette:"Tablet", ecran_ordinateur:"Computer",
       aria_etapes:"The three steps",
       apercu_client:"1. Your guest scans the QR code at your reception desk or on your flyer: this page opens, in your name.",
@@ -750,10 +890,19 @@
       vs_ela2:"If the chauffeur can't make it, we look for another, at the same price.",
       vs_ela3:"The status of every request, in your team space.",
       parcours_titre:"How it works",
+      parcours_fin:"Your team passes on the request. Elatransfer coordinates the rest.",
       etape1_t:"The request", etape1:"The guest scans the QR code, or your team enters the request for them. It reaches Elatransfer.",
       etape2_t:"The search", etape2:"We check the request and look in our network for an available professional chauffeur.",
       etape3_t:"The confirmation", etape3:"Once the chauffeur is assigned, the guest receives the confirmation; your team sees “booking confirmed”.",
       etape4_t:"The pick-\u2060up", etape4:"Paid directly by the guest before departure, the chauffeur arrives at the agreed time. The ride moves to “completed”.",
+      publics_titre:"For hotels, agencies, businesses and events",
+      pub_hotel_t:"Hotels", pub_hotel:"A QR code at reception or on your flyer: your guests book by themselves. Your front desk can also book for them, by room number.",
+      pub_agence_t:"Agencies", pub_agence:"Your team books your travellers' transfers and follows every request in one place, from confirmation to pick-\u2060up.",
+      pub_entreprise_t:"Businesses", pub_entreprise:"Travelling staff, visitors, clients to welcome: your team books for them, with a price given before every ride.",
+      pub_evenement_t:"Events", pub_evenement:"Trade fairs, conferences, seminars: your guests book on a page under your name, and your team sees every transfer in one place.",
+      trajets_titre:"Your guests' journeys",
+      trajet_aeroports:"Airports: Roissy-CDG, Orly, Beauvais, Le\u00a0Bourget", trajet_gares:"Paris train stations", trajet_paris:"Paris and the Paris region",
+      trajet_disney:"Disneyland Paris parks", trajet_berline:"Saloon car, up to 4\u00a0passengers", trajet_van:"Van, up to 7\u00a0passengers",
       dir_titre:"Your benefits",
       dir_intro:"A transfer service under your name for your guests, with no investment and no change to your organisation.",
       dir_etab_t:"For your organisation",
@@ -798,7 +947,8 @@
       contact_texte:"Destinations, rates, set-up: tell us what you need and we will send you a tailored proposal. Phone and WhatsApp 7\u00a0am–\u206010\u00a0pm (Paris time), email any time.",
       m_tel:"Phone", m_mail:"Email",
       pied:"Elatransfer · Chauffeur transfers, for travellers and businesses",
-      pied_accueil:"Home", pied_mentions:"Legal notice", pied_privacy:"Privacy policy"
+      pied_accueil:"Home", pied_mentions:"Legal notice", pied_privacy:"Privacy policy",
+      aria_pied_pages:"Our transfers", pied_cdg:"CDG airport transfer", pied_orly:"Orly airport transfer", pied_chauffeur:"Paris airport transfers"
     };
     var FR = {};
     function lire(){
@@ -808,6 +958,7 @@
       document.querySelectorAll('[data-t-aria]').forEach(function(e){ FR[e.getAttribute('data-t-aria')] = e.getAttribute('aria-label'); });
       document.querySelectorAll('[data-t-alt]').forEach(function(e){ FR[e.getAttribute('data-t-alt')] = e.getAttribute('alt'); });
       document.querySelectorAll('img[data-src-en]').forEach(function(e){ e.setAttribute('data-src-fr', e.getAttribute('src')); });
+      document.querySelectorAll('a[data-href-en]').forEach(function(e){ e.setAttribute('data-href-fr', e.getAttribute('href')); });
     }
     function appliquer(l){
       var T = l === 'en' ? EN : FR;
@@ -819,6 +970,8 @@
       document.querySelectorAll('[data-t-alt]').forEach(function(e){ var k = e.getAttribute('data-t-alt'); if (T[k] != null) e.setAttribute('alt', T[k]); });
       /* Une capture par langue : la page anglaise ne montre pas un écran en français. */
       document.querySelectorAll('img[data-src-en]').forEach(function(e){ e.setAttribute('src', e.getAttribute(l === 'en' ? 'data-src-en' : 'data-src-fr')); });
+      /* Les liens du pied vers les pages des voyageurs : en anglais, les pages anglaises. */
+      document.querySelectorAll('a[data-href-en]').forEach(function(e){ e.setAttribute('href', e.getAttribute(l === 'en' ? 'data-href-en' : 'data-href-fr')); });
       /* Les textes posés à la construction (« en chiffres ») portent leurs deux langues. */
       document.querySelectorAll('[data-texte-en]').forEach(function(e){ e.textContent = e.getAttribute(l === 'en' ? 'data-texte-en' : 'data-texte-fr'); });
       var b = document.getElementById('langue');
@@ -918,9 +1071,8 @@
       reprise.hidden = !montre;
       form.hidden = montre;
       if (e) $('repriseTexte').textContent = t('reprise').replace('{d}', dateCourte(e));
-      /* « Essayer la démo » du haut : directement la démo si elle est ouverte. */
-      var cta = document.querySelector('.hero a.bouton');
-      if (cta) cta.setAttribute('href', e ? DEMO : '#demo');
+      /* « Essayer la démo » (bandeau et en-tête) : directement la démo si elle est ouverte. */
+      document.querySelectorAll('[data-vers-demo]').forEach(function(a){ a.setAttribute('href', e ? DEMO : '#demo'); });
     }
 
     function montrerMessage(cle, genre){
