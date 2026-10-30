@@ -125,3 +125,40 @@ compte la semaine, se tait sans lien et cède aux écriteaux urgents.
 la pose à la construction (accueil, pages aéroport FR/EN, Professionnels) et
 l'éteint si `afficher` est faux ou le relevé a plus de 60 jours ; jamais
 arrondie vers le haut, ni dans les données structurées. Histoire : `memoire/avis.md`.
+
+## 29 octobre 2026 — la note s'éteint, le lien reste (#426)
+
+Décision de Barbaros du 25/10 (#426), codée le 29/10 : **plus de note chiffrée
+sur le site, un lien seul**. Ses raisons : « le nombre d'avis ne se met pas à
+jour » et « le peu d'avis, ça fait amateur ». La note 5,0 / 25 avis était déjà
+éteinte (`afficher: false`, #407) ; depuis, les pages ne portaient plus rien du
+tout, et un visiteur n'avait aucun moyen de vérifier la réputation.
+
+- **Même repère, même script, même fichier.** Quand la note est éteinte (quelle
+  qu'en soit la raison : `afficher` faux, relevé de plus de 60 jours, donnée
+  mal formée), `avis-google.mjs` pose « Voir nos avis sur Google » / « See our
+  reviews on Google » vers le lien du fichier, dans un nouvel onglet. Rien ne
+  vieillit : ni note, ni nombre, ni étoile, ni date, ni `data-expire`. Il n'est
+  retiré que si le lien ne mène pas à Google. `afficher: true` rallume la note
+  telle qu'avant, sans autre changement (à rouvrir vers ~50 avis).
+- **Où** : les dix pages qui portaient la note (accueil FR/EN, CDG, Orly,
+  chauffeur privé, les cinq pages anglaises, Professionnels), une fois chacune.
+  Jamais sur la page d'un hôtel, son comptoir, l'admin ni la démo. Sur la page
+  Professionnels, il vient juste sous la phrase de preuve : la preuve, puis le
+  moyen de la vérifier.
+- **« Voir mon prix » ne bouge pas** : la place était déjà réservée pour la
+  note ; mesuré au pixel près à 320, 360, 390, 1280 et 1366 px.
+- **Le lien n'a pas pu être essayé d'ici** (Google refusé par le proxy de la
+  machine) : c'est toujours la recherche Maps documentée `query=Elatransfer`.
+  Barbaros l'ouvre sur son téléphone ; s'il ne tombe pas sur sa fiche, son lien
+  « Partager » le remplace dans `avis-google.json`.
+- **Mentions légales FR/EN, « Avis clients »** : elles disaient « La note
+  Google affichée sur ce site… » alors qu'aucune note ne s'affiche. Elles disent
+  maintenant que le site renvoie vers la fiche, où les avis sont publiés par
+  leurs auteurs sans contrôle ni tri, et gardent la phrase sur le relevé de
+  60 jours au conditionnel (« lorsqu'une note est affichée »). Les mentions
+  n'ont pas de ligne de date (contrairement aux CGV et à la confidentialité) :
+  aucune n'a été inventée.
+- `test-public-avis-google` éprouve l'état réel du fichier (note OU lien seul) ;
+  sur l'ancien code, 26 de ses contrôles tombent en nommant le défaut. Il ne
+  plante plus quand la ligne manque (il le dit).

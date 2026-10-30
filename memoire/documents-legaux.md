@@ -65,6 +65,13 @@ Elatransfer demande un avis à ses clients sans faire de tri entre eux
 (« review gating » interdit, voir `memoire/avis.md`). `test-public-avis-google`
 vérifie que ces mots y restent.
 
+**29 octobre 2026 (#426)** : la note chiffrée est éteinte, le site ne porte plus
+qu'un lien « Voir nos avis sur Google ». Le paragraphe « Avis clients » ne dit
+plus « la note affichée » : il dit que le site renvoie vers la fiche Google, où
+les avis sont publiés par leurs auteurs, sans contrôle, tri ni modification ;
+la phrase sur le relevé de 60 jours reste, au conditionnel (« lorsqu'une note
+est affichée »). Les mentions n'ont pas de ligne de date : aucune inventée.
+
 ---
 
 ## Archivé de CLAUDE.md le 22/10/2026

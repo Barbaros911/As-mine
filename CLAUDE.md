@@ -440,16 +440,16 @@ Histoire : `memoire/confirmation-client.md`.
 - **CGV, mentions légales, confidentialité**, FR et EN, sans compte, depuis le
   pied de l'accueil (LCEN) ; corps en `textContent`. **Aucun trou** : raison
   sociale, SIRET, siège, directeur de la publication et médiateur (L616-1)
-  s'ajoutent le jour où il les donne. Les mentions disent d'où vient la note
-  Google (L111-7-2). Un document légal qui change change aussi de date.
+  s'ajoutent le jour où il les donne. Les mentions disent d'où viennent les
+  avis (L111-7-2). Un document légal qui change change aussi de date.
   `memoire/documents-legaux.md`.
-- **Jamais un avis inventé, et on demande à TOUS** (trier est interdit).
+- **Jamais un avis inventé, on en demande à TOUS** (trier est interdit).
   « Demander un avis » : course réalisée, langue et moyen choisi du client,
   lien d'avis réglé dans Réglages (sans lien, rien ne part).
-- **La note Google ne s'écrit que dans `avis-google.json`** ;
-  `.github/scripts/avis-google.mjs` la pose à la construction et l'éteint si
-  `afficher` est faux ou le relevé a plus de 60 jours ; jamais arrondie vers le
-  haut. `memoire/avis.md`.
+- **La note Google ne vient que d'`avis-google.json`**, posée par
+  `.github/scripts/avis-google.mjs` ; éteinte (`afficher` faux, relevé de
+  plus de 60 jours), seul « Voir nos avis sur Google » reste (#426). Jamais
+  arrondie vers le haut. `memoire/avis.md`.
 
 ## Les hôtels partenaires
 
@@ -800,10 +800,10 @@ une couleur par sujet, jamais le bleu des boutons (`test-public-icones.mjs`).
   sans compte pro. `test-public-textes.mjs`. `memoire/textes-publics.md`,
   `memoire/accueil-pro.md`, `memoire/ordre-accueil.md`.
 - **Une centrale, un large réseau** (23/10) : « un large réseau » de
-  chauffeurs, jamais un nombre ; ni nombre ni lieu d'un partenaire (« Déjà en
-  service dans l'hôtellerie, en Île-de-France », à retirer s'il cesse) ;
+  chauffeurs, jamais un nombre ; ni nombre ni lieu d'un partenaire (« Déjà
+  utilisé en conditions réelles dans l'hôtellerie », à retirer s'il cesse) ;
   aucune disponibilité garantie ; suivi « jusqu'à la prise en charge » (CGV
-  art. 2) ; `chiffres.json` éteint tant qu'un chiffre n'a pas sa source.
+  art. 2) ; `chiffres.json` éteint faute de source.
   `test-public-centrale.mjs`, `memoire/centrale-et-reseau.md`.
 - **Les cinq services de l'accueil** : une carte mène au formulaire si et
   seulement si elle annonce une adresse ; ni emoji, ni pack.
