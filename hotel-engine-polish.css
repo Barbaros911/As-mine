@@ -1255,8 +1255,11 @@ body.hotel.reception-premium :is(#ecran-accueil,#ecran-reception,#ecran-bon,.ent
   body.hotel.hotel-enhanced:not(.reception):not(.reception-premium),
   body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .page{background:#F2F5F9!important}
   body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .page{max-width:none!important}
-  /* Les autres écrans (prix, bon, réservations) gardent la largeur de la page. */
-  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .page > .ecran:not(#ecran-accueil){max-width:1180px;margin-left:auto;margin-right:auto}
+  /* Les autres écrans (prix et carte du trajet, bon, réservations) : une
+     colonne de 720 px, COMME LE SITE PUBLIC (application-facade.css,
+     30/10/2026, Barbaros : « comme pour le site public »). Sur 1 180 px, la
+     carte du trajet devenait une bande de 1 140 × 220. */
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .page > .ecran:not(#ecran-accueil){max-width:720px;margin-left:auto;margin-right:auto}
   /* L'en-tête et le bandeau vont d'un bord à l'autre ; leur contenu reste
      aligné sur les 1 180 px de la page. */
   body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete{

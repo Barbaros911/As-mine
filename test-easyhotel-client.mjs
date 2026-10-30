@@ -300,6 +300,26 @@ for(const [w,h] of [[1440,900],[820,1180],[390,844]]){
   check(`${w}×${h} : parcours des onglets sans erreur`, p.errs.length===0, p.errs.join(';'));
   await ctx.close();
 }
+// « Voir mon prix » montre LA CARTE DU TRAJET, comme le site public, et dans
+// la même colonne de 720 px (30/10/2026, Barbaros : « il faut afficher la
+// carte avec le trajet comme pour le site public »). Sur 1 180 px, elle
+// devenait une bande de 1 140 × 220 ; et avant la correction de l'écran
+// actif, elle tombait 1 500 px plus bas, hors de vue.
+for(const [w,h] of [[1440,900],[390,844]]){
+  const {ctx,p}=await nouveau('fr-FR',w,h);
+  await ctx.route('**://router.project-osrm.org/**',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({routes:[{distance:KM*1000,duration:3000,
+    geometry:{type:'LineString',coordinates:[[2.5512,48.9701],[2.47,48.91],[2.40,48.84],[2.3652,48.7262]]}}]})}));
+  await ctx.route('**://tile.openstreetmap.org/**',r=>r.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#eae6df"/></svg>'}));
+  await p.goto(BASE+'/application.html?h=easyhotel-aeroville&dest=orly',{waitUntil:'load'}); await p.waitForTimeout(1500);
+  await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
+  await p.click('#btnVoirPrix'); await p.waitForSelector('#carteTrajet .leaflet-tile',{timeout:8000}).catch(()=>{}); await p.waitForTimeout(600);
+  const c=await p.evaluate(()=>{const e=document.getElementById('carteTrajet'),r=e.getBoundingClientRect();
+    return {visible:!e.hidden&&r.height>0, haut:Math.round(r.top), large:Math.round(r.width), centre:Math.round(r.left+r.width/2), milieu:Math.round(document.documentElement.clientWidth/2), traits:e.querySelectorAll('path').length};});
+  check(`${w}×${h} : « Voir mon prix » montre la carte et le tracé, à l'écran`, c.visible&&c.traits===2&&c.haut<h/2, JSON.stringify(c));
+  if(w>=1100) check(`${w}×${h} : l'écran des prix dans une colonne de 720 px au plus, centrée, comme le site public`, c.large<=720&&Math.abs(c.centre-c.milieu)<30, JSON.stringify(c));
+  check(`${w}×${h} : carte sans erreur`, p.errs.length===0, p.errs.join(';'));
+  await ctx.close();
+}
 // La liste d'adresses, ouverte dans la colonne de gauche, se lit en entier :
 // chaque ligne visible reçoit le doigt (rien ne la coupe ni ne la recouvre).
 { const {ctx,p}=await nouveau('fr-FR',1440,900);

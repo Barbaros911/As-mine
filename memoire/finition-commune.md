@@ -209,3 +209,11 @@ vide ». Proposition montrée en maquettes annotées (avant/après), validée
   `#ecran-accueil.actif`.
 - Contrôles : `test-easyhotel-client` (5 ter), `test-demo-hotel` (9) ; les 18
   et 6 nouveaux contrôles tombent sur l'ancien code.
+- **L'écran des prix et sa carte, comme le site public** (30/10, Barbaros :
+  « il faut afficher la carte avec le trajet comme pour le site public ») :
+  la carte y était déjà (`tracerCarte`, même composant), mais sur 1 180 px
+  elle devenait une bande de 1 140 × 220. Les écrans autres que l'accueil
+  passent à 720 px, comme `application-facade.css`. Les captures et vidéos
+  faites ici n'ont pas de vraie carte : `tile.openstreetmap.org` et
+  `router.project-osrm.org` sont refusés par le réseau de l'environnement
+  (on ne la simule pas dans ce qu'on montre).
