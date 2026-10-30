@@ -58,3 +58,31 @@ aurait **supprimé** les photos, les suites de tests et les corrections de
   retard : la suivre faisait repartir d'août. `CLAUDE.md` ne la nomme plus
   comme lieu de travail ; supprimée avec `ai-dev`, sa tête étant un ancêtre de
   `main`.
+
+## La fusion : un « oui » écrit, pour cette PR (29 octobre 2026)
+
+Archive de `CLAUDE.md` (« Git et publication »). La règle en vigueur est dans
+`TEAM_RULES.md` §2.
+
+- **Août 2026** : deux fusions sont passées avant que Barbaros ait regardé.
+  Naît « rien ne part sans qu'il l'ait vu » — faire, montrer, attendre son
+  accord, puis pousser. **GitHub ne l'impose pas** : zéro approbation exigée,
+  les PR sont ouvertes sous son compte et il ne peut pas approuver la sienne.
+- La ligne suivante disait : « Une fois l'accord donné : ouvrir la PR **et la
+  fusionner** — sans la fusion, le lien envoyé au client ne marche pas »
+  (l'époque des sites vitrines, où le lien envoyé au commerçant n'existait
+  qu'après la fusion). Elle ne disait pas **quel** accord : celui donné sur
+  une capture valait, à la lecture, accord de fusion.
+- `/nouveau-site` allait plus loin : « on fusionne sans redemander, pour que le
+  lien fonctionne ». La commande était encore là le 29/10, alors que les sites
+  vitrines ont quitté le dépôt le 4/10.
+- **22/10/2026** : la PR #404 (fiabilité de la réservation) a été fusionnée
+  sur un « Ok fait le » dans la conversation.
+- **29/10/2026, sa décision, définitive** : aucun agent IA ne fusionne, ne
+  pousse sur `main` ni ne déclenche volontairement une publication sans son
+  accord explicite **pour cette PR précise** (« Oui, tu peux fusionner la
+  PR #N »). « fais-le », « continue », « ok », « vas-y », « termine »… n'en
+  sont pas ; un accord ne vaut jamais pour une autre PR. Les deux phrases
+  ci-dessus sont retirées, et `test-doc.mjs` (section 10) refuse qu'une
+  consigne d'agent dise de nouveau le contraire. Ce contrôle lit les
+  consignes ACTIVES ; ce fichier-ci, qui raconte, n'est pas lu.
