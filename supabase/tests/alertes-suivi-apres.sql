@@ -95,15 +95,19 @@ end $$;
 --    moins quelques minutes » : toujours dans la semaine en cours... sauf le
 --    lundi a minuit ; on prend donc la periode « annee », et l'une est
 --    creee AVANT le 1er janvier pour verifier la borne).
+--    « confirmeeLe » porte ses microsecondes, comme l'heure ISO que l'admin
+--    ecrit (millisecondes) : arrondi a la seconde, l'ecart avec « cree_le »
+--    valait 240 s MOINS la fraction de seconde de now(), et la mediane
+--    arrondie donnait 239 une fois sur deux (mesure le 29/10 : 5 sur 10).
 delete from public.journal_notifications_admin;
 insert into public.courses(ref, statut, bon, cree_le) values
  -- vue en 1 min par le bouton, confirmee en 4 min
  ('ELA-26-10-RAPID', 'confirmee', jsonb_build_object('securite', '{"empreinteDepot":"x"}'::jsonb,
-    'confirmeeLe', to_char((now() - interval '6 minutes') at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')),
+    'confirmeeLe', to_char((now() - interval '6 minutes') at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')),
     now() - interval '10 minutes'),
  -- jamais vue par le bouton, confirmee en 12 min : la confirmation vaut vue
  ('ELA-26-10-MOYEN', 'confirmee', jsonb_build_object('securite', '{"empreinteDepot":"x"}'::jsonb,
-    'confirmeeLe', to_char((now() - interval '18 minutes') at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')),
+    'confirmeeLe', to_char((now() - interval '18 minutes') at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')),
     now() - interval '30 minutes'),
  -- en attente, jamais vue
  ('ELA-26-10-OUBLI', 'attente', '{"securite":{"empreinteDepot":"x"}}', now() - interval '40 minutes'),
@@ -115,7 +119,7 @@ insert into public.courses(ref, statut, bon, cree_le) values
  ('ELA-25-12-VIEIL', 'attente', '{"securite":{"empreinteDepot":"x"}}', date_trunc('year', now()) - interval '2 days'),
  -- une confirmation datee par un telephone en avance : jamais un delai negatif
  ('ELA-26-10-AVANC', 'confirmee', jsonb_build_object('securite', '{"empreinteDepot":"x"}'::jsonb,
-    'confirmeeLe', to_char((now() - interval '3 minutes') at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')),
+    'confirmeeLe', to_char((now() - interval '3 minutes') at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')),
     now() - interval '2 minutes');
 insert into public.journal_notifications_admin(type_evenement, course_ref, canal, statut, cree_le) values
   ('nouvelle_reservation', 'ELA-26-10-RAPID', 'telegram', 'envoye', now() - interval '10 minutes' + interval '2 seconds'),

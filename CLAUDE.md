@@ -722,14 +722,12 @@ Histoire : `memoire/alertes-notifications.md`.
   besoin. La clé publique des notifications vient du serveur
   (`cle-notifications`) ; ne jamais s'abonner avec `CLE_VAPID`. L'outil
   « Fabriquer les clés » reste caché tant que le serveur a une clé (une paire
-  recollée couperait tous les abonnements). Écrire soi-même dans ses secrets a
-  été refusé par la sécurité de l'environnement : ne pas retenter.
+  recollée couperait tous les abonnements). Écrire soi-même dans ses secrets
+  est refusé par l'environnement : ne pas retenter.
 - **Le webhook INSERT sur `courses` porte la clé PUBLIQUE**, jamais un jeton
-  `service_role` (le tableau de bord Supabase remplit l'en-tête tout seul, et
-  c'est ainsi que le secret s'y était retrouvé ; corrigé par
-  `20261003030000_webhook_cle_publique.sql`). Après toute réinstallation du
-  webhook, rejouer cette migration : elle remplace l'en-tête, et ne fait rien
-  s'il est déjà bon.
+  `service_role` (le tableau de bord le remplit seul). Après toute
+  réinstallation, rejouer `20261003030000_webhook_cle_publique.sql` : elle
+  remplace l'en-tête, et ne fait rien s'il est déjà bon.
 - **Seule `main` publie, déploie et migre** (garde dans chaque workflow, jeton
   dans l'environnement « production », **il expire le 1er octobre 2027 : le
   refaire avant**). Dans ces workflows, toute action qui n'est pas de GitHub
@@ -742,10 +740,13 @@ Histoire : `memoire/alertes-notifications.md`.
   pas toute seule (workflow « Appliquer une migration Supabase »).
 - **Ne jamais rejouer `20260916100000_current_tariff_source.sql` ni
   `20260928120000_tarif_unifie.sql`** : ils écraseraient les prix réglés dans
-  l'admin. **Ni `20261014000000`** (mesure) : elle recréerait l'ancienne
-  `ela_mesurer` à deux paramètres, et les liens `?via=` ne seraient plus
-  comptés. Toute migration de tarif est **conditionnelle**, sur le modèle de
+  l'admin. **Ni `20261014000000`** (mesure : elle recréerait l'ancienne
+  `ela_mesurer`, sans les liens `?via=`). Toute migration de tarif est
+  **conditionnelle**, sur le modèle de
   `20261004000000_minimum_berline_35.sql`.
+- **Alertes Supabase qualifiées** (28/10) : vues tarifaires en propriétaire,
+  outils SQL du Registre sans `search_path`, RLS sans politique : voulus, ne
+  pas les « corriger ».
 - **Un SQL s'éprouve avant d'être poussé** : PostgreSQL 16 est installé ici
   (`/usr/lib/postgresql/16/bin`, sous l'utilisateur `postgres`, dans `/tmp`).
   Une épreuve repose l'état RÉEL, pas celui que décrit la doc.
