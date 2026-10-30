@@ -399,6 +399,13 @@ for (const w of [390, 1280]) {
   check('la réception s\'ouvre sans code', await visible(p, '#recCorps') && !(await visible(p, '#recVerrou')));
   check('la course du client apparaît chez la réception', await p.evaluate(r => document.body.innerText.includes('Jean Martin') && document.body.innerText.includes(r), ref));
   check('des courses fictives sont préremplies', await p.evaluate(() => document.body.innerText.includes('Mme Laurent (exemple)')));
+  /* UNE JOURNÉE D'HÔTEL, PAS TROIS LIGNES (29/10/2026, Barbaros : la
+     réception sur ordinateur était « beaucoup trop blanche et vide ») :
+     huit courses d'exemple, plus celle que le prospect vient de faire. */
+  const lignes = async v => { await p.click(`.rec-vues [data-vue="${v}"]`); await p.waitForTimeout(300);
+    return p.evaluate(() => document.querySelectorAll('#recListe .rec-course').length); };
+  const nbPassees = await lignes('passees'), nbVenir = await lignes('avenir');
+  check('la réception montre une journée : huit courses d\'exemple et celle du prospect', nbVenir + nbPassees >= 9, nbVenir + ' à venir, ' + nbPassees + ' passées');
   check('les courses d\'exemple ne portent aucun prix proposé', await p.evaluate(() => {
     const t = document.getElementById('ecran-reception').innerText; return !/(45|65|85|125|75|115),00\s€/.test(t); }));
   await p.click('#demoSuivi .demo-suivant');
@@ -653,7 +660,8 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
       document.documentElement.style.scrollBehavior = 'auto';
       window.scrollTo(0, document.documentElement.scrollHeight);
       const bt = document.getElementById('demoMettreEnPlacePied').getBoundingClientRect();
-      const barre = [...document.querySelectorAll('nav.barre, .barre')].find(x => getComputedStyle(x).display !== 'none' && x.getBoundingClientRect().height > 0);
+      /* La barre DU BAS : au-delà de 1 100 px elle monte dans l'en-tête. */
+      const barre = [...document.querySelectorAll('nav.barre, .barre')].find(x => getComputedStyle(x).display !== 'none' && getComputedStyle(x).position === 'fixed' && x.getBoundingClientRect().height > 0);
       const haut = barre ? barre.getBoundingClientRect().top : innerHeight;
       const e = document.elementFromPoint(bt.left + bt.width / 2, bt.top + bt.height / 2);
       return { recu: !!(e && e.closest('#demoMettreEnPlacePied')), basBouton: Math.round(bt.bottom), barre: Math.round(haut),
@@ -666,9 +674,15 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
     if (vue === 'client' && w >= 768) {
       await p.evaluate(() => window.scrollTo(0, 0));
       await p.click('.demo-carte[data-dest="cdg"]'); await p.waitForTimeout(300);
-      const f = await p.evaluate(() => { const r = document.getElementById('btnVoirPrix').getBoundingClientRect();
-        return { largeur: Math.round(r.width), centre: Math.round(r.left + r.width / 2), milieu: Math.round(document.documentElement.clientWidth / 2) }; });
-      check(`${w} px client : le formulaire est centré et ne dépasse pas 800 px`, f.largeur <= 800 && Math.abs(f.centre - f.milieu) < 30, JSON.stringify(f));
+      const f = await p.evaluate(() => { const r = document.getElementById('btnVoirPrix').getBoundingClientRect(), c = document.querySelector('#ecran-accueil .reserver').getBoundingClientRect();
+        return { largeur: Math.round(r.width), centre: Math.round(r.left + r.width / 2), carte: Math.round(c.width), centreCarte: Math.round(c.left + c.width / 2),
+          milieu: Math.round(document.documentElement.clientWidth / 2) }; });
+      /* Au-delà de 1 100 px (29/10/2026), la vraie page prend l'écran : la
+         carte du formulaire, centrée et bornée à 1 180 px, en deux colonnes,
+         « Voir mon prix » à droite sous le client. */
+      if (w < 1100) check(`${w} px client : le formulaire est centré et ne dépasse pas 800 px`, f.largeur <= 800 && Math.abs(f.centre - f.milieu) < 30, JSON.stringify(f));
+      else check(`${w} px client : la carte du formulaire est centrée, bornée à 1 180 px, « Voir mon prix » dans la colonne de droite`,
+        f.carte <= 1180 && Math.abs(f.centreCarte - f.milieu) < 30 && f.centre > f.milieu, JSON.stringify(f));
     }
     /* LA RÉCEPTION DE LA DÉMO RESSEMBLE À LA VRAIE (9/10/2026) : pas de barre
        du bas, et sur un ordinateur (large, à la souris) pas de WhatsApp. */
@@ -729,6 +743,36 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
   writeFileSync(partage, readFileSync(partage, 'utf8') + '\n// wa.me\n');
   check('défense 2 : un script partagé chargé par la démo est vérifié aussi', lancer().status !== 0);
   rmSync(tmp, { recursive: true, force: true });
+}
+
+/* ═══ 9. SUR ORDINATEUR, LA DÉMO SUIT LA VRAIE PAGE (29/10/2026) ═══
+   Le formulaire en deux colonnes, les onglets dans l'en-tête — SOUS le
+   bandeau de la démo, jamais dessus (une barre fixée en haut de l'écran s'y
+   posait) ; et le comptoir de la démo garde sa propre mise en page. */
+{
+  const { ctx, p } = await ouvrir({ w: 1440, h: 900 });
+  await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(900);
+  /* En haut de la page, où le bandeau de la démo et l'en-tête se voient
+     tous les deux (plus bas, l'en-tête collé en haut passe sur le bandeau,
+     comme avant). */
+  await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, 0); }); await p.waitForTimeout(200);
+  const r = await p.evaluate(() => { const q = s => document.querySelector(s).getBoundingClientRect();
+    const dep = q('#blocDepart'), coord = q('#blocCoordonnees'), ban = q('#demoBandeau'), tete = q('.entete');
+    const ong = [...document.querySelectorAll('.onglet')].filter(o => o.offsetParent).map(o => o.getBoundingClientRect());
+    return { deuxCol: coord.left >= dep.right && Math.abs(coord.top - dep.top) < 40, n: ong.length,
+      dansTete: ong.every(b => b.top >= tete.top && b.bottom <= tete.bottom), surBandeau: ong.some(b => b.top < ban.bottom && b.bottom > ban.top) }; });
+  check('démo 1440 px : le trajet à gauche, le client à droite, comme la vraie page', r.deuxCol, JSON.stringify(r));
+  check('démo 1440 px : les onglets dans l\'en-tête, pas sur le bandeau de la démo', r.n === 4 && r.dansTete && !r.surBandeau, JSON.stringify(r));
+  check('démo 1440 px : aucune erreur', p.errs.length === 0, p.errs.join(' ; '));
+  await ctx.close();
+}
+{
+  const { ctx, p } = await ouvrir({ w: 1440, h: 900, chemin: '/demo/hotel/reception/' });
+  await p.click('#btnRecReserver'); await p.waitForTimeout(900);
+  const r = await p.evaluate(() => ({ enveloppes: !!document.getElementById('ehColTrajet'), barreEnHaut: !!document.querySelector('.entete .barre'),
+    comptoir: !!document.getElementById('recSaisie') }));
+  check('démo, comptoir 1440 px : « Nouvelle course » garde la mise en page du comptoir', !r.enveloppes && !r.barreEnHaut && r.comptoir, JSON.stringify(r));
+  await ctx.close();
 }
 
 await b.close(); serveur.close();

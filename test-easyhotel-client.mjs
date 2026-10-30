@@ -235,7 +235,9 @@ for(const [w,h] of [[1024,768],[1280,800],[1366,768]]){
   await p.goto(BASE+'/application.html?h=easyhotel-aeroville',{waitUntil:'domcontentloaded'}); await p.waitForTimeout(1500);
   const r=await p.evaluate(()=>{
     document.documentElement.style.scrollBehavior='auto'; window.scrollTo(0,document.documentElement.scrollHeight);
-    const barre=[...document.querySelectorAll('nav.barre, .barre')].find(x=>getComputedStyle(x).display!=='none'&&x.getBoundingClientRect().height>0);
+    /* La barre DU BAS : au-delà de 1100 px elle monte dans l'en-tête (5 ter),
+       il n'y a plus rien en bas sous quoi passer. */
+    const barre=[...document.querySelectorAll('nav.barre, .barre')].find(x=>getComputedStyle(x).display!=='none'&&getComputedStyle(x).position==='fixed'&&x.getBoundingClientRect().height>0);
     if(!barre) return {barre:false,dessous:[]};
     const haut=barre.getBoundingClientRect().top;
     const dessous=[...document.body.querySelectorAll('p, a, button, h2, h3, li, label')].filter(e=>{const q=e.getBoundingClientRect();
@@ -245,6 +247,70 @@ for(const [w,h] of [[1024,768],[1280,800],[1366,768]]){
   check(`${w}×${h} : en bas de la page du flyer, rien ne passe sous la barre`, r.dessous.length===0, JSON.stringify(r));
   await ctx.close();
 }
+// 5 ter. SUR ORDINATEUR (≥ 1100 px), LA PAGE CLIENT PREND L'ÉCRAN (29/10/2026,
+// validé sur capture par Barbaros : « beaucoup trop blanche et vide »). Le
+// trajet à gauche, le client et « Voir mon prix » à droite, dans le premier
+// écran ; les onglets dans l'en-tête, plus de barre en bas. Et le défaut
+// trouvé en mesurant : au-delà de 760 px, le formulaire restait affiché
+// AU-DESSUS de l'écran demandé (« Voir mon prix », « Réservations ») et la
+// page remontait en haut — le client voyait le même formulaire.
+const mesureOrdi=()=>{const q=id=>document.getElementById(id).getBoundingClientRect();
+  const dep=q('blocDepart'), coord=q('blocCoordonnees'), prix=q('btnVoirPrix'), tete=document.querySelector('.entete').getBoundingClientRect();
+  const onglets=[...document.querySelectorAll('.onglet')].filter(o=>o.offsetParent).map(o=>{const b=o.getBoundingClientRect();
+    const c=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);
+    return {o:o.dataset.onglet||'wa',enHaut:b.top>=tete.top&&b.bottom<=tete.bottom,touche:!!c&&o.contains(c)};});
+  const fixe=[...document.querySelectorAll('.barre')].some(x=>getComputedStyle(x).position==='fixed'&&x.getBoundingClientRect().height>0);
+  return {deuxCol:coord.left>=dep.right&&Math.abs(coord.top-dep.top)<40, uneCol:coord.top>dep.bottom&&coord.left<dep.left+dep.width/2,
+    prixBas:Math.round(prix.bottom), onglets, fixe, sw:document.documentElement.scrollWidth};};
+for(const [w,h] of [[1920,1080],[1440,900],[1280,800],[1100,800]]){
+  const {ctx,p}=await nouveau('fr-FR',w,h);
+  await p.goto(BASE+'/application.html?h=easyhotel-aeroville&dest=orly',{waitUntil:'load'}); await p.waitForTimeout(1500);
+  const r=await p.evaluate(mesureOrdi);
+  check(`${w}×${h} : le trajet à gauche, le client à droite`, r.deuxCol, JSON.stringify(r));
+  if(h>=900) check(`${w}×${h} : « Voir mon prix » entier dans le premier écran (bas à ${r.prixBas} px)`, r.prixBas<=h, r.prixBas);
+  check(`${w}×${h} : les quatre onglets dans l'en-tête, chacun reçoit le doigt`, r.onglets.length===4&&r.onglets.every(o=>o.enHaut&&o.touche), JSON.stringify(r.onglets));
+  check(`${w}×${h} : plus de barre fixée en bas`, !r.fixe);
+  check(`${w}×${h} : pas de débordement`, r.sw===w, r.sw);
+  check(`${w}×${h} : aucune erreur`, p.errs.length===0, p.errs.join(';'));
+  await ctx.close();
+}
+for(const [w,h] of [[390,844],[820,1180]]){
+  const {ctx,p}=await nouveau('fr-FR',w,h);
+  await p.goto(BASE+'/application.html?h=easyhotel-aeroville&dest=orly',{waitUntil:'load'}); await p.waitForTimeout(1500);
+  const r=await p.evaluate(mesureOrdi);
+  check(`${w}×${h} : une seule colonne, le client sous le trajet (inchangé)`, r.uneCol, JSON.stringify(r));
+  check(`${w}×${h} : la barre reste en bas (inchangé)`, r.fixe&&r.onglets.every(o=>!o.enHaut));
+  await ctx.close();
+}
+for(const [w,h] of [[1440,900],[820,1180],[390,844]]){
+  const {ctx,p}=await nouveau('fr-FR',w,h);
+  const voit=()=>p.evaluate(()=>{const a=document.querySelector('.ecran.actif');
+    return {actif:a&&a.id, haut:a&&Math.round(a.getBoundingClientRect().top), formulaire:getComputedStyle(document.getElementById('ecran-accueil')).display};});
+  await p.goto(BASE+'/application.html?h=easyhotel-aeroville&dest=orly',{waitUntil:'load'}); await p.waitForTimeout(1500);
+  await p.fill('#clientNom','Jean Martin'); await p.fill('#clientTel','06 12 34 56 78');
+  await p.click('#btnVoirPrix'); await p.waitForSelector('.veh-carte',{timeout:8000}).catch(()=>{}); await p.waitForTimeout(500);
+  let v=await voit();
+  check(`${w}×${h} : après « Voir mon prix », les prix s'affichent en haut, sans le formulaire`, v.actif==='ecran-vehicules'&&v.formulaire==='none'&&v.haut<h/3, JSON.stringify(v));
+  await p.locator('.onglet[data-onglet="courses"]').click(); await p.waitForTimeout(500);
+  v=await voit();
+  check(`${w}×${h} : « Réservations » s'affiche en haut, sans le formulaire`, v.actif==='ecran-courses'&&v.formulaire==='none'&&v.haut<h/3, JSON.stringify(v));
+  await p.locator('.onglet[data-onglet="accueil"]').click(); await p.waitForTimeout(500);
+  v=await voit();
+  check(`${w}×${h} : « Accueil » ramène au formulaire`, v.actif==='ecran-accueil'&&v.formulaire!=='none', JSON.stringify(v));
+  check(`${w}×${h} : parcours des onglets sans erreur`, p.errs.length===0, p.errs.join(';'));
+  await ctx.close();
+}
+// La liste d'adresses, ouverte dans la colonne de gauche, se lit en entier :
+// chaque ligne visible reçoit le doigt (rien ne la coupe ni ne la recouvre).
+{ const {ctx,p}=await nouveau('fr-FR',1440,900);
+  await p.goto(BASE+'/application.html?h=easyhotel-aeroville&dest=autre',{waitUntil:'load'}); await p.waitForTimeout(1500);
+  await p.click('#arrivee'); await p.keyboard.type('Versailles',{delay:30}); await p.waitForTimeout(1500);
+  const l=await p.evaluate(()=>{const liste=[...document.querySelectorAll('.suggest-list')].find(x=>x.offsetParent); if(!liste) return null;
+    const lb=liste.getBoundingClientRect();
+    return [...liste.querySelectorAll('.suggest-item')].filter(i=>{const b=i.getBoundingClientRect();return b.bottom<=lb.bottom&&b.bottom<=innerHeight;})
+      .map(i=>{const b=i.getBoundingClientRect();const c=document.elementFromPoint(b.left+30,b.top+b.height/2);return !!c&&i.contains(c);});});
+  check('1440 px, « Autre destination » : la liste d\'adresses s\'ouvre et chaque ligne reçoit le doigt', !!l&&l.length>0&&l.every(Boolean), JSON.stringify(l));
+  await ctx.close(); }
 // 6. CLIENT ET RÉCEPTION SONT DEUX DOCUMENTS DISTINCTS. L'ancienne URL
 //    ?reception= reste compatible, mais redirige vers l'espace Réception :
 //    elle ne transforme plus cette page client en comptoir.

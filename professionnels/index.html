@@ -373,6 +373,32 @@
     .video-note{margin:12px 0 0;color:var(--muted);font-size:14px;}
     /* Le pied : les pages des voyageurs sur une ligne, les mentions dessous. */
     .pied-pages{display:flex;flex-wrap:wrap;justify-content:center;margin:8px 0 2px;}
+    /* SUR ORDINATEUR, LA PAGE N'EST PLUS UNE FEUILLE BLANCHE (29/10/2026,
+       Barbaros : « beaucoup trop blanche et vide » ; proposition validée sur
+       capture). Le papier du site (--fond), jamais le blanc pur : les cartes
+       blanches s'y détachent. 1 180 px comme les pages des hôtels.
+       « Comment ça marche » sur un bandeau bleu nuit d'un bord à l'autre,
+       numéros en cyan ; les questions en deux colonnes, comme l'accueil ; la
+       demande de proposition sur du blanc, pour qu'elle se détache.
+       Le téléphone ne change pas. */
+    @media (min-width:1000px){
+      body{background:var(--fond);}
+      main section.bloc,.hero-in,.demo-in,.contact-in{width:min(1180px,calc(100% - 64px));}
+      .hero-in,.demo-in,.contact-in{width:min(1180px,100%);}
+      #comment{margin-top:56px;padding:48px 0 52px;color:#fff;background:var(--navy);
+        box-shadow:0 0 0 100vmax var(--navy);clip-path:inset(0 -100vmax);}
+      #comment > h2,#comment .etapes b,#comment .parcours-fin{color:#fff;}
+      #comment .etapes p{color:#cfe3f2;}
+      #comment .num{color:var(--navy);background:var(--cyan);box-shadow:none;}
+      #comment .etapes li:not(:last-child)::before{background:rgba(255,255,255,.22);}
+      #comment .parcours-fin{border-top-color:rgba(255,255,255,.2);}
+      .faq{display:grid;grid-template-columns:320px minmax(0,1fr);column-gap:56px;align-items:start;}
+      /* Le titre court le long de toutes les questions : plus de lignes
+         qu'il n'y aura jamais de questions. */
+      .faq > h2{grid-column:1;grid-row:1 / span 40;}
+      .faq > details{grid-column:2;}
+      .contact{background:#fff;}
+    }
   </style>
 </head>
 <body>

@@ -142,6 +142,73 @@
        (sites/easyhotel-client/), et sa vignette « Villepinte / Le Bourget »
        choisissait VILLEPINTE : un client du Bourget partait vers la mauvaise
        adresse, à un autre prix. Le menu « Destination » du moteur reste. */
+    colonnesClient();
+    barreEnHaut();
+  }
+
+  /* ═══ SUR ORDINATEUR, LA PAGE CLIENT N'EST PLUS UNE COLONNE DE TÉLÉPHONE ═══
+     (29/10/2026, Barbaros : « beaucoup trop blanche et vide » ; proposition
+     validée sur capture). Deux gestes, seulement sur la page CLIENT : le
+     comptoir a sa propre mise en page, et s'il s'ouvre après coup (la démo,
+     après la réponse de son serveur), tout est remis en place. */
+  function pageClient(){return !comptoir && racine.getAttribute('data-demo-vue')!=='reception';}
+  /* LE TRAJET À GAUCHE, LE CLIENT ET « VOIR MON PRIX » À DROITE, comme
+     « Nouvelle course » au comptoir. Les blocs sont DÉPLACÉS une seule fois
+     dans deux enveloppes, jamais recopiés : écouteurs, contrôles et textes
+     restent ceux du moteur. Sous 1100 px les enveloppes s'effacent
+     (display:contents) : le téléphone garde sa page. Les messages du haut
+     (heure passée, refus) restent hors des enveloppes, au-dessus des deux
+     colonnes. PAS DE COLONNES CSS (« columns ») : le saut de colonne forcé
+     n'est pas tenu partout, et une liste d'adresses ouverte s'y coupe. */
+  function colonnesClient(){
+    var f=document.querySelector('#ecran-accueil .reserver');
+    var g=document.getElementById('ehColTrajet'), d=document.getElementById('ehColClient');
+    if(!pageClient()){
+      if(f && g && d){
+        [g,d].forEach(function(col){while(col.firstChild) f.insertBefore(col.firstChild,col);col.remove();});
+        f.classList.remove('eh-deux-colonnes');
+      }
+      return;
+    }
+    var depart=document.getElementById('blocDepart'), coord=document.getElementById('blocCoordonnees');
+    if(!f || g || !depart || !coord || depart.parentNode!==f || coord.parentNode!==f
+       || !coord.classList.contains('hotel-guest-early')) return;
+    g=document.createElement('div');g.id='ehColTrajet';g.className='eh-col eh-col-trajet';
+    d=document.createElement('div');d.id='ehColClient';d.className='eh-col eh-col-client';
+    var col=null;
+    Array.prototype.slice.call(f.children).forEach(function(el){
+      if(el===depart) col=g;
+      if(el===coord) col=d;
+      if(col) col.appendChild(el);
+    });
+    f.appendChild(g);f.appendChild(d);
+    f.classList.add('eh-deux-colonnes');
+  }
+  /* LES ONGLETS DU BAS MONTENT DANS L'EN-TÊTE au-delà de 1100 px : une seule
+     navigation par écran, comme le site public sur ordinateur. La barre est
+     DÉPLACÉE dans l'en-tête (le moteur allume « .onglet » où qu'il soit), et
+     reprend sa place en dessous de 1100 px. Pas de barre fixée en haut de
+     l'écran : elle se posait sur le bandeau de la démo. */
+  var ORDI='(min-width:1100px)', barreOrigine=null, barreSuivie=false;
+  function barreEnHaut(){
+    var barre=document.querySelector('.barre'), tete=document.querySelector('.entete');
+    if(!barre || !tete || !window.matchMedia) return;
+    if(!barreOrigine) barreOrigine={parent:barre.parentNode,suivant:barre.nextSibling};
+    var enHaut=pageClient() && window.matchMedia(ORDI).matches;
+    if(enHaut && barre.parentNode!==tete){
+      var actions=tete.querySelector('.entete-actions');
+      tete.insertBefore(barre,actions && actions.parentNode===tete?actions:null);
+      tete.classList.add('eh-avec-onglets');
+    } else if(!enHaut && barre.parentNode===tete){
+      var s=barreOrigine.suivant;
+      barreOrigine.parent.insertBefore(barre,s && s.parentNode===barreOrigine.parent?s:null);
+      tete.classList.remove('eh-avec-onglets');
+    }
+    if(!barreSuivie){
+      barreSuivie=true;
+      var mq=window.matchMedia(ORDI);
+      if(mq.addEventListener) mq.addEventListener('change',barreEnHaut); else if(mq.addListener) mq.addListener(barreEnHaut);
+    }
   }
 
   /* L'espace Réception garde exactement le même moteur et les mêmes champs,

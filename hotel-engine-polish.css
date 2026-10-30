@@ -94,8 +94,14 @@ body.hotel.hotel-enhanced .barre-bas .actif,body.hotel.hotel-enhanced .barre-bas
   body.hotel.hotel-enhanced .hotel-tete .hotel-nom{font-size:40px!important}
   /* UNE SEULE COLONNE, CENTRÉE. La colonne de droite ne portait que le bloc
      « Destinations populaires », retiré le 22/09/2026 : laissée en place,
-     elle restait vide à côté du formulaire. */
-  body.hotel.hotel-enhanced #ecran-accueil{display:grid;grid-template-columns:1fr minmax(0,780px) 1fr;gap:0 8px;align-items:start}
+     elle restait vide à côté du formulaire.
+     SEULEMENT QUAND IL EST L'ÉCRAN ACTIF (29/10/2026, mesuré) : écrit sans
+     « .actif », ce « display » rallumait le formulaire par-dessus la règle
+     qui cache les écrans. Après « Voir mon prix » ou « Réservations », le
+     formulaire restait affiché, l'écran demandé tombait 1 500 px plus bas,
+     et la page remontait en haut : sur tablette et ordinateur, le client
+     voyait le même formulaire et croyait que rien ne s'était passé. */
+  body.hotel.hotel-enhanced #ecran-accueil.actif{display:grid;grid-template-columns:1fr minmax(0,780px) 1fr;gap:0 8px;align-items:start}
   body.hotel.hotel-enhanced #ecran-accueil > *{grid-column:2}
   body.hotel.hotel-enhanced #ecran-accueil > .hotel-tete{grid-column:1/-1}
   body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early{grid-column:1;margin:18px 6px 12px 18px!important}
@@ -1232,3 +1238,60 @@ body.hotel.reception-premium #recCorps #btnRecFermer{
    faisait réapparaître « Dès que possible » à côté de la date. Posé en
    dernier, et plus précis que toutes les règles de ce bloc. */
 body.hotel.reception-premium :is(#ecran-accueil,#ecran-reception,#ecran-bon,.entete) [hidden][hidden][hidden]{display:none!important}
+
+/* ==========================================================================
+   SUR ORDINATEUR (≥ 1100 px), LA PAGE CLIENT PREND L'ÉCRAN (29/10/2026)
+   Barbaros : « beaucoup trop blanche et vide » ; proposition validée sur
+   capture. Toute la largeur au lieu d'une colonne de 780 px entre deux
+   bandes claires, un bandeau photo plus bas, le formulaire en deux colonnes
+   qui tient dans un écran de 900 px, les onglets dans l'en-tête
+   (hotel-engine-polish.js : colonnesClient, barreEnHaut). JAMAIS AU
+   COMPTOIR (:not(.reception…)) : il a sa propre mise en page. En dessous de
+   1100 px, rien ne change : les enveloppes des colonnes s'effacent.
+   ========================================================================== */
+.eh-col{display:contents}
+@media(min-width:1100px){
+  /* Le papier du site (--fond), jamais le blanc : la carte s'y détache. */
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium),
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .page{background:#F2F5F9!important}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .page{max-width:none!important}
+  /* Les autres écrans (prix, bon, réservations) gardent la largeur de la page. */
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .page > .ecran:not(#ecran-accueil){max-width:1180px;margin-left:auto;margin-right:auto}
+  /* L'en-tête et le bandeau vont d'un bord à l'autre ; leur contenu reste
+     aligné sur les 1 180 px de la page. */
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete{
+    padding-left:max(32px,calc((100% - 1180px) / 2))!important;padding-right:max(32px,calc((100% - 1180px) / 2))!important}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) #ecran-accueil{grid-template-columns:minmax(32px,1fr) minmax(0,1180px) minmax(32px,1fr)!important;gap:0!important}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .hotel-tete{
+    min-height:250px!important;padding:112px max(32px,calc((100% - 1180px) / 2)) 22px!important;border-radius:0!important}
+  /* Le formulaire : le trajet à gauche, le client et « Voir mon prix » à
+     droite. Les messages du haut (heure passée, refus) couvrent les deux. */
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) #ecran-accueil > .reserver.eh-deux-colonnes{
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:36px;align-items:start;
+    max-width:none!important;margin:18px 0 40px!important;padding:30px 32px 28px!important;border-radius:20px!important;
+    box-shadow:0 1px 2px rgba(6,47,85,.05),0 18px 46px rgba(6,47,85,.10)!important}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .reserver.eh-deux-colonnes > :not(.eh-col){grid-column:1/-1}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .reserver.eh-deux-colonnes > .eh-col{display:block;min-width:0}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .eh-col-client > #blocCoordonnees{margin:0 0 12px!important}
+  /* Les onglets dans l'en-tête, en mots : sur un écran large, une icône de
+     21 px sous un mot de 11 px ne se lit plus comme un menu. « Accueil »
+     reste : c'est lui qui ramène au formulaire depuis « Réservations ».
+     WhatsApp garde son vert (la marque), l'onglet allumé la couleur de
+     l'hôtel. Plus de barre en bas, plus de place réservée pour elle. */
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium){padding-bottom:0!important}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete.eh-avec-onglets{grid-template-columns:210px minmax(0,1fr) auto auto!important}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete.eh-avec-onglets .entete-actions{grid-column:4!important}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre{
+    grid-column:3;grid-row:1;position:static!important;z-index:auto;margin:0 10px 0 0;padding:0!important;
+    background:none!important;border:0!important;box-shadow:none!important}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .barre-int{max-width:none;margin:0;gap:2px;align-items:center}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet{
+    flex:0 0 auto;min-height:44px;flex-direction:row;align-items:center;padding:0 12px;border-radius:10px;
+    font-size:14px;font-weight:750;color:var(--eh-navy)}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet span{font-size:14px}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet svg,
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet::before{display:none}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet.actif{color:var(--eh-action)}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet-wa{color:#128C43}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet:hover{background:#F2F5F9}
+}

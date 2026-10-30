@@ -174,3 +174,38 @@ par clé, nom ou alias.
   (`test-easyhotel-client`). Clé exacte seulement ; la démo retire ce script.
 - easyHotel n'a pas bougé d'un pixel (mesuré). Suite et histoire :
   `memoire/finition-commune.md`.
+
+## 29 octobre 2026 — sur ordinateur, la page client prend l'écran
+
+Barbaros (28/10) : la version ordinateur était « beaucoup trop blanche et
+vide ». Proposition montrée en maquettes annotées (avant/après), validée
+(« Oui »). Seulement au-delà de 1 100 px, seulement sur la page CLIENT.
+
+- **Ce qui change** : toute la largeur (plus la colonne de 780 px entre deux
+  bandes claires), le papier du site `#F2F5F9`, un bandeau photo de 250 px,
+  le formulaire en deux colonnes — le trajet à gauche, le client, la précision
+  et « Voir mon prix » à droite — qui tient dans un écran de 1440×900, et les
+  quatre onglets du bas montés dans l'en-tête, en mots (WhatsApp garde son
+  vert, « Accueil » reste : il ramène au formulaire depuis « Réservations »).
+- **Comment** : `colonnesClient()` DÉPLACE les blocs une fois dans deux
+  enveloppes (`#ehColTrajet`, `#ehColClient`), comme le comptoir le fait pour
+  « Nouvelle course » ; sous 1100 px elles sont en `display:contents`, la page
+  du téléphone est identique au pixel près (mesuré, 390 à 1099 px).
+  `barreEnHaut()` déplace `nav.barre` dans `.entete` et la remet en place sous
+  1100 px (`matchMedia`). Le moteur allume `.onglet` où qu'il soit.
+- **Écarté** : les colonnes CSS (`columns` + `break-before:column`) — le saut
+  de colonne forcé n'est pas tenu par tous les navigateurs, et une liste
+  d'adresses ouverte s'y coupe en deux ; une barre `position:fixed` en haut —
+  elle se posait sur le bandeau de la démo.
+- **Jamais au comptoir** : `:not(.reception):not(.reception-premium)` en CSS,
+  `pageClient()` en script ; si le comptoir s'ouvre après coup (la démo), les
+  enveloppes sont défaites. Vraie réception et « Nouvelle course » de la démo :
+  identiques au pixel près (mesuré).
+- **Défaut trouvé en mesurant, corrigé** : la règle `#ecran-accueil{display:grid}`
+  (au-delà de 760 px) n'était pas bornée à `.actif`. Sur tablette et
+  ordinateur, après « Voir mon prix » ou « Réservations », le formulaire
+  restait affiché, l'écran demandé tombait 1 500 px plus bas, et la page
+  remontait en haut : le client voyait le même formulaire. Désormais
+  `#ecran-accueil.actif`.
+- Contrôles : `test-easyhotel-client` (5 ter), `test-demo-hotel` (9) ; les 18
+  et 6 nouveaux contrôles tombent sur l'ancien code.

@@ -374,6 +374,40 @@ for (const langue of ['fr', 'en']) {
   check('chaque vidéo et chaque image d\'attente est publiée par construire.sh', manquent.length === 0, manquent.join(' | '));
 }
 
+// 8. SUR ORDINATEUR, LA PAGE N'EST PLUS UNE FEUILLE BLANCHE (29/10/2026,
+//    Barbaros : « beaucoup trop blanche et vide » ; validé sur capture). Le
+//    papier du site, jamais le blanc ; « Comment ça marche » sur un bandeau
+//    bleu nuit qui va d'un bord à l'autre ; les questions en deux colonnes.
+//    Sur téléphone, rien ne change.
+for (const [w, h] of [[1440, 900], [1100, 800], [390, 844]]) {
+  const p = await ouvrir(w, h); const ctx = p.context();
+  const r = await p.evaluate(() => { const fond = getComputedStyle(document.body).backgroundColor;
+    const c = document.getElementById('comment'), cs = getComputedStyle(c);
+    const h2 = document.querySelector('#questions > h2').getBoundingClientRect(), q = document.querySelector('#questions > details').getBoundingClientRect();
+    document.documentElement.style.scrollBehavior = 'auto'; c.scrollIntoView({ block: 'center' });
+    const rc = c.getBoundingClientRect();
+    return { fond, bandeau: cs.backgroundColor, milieu: Math.round(rc.top + rc.height / 2), titreBlanc: getComputedStyle(c.querySelector('h2')).color,
+      faqDeuxCol: h2.right <= q.left && Math.abs(h2.top - q.top) < 30 }; });
+  /* Le bandeau d'un bord à l'autre : la couleur VUE à 2 px du bord gauche de
+     l'écran, lue sur une capture (une ombre ne se touche pas du doigt). */
+  const png = await p.screenshot({ clip: { x: 0, y: r.milieu, width: 8, height: 1 } });
+  const lecteur = await ctx.newPage();
+  r.bord = await lecteur.evaluate(async b64 => { const i = new Image(); i.src = 'data:image/png;base64,' + b64; await i.decode();
+    const c = document.createElement('canvas'); c.width = i.width; c.height = i.height; const x = c.getContext('2d'); x.drawImage(i, 0, 0);
+    const d = x.getImageData(2, 0, 1, 1).data; return `rgb(${d[0]}, ${d[1]}, ${d[2]})`; }, png.toString('base64'));
+  const sombre = c => { const m = /rgba?\((\d+), (\d+), (\d+)/.exec(c); return !!m && (+m[1] + +m[2] + +m[3]) < 200; };
+  if (w >= 1000) {
+    check(`${w} px : le fond est le papier du site (#F2F5F9), pas le blanc`, r.fond === 'rgb(242, 245, 249)', r.fond);
+    check(`${w} px : « Comment ça marche » sur un bandeau bleu nuit, d'un bord à l'autre, titre en blanc`, sombre(r.bandeau) && sombre(r.bord) && r.titreBlanc === 'rgb(255, 255, 255)', JSON.stringify(r));
+    check(`${w} px : les questions en deux colonnes, le titre à gauche`, r.faqDeuxCol, JSON.stringify(r));
+  } else {
+    check(`${w} px : sur téléphone, le fond reste blanc (inchangé)`, r.fond === 'rgb(255, 255, 255)', r.fond);
+    check(`${w} px : sur téléphone, les questions restent sous leur titre (inchangé)`, !r.faqDeuxCol, JSON.stringify(r));
+  }
+  check(`${w} px : aucune erreur`, p._errs.length === 0, p._errs.join(' ; '));
+  await ctx.close();
+}
+
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS (' + ok.length + ') ==='); ok.forEach(t => console.log('  ✔ ' + t));

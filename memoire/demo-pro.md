@@ -702,3 +702,20 @@ construit, à 390 × 844 et 1366 × 768, avant et après.
   des suites décode le H.264 : mesuré, 2 s jouées en 2 s). **Reste, code, à décider** : une
   adresse anglaise pour cette page (`/en/professionals/`, hreflang), le lien
   « Voir nos avis sur Google » (#426).
+
+## 29 octobre 2026 — la version ordinateur, et une journée d'exemple
+
+Barbaros : « beaucoup trop blanche et vide » ; maquettes avant/après
+annotées, validées. **La démo suit la vraie page** (au-delà de 1100 px : deux
+colonnes, onglets dans l'en-tête, `memoire/finition-commune.md`), et les
+onglets restent SOUS le bandeau de la démo (`test-demo-hotel`, bloc 9).
+**La réception s'ouvre sur une journée** : huit courses d'exemple au lieu de
+trois (hier, aujourd'hui, demain ; aéroports, Disney, gares ; validées, en
+attente, effectuées), mêmes règles qu'avant (« (exemple) », 06 39 98, aucun
+prix). Un prospect qui avait déjà ouvert la démo garde ses trois courses
+jusqu'à sa prochaine session : on n'efface pas ses essais pour ça.
+**La page Professionnels sur ordinateur** (au-delà de 1000 px) : le papier
+du site au lieu du blanc, « Comment ça marche » sur un bandeau bleu nuit d'un
+bord à l'autre, les questions en deux colonnes, la demande de proposition sur
+du blanc ; 1180 px comme les pages d'hôtel. Téléphone inchangé (mesuré au
+pixel). `test-pro-page`, bloc 8. Vidéos et captures refaites ensuite.

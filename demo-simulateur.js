@@ -82,9 +82,12 @@
       + "-" + String(d.getDate()).padStart(2, "0");
   }
 
-  /* Trois courses fictives, pour que la réception ne s'ouvre pas sur une
-     liste vide. Les noms et numéros sont fictifs (06 39 98 : plage réservée
-     aux œuvres de fiction). */
+  /* UNE JOURNÉE D'HÔTEL, PAS TROIS LIGNES (29/10/2026, Barbaros : la
+     réception sur ordinateur était « beaucoup trop blanche et vide »).
+     Huit courses fictives : hier, aujourd'hui, demain ; aéroports, Disney,
+     gares ; validées, en attente, effectuées — ce qu'un comptoir voit un
+     jour ordinaire. Les noms et numéros sont fictifs (06 39 98 : plage
+     réservée aux œuvres de fiction). */
   function semer(){
     var adresse = "Hôtel — " + NOM_REPLI;
     /* AUCUN PRIX N'EST ÉCRIT DANS LES COURSES D'EXEMPLE : il vient des prix
@@ -100,8 +103,13 @@
           prix: { total: 0 } } };
     }
     return { version: 1, courses: [
+      c("ELA-DEMO-00008", "attente", 1, "09:15", "Aéroport Beauvais", "M. Roux (exemple)", "401", "beauvais", "van", "Van"),
       c("ELA-DEMO-00003", "confirmee", 1, "06:30", "Aéroport CDG — Terminal 2E", "Mme Laurent (exemple)", "214", "cdg", "berline", "Berline"),
+      c("ELA-DEMO-00007", "confirmee", 0, "21:00", "Paris — Gare du Nord", "Mme Garcia (exemple)", "317", "paris", "berline", "Berline"),
       c("ELA-DEMO-00002", "attente", 0, "18:15", "Orly", "M. Dubois (exemple)", "108", "orly", "van", "Van"),
+      c("ELA-DEMO-00006", "attente", 0, "14:45", "Disneyland Paris", "Famille Petit (exemple)", "220", "disney", "van", "Van"),
+      c("ELA-DEMO-00005", "confirmee", 0, "11:30", "Aéroport CDG — Terminal 2F", "M. Moreau (exemple)", "112", "cdg", "berline", "Berline"),
+      c("ELA-DEMO-00004", "realisee", -1, "15:30", "Orly", "M. Lefèvre (exemple)", "209", "orly", "berline", "Berline"),
       c("ELA-DEMO-00001", "realisee", -1, "09:00", "Paris — Gare de Lyon", "Mme Bernard (exemple)", "305", "paris", "berline", "Berline")
     ] };
   }
