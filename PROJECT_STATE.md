@@ -194,7 +194,11 @@ l'admin, « Centre de contrôle », aucun taux n'est écrit dans le code) ·
 tarifs · politique d'annulation · conditions contractuelles · rôle juridique
 · identité et logo · engagement envers un partenaire.
 **Ne jamais présenter easyHotel comme « partenaire officiel » sans accord
-formalisé** — dire « tarifs au départ de easyHotel Aéroville ».
+formalisé** — dire « tarifs au départ de easyHotel Aéroville », et **seulement
+sur la page du QR du flyer** (et au comptoir) : son nom n'apparaît nulle part
+ailleurs, ni dans Google (30/10/2026, Barbaros : « seulement pour les clients
+de l'hôtel qui se connectent avec le QR code qui est sur le flyer »). Le QR du
+flyer est fait par l'imprimeur, pas par l'affiche de l'admin.
 
 ### Qui tient quoi — ce qui reste du 16 septembre
 **Deux sessions Claude ont travaillé ce dépôt en parallèle le 16 septembre**,

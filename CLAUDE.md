@@ -168,8 +168,9 @@ groupe WhatsApp de plus de 800 chauffeurs. Ne plus lui redemander.
 - **Deux cercles** : un noyau de 5 à 10 chauffeurs vérifiés d'abord, le grand
   groupe en réservoir.
 - **easyHotel n'est PAS partenaire officiel** : autorisation d'exploiter
-  (12/10/2026), aucun accord écrit, et il refuse d'être cité (24/10). Ne pas
-  annoncer de partenariat ; lui redemander, chiffres en main.
+  (12/10/2026), aucun accord écrit ; nommé sur la seule page du QR, jamais
+  dans Google (24, 30/10). Pas de partenariat annoncé ; lui redemander,
+  chiffres en main.
 - **Jamais une marque de voiture promise** : « berline », au plus « type … ou
   similaire ».
 - **Jamais d'illustration, d'emoji ni de pictogramme de voiture** : refusé cinq
@@ -479,8 +480,8 @@ Histoire : `memoire/confirmation-client.md`.
   prix »**, avant de quitter la page des champs (l'erreur de « Confirmer »
   s'affichait sur une page cachée). Les pages d'hôtel suivent la langue du
   navigateur, l'anglais en repli.
-- **Sujets clos** : le numéro du flyer est le bon (une erreur de lecture
-  d'image) ; Le Bourget en berline à 35 €, confirmé par lui.
+- **Sujets clos** : le numéro du flyer est le bon ; Le Bourget en berline à
+  35 €, confirmé par lui.
 - Le forfait vaut dans les deux sens (échange réel des champs) ; la chambre ne
   s'ouvre que sur un hôtel au départ ; les terminaux viennent de `AEROPORTS` ;
   les coordonnées de l'hôtel viennent de la BAN, `HOTELS` n'est qu'un secours.

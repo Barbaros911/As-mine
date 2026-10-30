@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 execFileSync("sh", ["construire.sh"], { stdio: "inherit" });
 
@@ -77,5 +77,15 @@ for (const ancienneRoute of ["as-mine-transport", "ela-public", "ela-admin", "ea
   assert.equal(demos.includes(ancienneRoute), false, "la galerie ne doit pas lister l’ancienne route : " + ancienneRoute);
 }
 assert.equal(demos.includes("Application de réservation Elatransfer"), true, "la galerie utilise la marque Elatransfer");
+// UNE PAGE RÉSERVÉE N'EST LISTÉE NULLE PART (30/10/2026, Barbaros) : la page
+// d'un hôtel ne se voit que par son QR code. Toute page de sites/ qui demande à
+// ne pas être indexée reste hors de la galerie, et son nom avec elle.
+for (const d of readdirSync("sites", { withFileTypes: true }).filter(e => e.isDirectory() && existsSync(`sites/${e.name}/index.html`))) {
+  const html = readFileSync(`sites/${d.name}/index.html`, "utf8");
+  if (!/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(html)) continue;
+  const titre = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "";
+  assert.equal(demos.includes(`../${d.name}/`), false, "la galerie ne liste pas la page réservée : sites/" + d.name);
+  assert.equal(titre.trim() !== "" && demos.includes(titre.trim()), false, "la galerie ne montre pas le titre de la page réservée : " + titre.trim());
+}
 
 console.log("OK — façade, réservation, anciennes routes et verrou exploitant serveur contrôlés.");
