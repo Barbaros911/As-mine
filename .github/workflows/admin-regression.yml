@@ -124,8 +124,10 @@ jobs:
               # pu nous être transmise ». La mesure du trafic, de Google à la
               # réservation. test-nouveau-bascule éprouve ce qui part EN LIGNE :
               # aucune page de l'admin ni de la réception ne publie ses notes de
-              # travail (relecture de la PR #306, 4 octobre 2026).
-              test-public-*.mjs|test-grille-publique.mjs|test-parcours-en.mjs|test-seo-en.mjs|test-mesure.mjs|test-nouveau-bascule.mjs)
+              # travail (relecture de la PR #306, 4 octobre 2026). Le dictionnaire
+              # des deux langues (textes.js, 31 octobre 2026) : parité fr/en et
+              # clés demandées par la page, sans navigateur.
+              test-public-*.mjs|test-grille-publique.mjs|test-parcours-en.mjs|test-seo-en.mjs|test-mesure.mjs|test-nouveau-bascule.mjs|test-textes.mjs)
                 echo public;;
               # LES PARTENAIRES : HÔTELS, RÉCEPTION, PROFESSIONNELS. La réception
               # d'easyHotel (5 octobre 2026) ne tournait qu'à la main alors que
