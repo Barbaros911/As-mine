@@ -246,3 +246,74 @@ garde. Rapport complet remis dans la conversation ; ici, ce qui doit survivre.
   d'immatriculation + attestation RC, par mail, valable un an), papiers des
   chauffeurs dans le carnet, médiateur sous 30 jours. Rien de tout cela ne se
   code.
+
+## AUDIT DU 28/10/2026 — LES ALERTES DES CONSEILLERS SUPABASE, QUALIFIÉES
+
+L'audit du 28/10 (sur `main` `f8b00fc`) relevait des alertes du tableau de
+bord Supabase (« Security Advisor ») et de `npm audit`. **Chacune a été
+revérifiée contre l'état réel**, sans accès direct à la base (le conteneur de
+travail ne joint pas Supabase) : par les journaux publics du workflow
+« Appliquer une migration Supabase » (54 exécutions, dont l'inventaire du
+24/10, n° 49 à 52) et par le dépôt. Une alerte n'est pas une faille : on
+garde ce qui est voulu et protégé, on corrige ce qui ne sert à rien.
+
+**Corrigé (`20261028000000_durcissement_fonctions.sql`, à appliquer après la
+fusion ; retour arrière `20261028000900`, épreuve
+`supabase/tests/durcissement-fonctions.sh`) :**
+- **Les deux déclencheurs de `courses`** (`ela_courses_numero`,
+  `ela_courses_version`) tournaient avec le `search_path` de la session qui
+  écrit. Pas exploitable aujourd'hui (aucun rôle public ne peut régler ce
+  `search_path` ni créer un objet qui s'intercale), mais l'épreuve montre le
+  mécanisme : un schéma piégé placé avant `pg_catalog` détournait `nextval()`
+  et `now()`. Réglage `search_path = ''` posé par `alter function` : **le
+  corps n'est pas réécrit**, et la migration refuse de rien changer si la
+  production porte un autre corps que le dépôt.
+- **`suivi(p_ref, p_jeton)`**, `SECURITY DEFINER`, exécutable par anon :
+  aucune page ni fonction ne l'appelle, aucune course déposée aujourd'hui ne
+  porte de `jeton`, et la règle dit qu'`etat-course` est la seule porte de
+  lecture. Droit d'anon (et d'authenticated) retiré ; la fonction reste,
+  inerte, `service_role` la garde.
+
+**Gardé, et pourquoi (ne pas « corriger » pour faire taire l'alerte) :**
+- **Les vues tarifaires** (`tarif_public`, `forfaits_partenaires_publics`,
+  `grille_publique`, `prix_pages_publics`) sont lues avec les droits de leur
+  propriétaire : c'est ce qui permet à un visiteur de lire un tarif sans
+  ouvrir les tables, qui portent aussi la commission. Elles ne rendent que
+  des colonnes de prix, filtrées ; anon et authenticated n'y ont que SELECT
+  (inventaire du 24/10) ; `20261005000000` et chaque migration de vue
+  s'arrêtent si un droit d'écriture survit. Les passer en `security_invoker`
+  couperait la lecture des tarifs. `prix_pages_publics` n'est plus lue par le
+  site depuis le 23/10 : la supprimer est un rangement possible, pas une
+  urgence (elle ne rend que des prix de page).
+- **Les sept outils SQL du Registre** (`ela_sans_accents`,
+  `ela_registre_*`) sans `search_path` : voulu et mesuré (20261020040000,
+  une fonction SQL qui porte un réglage n'est plus dépliée : 0,3 s → 1,1 s).
+  Ni `SECURITY DEFINER`, ni exécutables par anon ou authenticated.
+- **`ela_mesurer`** ouverte à anon : c'est le compteur de visites, borné
+  (forme de la page, liste d'événements, source existante, 60 pages par
+  jour). Le pire possible est de gonfler un compteur.
+- **Les fonctions ouvertes à authenticated** : les 41 fonctions
+  `SECURITY DEFINER` ont un `search_path` fixé (24/10), et chacune vérifie
+  `est_exploitant()`, `est_admin()` ou la ligne `operateurs` de l'appelant
+  AVANT de lire ou d'écrire (relu dans le dépôt, fonction par fonction).
+- **Les tables à RLS sans politique** (code admin, compteurs, journaux,
+  quotas, mesure) : fermées exprès, ouvertes seulement par des fonctions
+  serveur ou `service_role`. Une politique ajoutée pour faire taire l'alerte
+  les ouvrirait.
+
+**L'authentification :**
+- **Mots de passe compromis** : réglage réservé à l'offre Pro (payante) selon
+  les sources consultées le 28/10 (la documentation de Supabase n'était pas
+  joignable d'ici). Le code admin rend déjà un mot de passe volé inutile seul.
+- **`double_verification_exigee` à faux** : le cliquet existe déjà
+  (`20261024020100_code_admin_obligatoire.sql`). Il refuse de se lever tant
+  qu'un opérateur actif n'a pas son code : il ne peut enfermer personne. Le
+  lancer protège les comptes futurs (un agent réactivé, un second opérateur),
+  qui devront choisir un code avant de voir une course.
+
+**Les dépendances npm** (`follow-redirects` 1.16.0, `qs` 6.16.0) viennent de
+`http-server`, le serveur local des tests : rien n'en part dans `site/`.
+`follow-redirects` ne sert que si `http-server` relaie (`--proxy`, jamais
+utilisé) ; la faille de `qs` est dans `stringify`, que `union` n'appelle pas
+(il ne fait que `parse`). Montées dans le lockfile seul aux premières versions
+corrigées (1.16.1, 6.16.1), sans toucher `package.json`.

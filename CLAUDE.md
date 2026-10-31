@@ -168,8 +168,9 @@ groupe WhatsApp de plus de 800 chauffeurs. Ne plus lui redemander.
 - **Deux cercles** : un noyau de 5 à 10 chauffeurs vérifiés d'abord, le grand
   groupe en réservoir.
 - **easyHotel n'est PAS partenaire officiel** : autorisation d'exploiter
-  (12/10/2026), aucun accord écrit, et il refuse d'être cité (24/10). Ne pas
-  annoncer de partenariat ; lui redemander, chiffres en main.
+  (12/10/2026), aucun accord écrit ; nommé sur la seule page du QR, jamais
+  dans Google (24, 30/10). Pas de partenariat annoncé ; lui redemander,
+  chiffres en main.
 - **Jamais une marque de voiture promise** : « berline », au plus « type … ou
   similaire ».
 - **Jamais d'illustration, d'emoji ni de pictogramme de voiture** : refusé cinq
@@ -440,16 +441,16 @@ Histoire : `memoire/confirmation-client.md`.
 - **CGV, mentions légales, confidentialité**, FR et EN, sans compte, depuis le
   pied de l'accueil (LCEN) ; corps en `textContent`. **Aucun trou** : raison
   sociale, SIRET, siège, directeur de la publication et médiateur (L616-1)
-  s'ajoutent le jour où il les donne. Les mentions disent d'où vient la note
-  Google (L111-7-2). Un document légal qui change change aussi de date.
+  s'ajoutent le jour où il les donne. Les mentions disent d'où viennent les
+  avis (L111-7-2). Un document légal qui change change aussi de date.
   `memoire/documents-legaux.md`.
-- **Jamais un avis inventé, et on demande à TOUS** (trier est interdit).
+- **Jamais un avis inventé, on en demande à TOUS** (trier est interdit).
   « Demander un avis » : course réalisée, langue et moyen choisi du client,
   lien d'avis réglé dans Réglages (sans lien, rien ne part).
-- **La note Google ne s'écrit que dans `avis-google.json`** ;
-  `.github/scripts/avis-google.mjs` la pose à la construction et l'éteint si
-  `afficher` est faux ou le relevé a plus de 60 jours ; jamais arrondie vers le
-  haut. `memoire/avis.md`.
+- **La note Google ne vient que d'`avis-google.json`**, posée par
+  `.github/scripts/avis-google.mjs` ; éteinte (`afficher` faux, relevé de
+  plus de 60 jours), seul « Voir nos avis sur Google » reste (#426). Jamais
+  arrondie vers le haut. `memoire/avis.md`.
 
 ## Les hôtels partenaires
 
@@ -479,8 +480,8 @@ Histoire : `memoire/confirmation-client.md`.
   prix »**, avant de quitter la page des champs (l'erreur de « Confirmer »
   s'affichait sur une page cachée). Les pages d'hôtel suivent la langue du
   navigateur, l'anglais en repli.
-- **Sujets clos** : le numéro du flyer est le bon (une erreur de lecture
-  d'image) ; Le Bourget en berline à 35 €, confirmé par lui.
+- **Sujets clos** : le numéro du flyer est le bon ; Le Bourget en berline à
+  35 €, confirmé par lui.
 - Le forfait vaut dans les deux sens (échange réel des champs) ; la chambre ne
   s'ouvre que sur un hôtel au départ ; les terminaux viennent de `AEROPORTS` ;
   les coordonnées de l'hôtel viennent de la BAN, `HOTELS` n'est qu'un secours.
@@ -723,14 +724,12 @@ Histoire : `memoire/alertes-notifications.md`.
   besoin. La clé publique des notifications vient du serveur
   (`cle-notifications`) ; ne jamais s'abonner avec `CLE_VAPID`. L'outil
   « Fabriquer les clés » reste caché tant que le serveur a une clé (une paire
-  recollée couperait tous les abonnements). Écrire soi-même dans ses secrets a
-  été refusé par la sécurité de l'environnement : ne pas retenter.
+  recollée couperait tous les abonnements). Écrire soi-même dans ses secrets
+  est refusé par l'environnement : ne pas retenter.
 - **Le webhook INSERT sur `courses` porte la clé PUBLIQUE**, jamais un jeton
-  `service_role` (le tableau de bord Supabase remplit l'en-tête tout seul, et
-  c'est ainsi que le secret s'y était retrouvé ; corrigé par
-  `20261003030000_webhook_cle_publique.sql`). Après toute réinstallation du
-  webhook, rejouer cette migration : elle remplace l'en-tête, et ne fait rien
-  s'il est déjà bon.
+  `service_role` (le tableau de bord le remplit seul). Après toute
+  réinstallation, rejouer `20261003030000_webhook_cle_publique.sql` : elle
+  remplace l'en-tête, et ne fait rien s'il est déjà bon.
 - **Seule `main` publie, déploie et migre** (garde dans chaque workflow, jeton
   dans l'environnement « production », **il expire le 1er octobre 2027 : le
   refaire avant**). Dans ces workflows, toute action qui n'est pas de GitHub
@@ -743,10 +742,13 @@ Histoire : `memoire/alertes-notifications.md`.
   pas toute seule (workflow « Appliquer une migration Supabase »).
 - **Ne jamais rejouer `20260916100000_current_tariff_source.sql` ni
   `20260928120000_tarif_unifie.sql`** : ils écraseraient les prix réglés dans
-  l'admin. **Ni `20261014000000`** (mesure) : elle recréerait l'ancienne
-  `ela_mesurer` à deux paramètres, et les liens `?via=` ne seraient plus
-  comptés. Toute migration de tarif est **conditionnelle**, sur le modèle de
+  l'admin. **Ni `20261014000000`** (mesure : elle recréerait l'ancienne
+  `ela_mesurer`, sans les liens `?via=`). Toute migration de tarif est
+  **conditionnelle**, sur le modèle de
   `20261004000000_minimum_berline_35.sql`.
+- **Alertes Supabase qualifiées** (28/10) : vues tarifaires en propriétaire,
+  outils SQL du Registre sans `search_path`, RLS sans politique : voulus, ne
+  pas les « corriger ».
 - **Un SQL s'éprouve avant d'être poussé** : PostgreSQL 16 est installé ici
   (`/usr/lib/postgresql/16/bin`, sous l'utilisateur `postgres`, dans `/tmp`).
   Une épreuve repose l'état RÉEL, pas celui que décrit la doc.
@@ -800,10 +802,10 @@ une couleur par sujet, jamais le bleu des boutons (`test-public-icones.mjs`).
   sans compte pro. `test-public-textes.mjs`. `memoire/textes-publics.md`,
   `memoire/accueil-pro.md`, `memoire/ordre-accueil.md`.
 - **Une centrale, un large réseau** (23/10) : « un large réseau » de
-  chauffeurs, jamais un nombre ; ni nombre ni lieu d'un partenaire (« Déjà …
-  dans l'hôtellerie, en Île-de-France », à retirer s'il cesse) ;
+  chauffeurs, jamais un nombre ; ni nombre ni lieu d'un partenaire (« Déjà
+  utilisé en conditions réelles dans l'hôtellerie », à retirer s'il cesse) ;
   aucune disponibilité garantie ; suivi « jusqu'à la prise en charge » (CGV
-  art. 2) ; `chiffres.json` éteint tant qu'un chiffre n'a pas sa source.
+  art. 2) ; `chiffres.json` éteint faute de source.
   `test-public-centrale.mjs`, `memoire/centrale-et-reseau.md`.
 - **Les cinq services de l'accueil** : une carte mène au formulaire si et
   seulement si elle annonce une adresse ; ni emoji, ni pack.

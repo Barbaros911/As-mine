@@ -44,6 +44,12 @@ if (existsSync(SOURCE)) {
       continue;
     }
     const html = readFileSync(page, "utf8");
+    // UNE PAGE RÉSERVÉE NE SE LISTE PAS (30 octobre 2026, Barbaros : un hôtel
+    // « ne doit être cité nulle part sur Google, seulement pour les clients de
+    // l'hôtel qui se connectent avec le QR code » du flyer). La page d'un hôtel
+    // demande à ne pas être indexée ; la lister ici la montrait à tout visiteur.
+    // Vaut pour le prochain hôtel sans y toucher.
+    if (/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(html)) continue;
     sites.push({
       dossier: nom.name,
       titre: extraire(html, /<title[^>]*>([\s\S]*?)<\/title>/i, nom.name),

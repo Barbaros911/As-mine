@@ -517,6 +517,16 @@ jobs:
         shell: bash
         env: {PGPASSWORD: postgres, PGHOST: 127.0.0.1, PGUSER: postgres}
         run: sh supabase/tests/code-admin.sh
+      # DEUX DÉCLENCHEURS FIGÉS, UNE PORTE ANONYME FERMÉE (28 octobre 2026,
+      # audit des conseillers Supabase). Le décor reproduit les deux défauts
+      # (search_path de session piégé, anon qui lit par « suivi »), puis
+      # exige : piège sans effet, N° court et version intacts, corps des
+      # déclencheurs inchangés, suivi refusée à anon et à authenticated mais
+      # gardée ; retour arrière fidèle ; corps inconnu = rien de changé.
+      - name: Le durcissement des fonctions, exécuté et non relu
+        shell: bash
+        env: {PGPASSWORD: postgres, PGHOST: 127.0.0.1, PGUSER: postgres}
+        run: sh supabase/tests/durcissement-fonctions.sh
       # LES DONNÉES MÉTIER DE L'ADMIN SUR LE SERVEUR (24 octobre 2026, P1).
       # Le décor reproduit d'abord la part serveur du trou (l'agent écrit le
       # carnet), puis exige : anon, non-opérateur et admin sans son code refusés ;
