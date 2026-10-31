@@ -399,3 +399,32 @@ et capturer `site/`, jamais le dépôt directement. Même famille que « le
 script de capture ne construisait pas le site » plus haut dans ce fichier —
 troisième fois que ce projet se fait avoir par une capture prise avant la
 recette plutôt qu'après.
+
+### QUINZE SUITES NE TOURNAIENT DANS AUCUN WORKFLOW (31 octobre 2026)
+
+Audit « stabiliser avant d'ouvrir », sur `main` `4eced52`. Le lanceur local
+ramasse tous les `test-*.mjs` ; la CI, elle, lance une liste écrite à la main
+dans « Contrôle de l'admin retenu » plus quelques motifs (`test-admin-*`,
+`test-reception-*`, `test-public-*`). **Quinze suites n'y étaient pas** : la
+recherche d'adresse (`test-nouveau`), la carte, « Me localiser », les langues,
+« Mes réservations » (`test-nouveau-courses`, un morceau du P0 #399), le
+paiement par lien, les garde-fous, les cartes de services, la suppression,
+l'affiche QR, l'icône de l'espace exploitant, `test-agent-rbac`, le texte de
+l'alerte (`test-notification`), le chiffrement des notifications
+(`test-push`) et le registre d'Admin v2. Une CI verte ne disait donc rien de
+ces parcours.
+
+- **Le premier relevé à la main en comptait treize** : il lisait aussi les
+  commentaires des workflows, et `test-nouveau*` y était cité dans une
+  explication. Quatrième fois qu'un contrôle trouve son mot dans un texte
+  d'explication — le contrôle écrit ensuite ne lit que les lignes de commande.
+- **La règle, pas la liste** : `test-doc.mjs` exige que chaque suite du dépôt
+  soit lancée par une ligne de commande d'un workflow (nommée, attrapée par un
+  motif, ou par un `npm run`), hors commentaires et hors `paths:` ; une suite
+  Admin v2 doit être nommée là où l'on construit Admin v2. Éprouvé contre le
+  défaut : il tombe sur `main` (15 suites), sur une suite seulement citée en
+  commentaire, et sur une suite Admin v2 couverte par le seul chemin de
+  déclenchement.
+- `jsqr` et `http_ece` sont installés par la CI à version exacte, jamais dans
+  le dépôt : absents, `test-nouveau-affiche` et `test-push` échouent au lieu
+  de sauter leur contrôle.

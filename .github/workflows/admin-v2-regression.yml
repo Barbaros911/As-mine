@@ -102,6 +102,7 @@ jobs:
           node test-admin-responsive.mjs
           node test-admin-push.mjs
           node test-admin-commission.mjs
+          node test-admin-registre.mjs
           node capture-admin.mjs
       - name: Joindre les captures Admin
         uses: actions/upload-artifact@v4
