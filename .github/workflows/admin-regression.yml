@@ -19,6 +19,13 @@ on:
   pull_request:
   workflow_dispatch:
 permissions: {contents: read}
+# UN SEUL PASSAGE PAR PR (1er novembre 2026). Une nouvelle poussée annule le
+# passage du commit précédent, dont le verdict ne compte plus : le 31/10, les
+# passages 205 et 206 de la même PR ont tourné ensemble pendant 11 minutes.
+# Seul le passage du dernier commit compte pour la règle de main.
+concurrency:
+  group: admin-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   admin:
     runs-on: ubuntu-latest
@@ -127,37 +134,57 @@ jobs:
           # tombait. test-doc.mjs refuse désormais toute suite du dépôt
           # qu'aucun workflow ne lance.
           suites="$suites test-nouveau test-nouveau-carte test-nouveau-geoloc test-nouveau-langues test-nouveau-courses test-nouveau-paiement test-nouveau-gardes test-nouveau-services test-nouveau-suppression test-nouveau-affiche test-nouveau-icone test-agent-rbac"
+          # Sans navigateur ni réseau : le juge du voyant, qui est aussi celui
+          # du chien de garde ; le comparateur des protections de main
+          # (20/10/2026), qui doit nommer chaque écart, ni plus ni moins ; /etat
+          # et le crochet de début de session (24/10/2026), avec un faux « gh » ;
+          # le texte de l'alerte qui réveille Barbaros, et le chiffrement des
+          # notifications au client DÉCHIFFRÉ PAR UN TIERS (http_ece, 31/10).
+          suites="$suites test-chien-de-garde test-protections test-etat test-notification test-push"
+          # UNE SUITE À LA FOIS : plusieurs écoutent sur les mêmes ports, et
+          # toutes celles qui construisent effacent le même dossier site/. Le
+          # contrôle ne s'arrête jamais à la première rouge.
+          # LA DURÉE DE CHAQUE SUITE, ET UN PLAFOND PAR SUITE (1er novembre
+          # 2026, audit de la CI). Les durées n'étaient écrites nulle part :
+          # l'audit a dû les reconstituer, et l'outil qui lit les journaux n'en
+          # rend que les 5 000 dernières lignes (les 22 premières suites y
+          # étaient invisibles). Elles vont dans le résumé du passage, les plus
+          # lentes en tête. Le plafond : une suite figée bloquait tout le
+          # contrôle jusqu'à son propre plafond, sans liste des suites tombées ;
+          # elle est arrêtée à 15 min (la plus longue en dure 3), NOMMÉE comme
+          # figée, et les autres continuent.
+          plafond=15m
+          durees="$RUNNER_TEMP/durees.tsv"; : > "$durees"
           echecs=""
-          # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
-          # Et le contrôle ne s'arrête jamais à la première rouge.
           for t in $suites; do
+            debut=$(date +%s)
             echo "::group::$t"
-            if node "$t.mjs"; then echo "$t : au vert"; else echo "::error::$t est tombé"; echecs="$echecs $t"; fi
+            if timeout --kill-after=30s "$plafond" node "$t.mjs"; then
+              etat="au vert"
+            else
+              code=$?
+              case $code in
+                124|137) etat="FIGÉE, arrêtée au plafond de $plafond";;
+                *) etat="TOMBÉE (code $code)";;
+              esac
+              echo "::error::$t : $etat"
+              echecs="$echecs $t"
+            fi
+            d=$(( $(date +%s) - debut ))
+            echo "$t : $etat — $d s"
             echo "::endgroup::"
+            printf '%s\t%s\t%s\n' "$d" "$t" "$etat" >> "$durees"
           done
-          # Le juge du voyant est aussi celui du chien de garde : il s'éprouve
-          # sans navigateur, et aucun autre workflow ne le lançait.
-          echo "::group::test-chien-de-garde"
-          if node test-chien-de-garde.mjs; then echo "test-chien-de-garde : au vert"; else echo "::error::test-chien-de-garde est tombé"; echecs="$echecs test-chien-de-garde"; fi
-          echo "::endgroup::"
-          # Le comparateur des protections de main (20/10/2026) : sans
-          # navigateur ni réseau, il doit nommer chaque écart — ni plus, ni moins.
-          echo "::group::test-protections"
-          if node test-protections.mjs; then echo "test-protections : au vert"; else echo "::error::test-protections est tombé"; echecs="$echecs test-protections"; fi
-          echo "::endgroup::"
-          # /etat et le crochet de début de session (24/10/2026) : les
-          # priorités (TEAM_RULES §11) s'y lisent, et un GitHub muet doit
-          # s'écrire en toutes lettres. Faux « gh », ni réseau ni navigateur.
-          echo "::group::test-etat"
-          if node test-etat.mjs; then echo "test-etat : au vert"; else echo "::error::test-etat est tombé"; echecs="$echecs test-etat"; fi
-          echo "::endgroup::"
-          # Le texte de l'alerte qui réveille Barbaros, et le chiffrement des
-          # notifications au client DÉCHIFFRÉ PAR UN TIERS (http_ece) : sans
-          # navigateur ni réseau, et jamais lancés jusqu'ici (31/10/2026).
-          for t in test-notification test-push; do
-            echo "::group::$t"
-            if node "$t.mjs"; then echo "$t : au vert"; else echo "::error::$t est tombé"; echecs="$echecs $t"; fi
-            echo "::endgroup::"
-          done
+          {
+            echo "### Durée de chaque suite"
+            echo ""
+            echo "$(wc -l < "$durees") suites, $(awk -F'\t' '{s+=$1} END {print s}' "$durees") s en tout."
+            echo ""
+            echo "| Suite | Durée | État |"
+            echo "|---|---:|---|"
+            sort -t"$(printf '\t')" -k1,1nr "$durees" | while IFS="$(printf '\t')" read -r d t e; do
+              echo "| \`$t\` | $d s | $e |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
           if [ -n "$echecs" ]; then echo "Suites tombées :$echecs"; exit 1; fi
           echo "Toutes les suites de l'admin retenu sont au vert."
