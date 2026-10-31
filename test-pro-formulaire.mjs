@@ -145,10 +145,13 @@ const lire = (p, k) => p.evaluate(k => localStorage.getItem(k), k);
   const exp = new Date(Date.now() + 3 * 864e5);
   const p = await ouvrir({ stock: { ela_demo_session: 'abc.def', ela_demo_expire: exp.toISOString() } });
   const e = await p.evaluate(() => ({ cta: document.querySelector('.hero a.bouton').getAttribute('href'),
+    tete: (document.querySelector('.tete a.tete-demo') || {}).getAttribute?.('href'),
     form: document.getElementById('formDemo').hidden, reprise: document.getElementById('demoReprise').hidden,
     texte: document.getElementById('repriseTexte').textContent }));
   const jj = ('0' + exp.getDate()).slice(-2) + '/' + ('0' + (exp.getMonth() + 1)).slice(-2);
   check('revenu : « Voir la démo » mène directement à /demo/hotel/', e.cta === '/demo/hotel/', e.cta);
+  // Le bouton de l'en-tête (28/10/2026) suit la même règle que celui du bandeau.
+  check('revenu : la démo de l\'en-tête mène aussi directement à /demo/hotel/', e.tete === '/demo/hotel/', e.tete);
   check('revenu : le formulaire est remplacé par « Votre démonstration est ouverte »', e.form && !e.reprise, JSON.stringify(e));
   check('revenu : l\'échéance est dite (« jusqu\'au ' + jj + ' »)', e.texte.includes(jj) && /sur cet appareil/.test(e.texte), e.texte);
   await p.click('.hero a.bouton'); await p.waitForURL(SITE + 'demo/hotel/', { timeout: 4000 }).catch(() => {});

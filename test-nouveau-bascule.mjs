@@ -882,8 +882,12 @@ for (const [langue, largeur, hauteur] of [['fr-FR', 390, 844], ['en-US', 390, 84
    de la liste, la ligne tombait dans UNE colonne de 86 px, chiffres rognés.
    Depuis le 6 octobre 2026 elle n'est plus affichée que sur la page easyHotel
    (le site public a le bloc des trois étapes juste sous la carte) : c'est
-   donc là qu'on la mesure. */
-for (const large of [1024, 1280]) {
+   donc là qu'on la mesure.
+   AU-DELÀ DE 1 100 PX (29/10/2026), la carte a deux colonnes, et la ligne
+   vit dans celle de droite, sous « Voir mon prix » : elle se mesure donc au
+   bouton qui la précède — la même largeur, comme avant. Le défaut d'origine
+   (86 px sous un bouton de 1 000) tombe toujours. */
+for (const large of [1024, 1280, 1440]) {
   const cx = await b.newContext({viewport:{width:large,height:900}, locale:'fr-FR'});
   const pw = await cx.newPage();
   await pw.route('**/*', r => r.request().url().startsWith(SITE) ? r.continue() : r.abort());
@@ -891,11 +895,11 @@ for (const large of [1024, 1280]) {
   await pw.waitForTimeout(500);
   const e = await pw.evaluate(() => {
     const l = document.querySelector('.etapes-ligne').getBoundingClientRect();
-    const c = document.querySelector('.reserver').getBoundingClientRect();
-    return { ligne: Math.round(l.width), carte: Math.round(c.width) };
+    const c = document.getElementById('btnVoirPrix').getBoundingClientRect();
+    return { ligne: Math.round(l.width), bouton: Math.round(c.width) };
   });
-  check(`page easyHotel à ${large} px, la ligne des étapes occupe la largeur de la carte`,
-    e.ligne >= e.carte * 0.8, e.ligne + ' px pour une carte de ' + e.carte);
+  check(`page easyHotel à ${large} px, la ligne des étapes a la largeur du bouton au-dessus`,
+    e.ligne >= e.bouton * 0.95, e.ligne + ' px sous un bouton de ' + e.bouton);
   await cx.close();
 }
 

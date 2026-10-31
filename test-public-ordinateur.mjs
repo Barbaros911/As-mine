@@ -469,19 +469,21 @@ for (const [w, h, langue] of [[320, 700, 'fr'], [390, 844, 'fr'], [390, 844, 'en
   await p.context().close();
 }
 // La page easyHotel n'a pas le bloc des étapes : elle garde la petite ligne
-// de la carte, à la largeur de la carte (elle tombait dans une colonne de
-// 86 px quand la façade plaçait les enfants de la carte un par un).
+// de la carte, à la largeur du bouton qu'elle suit (elle tombait dans une
+// colonne de 86 px quand la façade plaçait les enfants de la carte un par
+// un). Au-delà de 1100 px (29/10/2026), la carte a deux colonnes et la ligne
+// vit sous « Voir mon prix », dans celle de droite : on la mesure au bouton.
 for (const [w, h] of [[390, 844], [1280, 800]]) {
   const p = await ouvrir(w, h);
   await p.goto(SITE + 'application.html?h=easyhotel-aeroville'); await p.waitForTimeout(500);
   const r = await p.evaluate(() => {
-    const l = document.querySelector('.etapes-ligne'), c = document.querySelector('.reserver');
+    const l = document.querySelector('.etapes-ligne'), c = document.getElementById('btnVoirPrix');
     const comment = document.querySelector('#comment');
-    return { ligne: getComputedStyle(l).display, large: Math.round(l.getBoundingClientRect().width), carte: Math.round(c.getBoundingClientRect().width),
+    return { ligne: getComputedStyle(l).display, large: Math.round(l.getBoundingClientRect().width), bouton: Math.round(c.getBoundingClientRect().width),
       comment: comment ? getComputedStyle(comment).display : 'absent' };
   });
-  check(`page hôtel ${w} px : la ligne « 1 Trajet → 2 Prix → 3 Confirmation » reste, à la largeur de la carte`,
-    r.ligne !== 'none' && r.large >= r.carte * 0.8, JSON.stringify(r));
+  check(`page hôtel ${w} px : la ligne « 1 Trajet → 2 Prix → 3 Confirmation » reste, à la largeur du bouton qu'elle suit`,
+    r.ligne !== 'none' && r.large >= r.bouton * 0.95, JSON.stringify(r));
   check(`page hôtel ${w} px : le bloc des étapes du site public n'y est pas`, r.comment === 'none' || r.comment === 'absent', r.comment);
   await p.context().close();
 }

@@ -614,3 +614,108 @@ refuse toute autre image ; le voile bleu nuit devient celui du thème
 « Votre photo ici » (`#demoPhotoArrivee`), qui ouvre le choix du fichier et
 devient « Changer la photo » une fois la photo posée : le prospect retrouve sa
 photo dès le premier écran, ce que Barbaros regrettait.
+
+## 28 octobre 2026 — audit « espace Professionnels premium »
+
+Mission de Barbaros : auditer `/professionnels/` comme un expert B2B (UX,
+conversion, SEO, crédibilité), garder ce qui marche, renforcer le reste, sans
+toucher à la réservation, au serveur ni à la démo. Priorité P1 (acquisition
+hôtels), demandée alors que le P0 #399 restait ouvert. Mesuré sur le site
+construit, à 390 × 844 et 1366 × 768, avant et après.
+
+- **Constaté** : sur ordinateur, la moitié droite du bandeau était vide ; les
+  vraies captures de la démo (la meilleure preuve de la page) n'arrivaient
+  qu'au troisième écran, et l'espace équipe s'y lisait réduit au quart
+  (1 280 px montrés sur 340). Sur téléphone, l'en-tête ne gardait que le logo
+  et EN : sur 8 765 px, aucun accès à la démo entre le haut et le formulaire.
+  « Comment ça marche » était un sous-titre au fond d'une autre section, après
+  trois blocs qui disaient ce qu'on n'aurait plus à faire. « Ce que vous
+  n'avez plus à gérer » redisait tout ce que disent la frise, l'espace équipe,
+  les avantages et les questions. Le sur-titre nommait quatre publics, le
+  reste ne parlait qu'à un hôtel ; nulle part les trajets ni les véhicules.
+  Le pied ne reliait aucune page des voyageurs.
+- **Fait** : le bandeau montre l'espace équipe (ordinateur) et la page du QR
+  code (téléphone), les mêmes captures que plus bas, avec « Captures de la
+  démonstration · données fictives » ; l'en-tête garde « Essayer la démo » en
+  contour (« Démo » sur téléphone) et les liens de section au-delà de
+  1 000 px ; « Comment ça marche » devient une section, juste après les
+  défis, conclue par la phrase du panneau retiré ; l'aperçu s'intitule « Ce
+  que voient vos clients et votre équipe » et, sur ordinateur, met l'espace
+  équipe sur toute la largeur ; une section « Pour qui » (hôtels, agences,
+  entreprises, événements : une phrase chacun, rien qui n'existe déjà) et
+  « Les trajets de vos clients » (aéroports, gares, Paris, Disneyland ;
+  berline 4 passagers, van 7) ; le pied relie CDG, Orly et chauffeur privé
+  (pages anglaises en anglais, `data-href-en`). Titre Google « Transferts avec
+  chauffeur pour hôtels et entreprises | Elatransfer », description qui dit
+  l'Île-de-France, `areaServed` dans les données.
+- **Repris de l'Issue #426 (décisions du 25/10), sur cette page seulement** :
+  « Déjà utilisé en conditions réelles dans l'hôtellerie, en Île-de-France. »
+  et le premier défi « Un client demande combien coûte un trajet pour Orly.
+  Personne au comptoir ne peut lui répondre. » (l'ancien, « à 5 h », contredisait
+  l'assistance 7 h–22 h). L'anglais du défi reste à valider. Le lien vers les
+  avis Google, l'encart de l'accueil et la fiche papier restent à #426.
+- **Gardé tel quel** : la promesse, le sous-titre, les deux boutons du haut,
+  les défis 2 et 3, la frise, l'offre, les trois écrans et trois étapes,
+  « Plus qu'un numéro de chauffeur », le programme partenaire, la démo et son
+  formulaire, les questions, le contact.
+- **Écarté** : un label « Pro » à côté du logo (« ni Elatransfer Pro », règle
+  du 18/10) ; un nouveau visuel ou une photo (aucune source propre, et les
+  captures de la démo prouvent mieux) ; un chiffre, un témoignage, un logo de
+  client (rien d'établi ni d'autorisé) ; une page anglaise à son adresse (à
+  décider : voir plus bas).
+- `test-pro-page` : le titre doit nommer la marque et le public dans n'importe
+  quel ordre (il exigeait la marque d'abord).
+- **Reste, hors code** : SIRET et mentions légales complètes (le premier
+  contrôle d'un directeur), la note Google à partir de ~50 avis.
+- **Aucun hôtel cité, jamais** (28/10/2026, Barbaros : « Je veux pas qu'on
+  cite d'hôtel ») : ni nom, ni témoignage, ni « cas client », même avec un
+  accord écrit. Ne plus le proposer comme preuve. La règle « aucun client
+  cité » de `CLAUDE.md` le disait déjà.
+- **« Voir l'outil en vidéo »** (même jour, Barbaros : « une vidéo de l'outil
+  de réception aussi », « version ordinateur aussi », « 10/10 partout ») : une
+  section juste après « Comment ça marche », deux onglets (le client réserve ·
+  la réception réserve), une vidéo à la fois. Huit fichiers : deux parcours ×
+  téléphone (portrait, 780 × 1688) et ordinateur (1920 × 1080) × français et
+  anglais, 2 à 3 Mo chacun, et une image d'attente (le titre et un bouton de
+  lecture dessiné). Le script choisit le format (≤ 700 px : téléphone) et la
+  langue (il observe `lang`) ; `preload="none"` : rien n'est téléchargé avant
+  l'appui. La vraie démo, filmée sur le site construit : hôtel et clients
+  fictifs, numéros de la plage réservée à la fiction (06 39 98), montants
+  remplacés par « votre tarif » (la démo ne propose aucun prix), et la page le
+  dit. **Refaire les vidéos si la démo change d'aspect** :
+  `sh construire.sh && node .claude/outils/videos-pro.mjs` (ffmpeg requis).
+  L'enregistreur de Playwright et le flux d'écran du navigateur ne gardent
+  que les pixels CSS (390 px) : l'outil prend des captures d'écran en rafale
+  (13 à 17 par seconde), horodatées, que ffmpeg remet au bon rythme ; une
+  capture lancée pendant un changement de page restait bloquée et coupait la
+  fin du film sans erreur (la caméra s'arrête désormais pendant la
+  navigation) ; la légende du bas recouvrait « Valider » sur téléphone
+  (`pointer-events:none`). Qualité 26 (`-tune animation`) : indiscernable de
+  21 à l'œil, deux fois plus léger. Restes de la démo visibles en anglais :
+  « L'hôtel → Orly », « Zone hôtelière », la date au format américain.
+  **À vérifier en ligne, sur un iPhone** : Safari ne lit une vidéo que si
+  l'hébergeur accepte les requêtes partielles (Range) ; non vérifiable d'ici.
+  Pour Google : les deux vidéos françaises sur ordinateur sont décrites dans
+  les données de la page (`subjectOf` du Service, `VideoObject`, éditeur
+  `#organisation`) — un seul graphe, comme ailleurs. `test-pro-page` exige
+  que leurs fichiers existent, et qu'une vidéo se lise vraiment (le Chromium
+  des suites décode le H.264 : mesuré, 2 s jouées en 2 s). **Reste, code, à décider** : une
+  adresse anglaise pour cette page (`/en/professionals/`, hreflang), le lien
+  « Voir nos avis sur Google » (#426).
+
+## 29 octobre 2026 — la version ordinateur, et une journée d'exemple
+
+Barbaros : « beaucoup trop blanche et vide » ; maquettes avant/après
+annotées, validées. **La démo suit la vraie page** (au-delà de 1100 px : deux
+colonnes, onglets dans l'en-tête, `memoire/finition-commune.md`), et les
+onglets restent SOUS le bandeau de la démo (`test-demo-hotel`, bloc 9).
+**La réception s'ouvre sur une journée** : huit courses d'exemple au lieu de
+trois (hier, aujourd'hui, demain ; aéroports, Disney, gares ; validées, en
+attente, effectuées), mêmes règles qu'avant (« (exemple) », 06 39 98, aucun
+prix). Un prospect qui avait déjà ouvert la démo garde ses trois courses
+jusqu'à sa prochaine session : on n'efface pas ses essais pour ça.
+**La page Professionnels sur ordinateur** (au-delà de 1000 px) : le papier
+du site au lieu du blanc, « Comment ça marche » sur un bandeau bleu nuit d'un
+bord à l'autre, les questions en deux colonnes, la demande de proposition sur
+du blanc ; 1180 px comme les pages d'hôtel. Téléphone inchangé (mesuré au
+pixel). `test-pro-page`, bloc 8. Vidéos et captures refaites ensuite.

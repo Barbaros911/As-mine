@@ -257,6 +257,12 @@ html[data-ela-space="demo"][data-demo-theme]:not([data-demo-theme="bleu"]) body.
   html[data-ela-space="demo"][data-demo-vue="client"] #ecran-accueil > .reserver{max-width:780px;margin-left:auto;margin-right:auto}
   html[data-ela-space="demo"][data-demo-vue="client"] .demo-retour-cartes{display:flex;width:100%;max-width:780px;margin:0 auto 8px}
 }
+/* AU-DELÀ DE 1 100 PX, LA VRAIE PAGE PREND L'ÉCRAN (29/10/2026,
+   hotel-engine-polish.css) et la démo la suit : « Toutes les destinations »
+   s'aligne sur le bord gauche du formulaire, qui n'est plus centré à 780. */
+@media (min-width:1100px){
+  html[data-ela-space="demo"][data-demo-vue="client"] .demo-retour-cartes{max-width:none;margin:0 0 8px}
+}
 
 /* « Vos prix » et l'explication du flyer. */
 .demo-prix-aide{margin:0 0 10px;color:#5A6A7B;font-size:13.5px;line-height:1.4}
