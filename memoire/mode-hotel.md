@@ -274,3 +274,27 @@ Berline / Van. C'était une liste à plat de quatorze champs.
   site. En ajouter un reste un travail de code.
 - `test-admin-forfaits.mjs` lit ce qui part au serveur ; il tombe si l'on
   renvoie les quatorze prix à chaque fois.
+
+## 30 octobre 2026 — le nom de l'hôtel ne se lit que par le QR du flyer
+
+Barbaros : « easy hotel ne doit être cité nulle part sur Google, seulement
+pour les clients de l'hôtel qui se connectent avec le QR code qui est sur le
+flyer de l'hôtel que je leur ai créé ». Et : le QR du flyer est fait par
+l'imprimeur (pas par l'affiche de l'admin).
+
+Mesuré sur le site construit, page par page : les pages publiques indexées ne
+montrent jamais le nom (il n'existe que dans le code du moteur) ; la page du
+flyer et le comptoir le montrent, en `noindex` — c'est voulu. **La seule fuite
+était la galerie `/demos/`** : elle listait tout dossier de `sites/`, donc
+« Transfert depuis easyHotel Aéroville », à tout visiteur, avec un lien vers la
+page du flyer (le seul lien public vers elle). `galerie.mjs` ne liste plus
+aucune page qui demande à ne pas être indexée : la règle vaut pour le prochain
+hôtel sans y toucher. La galerie reste en ligne, titre « Démonstrations »
+(le monitoring s'en sert pour éprouver la résolution d'un dossier), et dit
+« Aucune démonstration pour l'instant ». `test-unified-facade` le verrouille
+(il tombe sur l'ancienne galerie).
+
+Reste hors du site : **le dépôt GitHub est public** et Google indexe GitHub ;
+le nom de l'hôtel y figure (code, documentation). Le rendre privé est une
+décision de Barbaros, qui a des conséquences (protections de `main`, minutes de
+CI) à vérifier avant.
