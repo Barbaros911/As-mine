@@ -341,7 +341,7 @@ if(refs){
    du sujet qu'on touche vers memoire/, dans la même PR, et il repasse.
    Il DESCEND à chaque rangement, jamais l'inverse. Il tourne sur chaque
    PR (quality-gate) : c'est là qu'il doit mordre, pas à la publication. */
-const PLAFOND_MEMO = 54992; // octets — ne monte jamais, descend à chaque rangement (319000 → 316200 le 11/10/2026, rangement de l'itinéraire ; → 315950 le 14/10/2026, hébergement ; → 314950 le 14/10/2026, marque et Google ; → 311050 le 14/10/2026, tarif ; → 311045 le 15/10/2026, indexation ; → 309590 le 15/10/2026, avis et liens des partenaires ; → 309415 le 15/10/2026, programme partenaire ; → 308798 le 17/10/2026, branches ; → 303355 le 17/10/2026, sites vitrines et phrases périmées ; → 303086 le 18/10/2026, hébergement et vraie 404 ; → 303029 le 18/10/2026, trafic ; → 300524 le 18/10/2026, positionnement, programme partenaire, documents légaux et note Google ; → 299646 le 19/10/2026, prix à toutes les distances et péages ; → 299511 le 19/10/2026, réconciliation avec main : partenaire au conditionnel, lanceur des suites ; → 296017 le 19/10/2026, cinq services archivés, finition visuelle ; → 296002 le 19/10/2026, trafic : l'entonnoir dit où l'on perd ; → 295141 le 19/10/2026, registre et délai de confirmation ; → 295138 le 19/10/2026, référence : collision au dépôt ; → 294011 le 19/10/2026, voyant archivé, erreurs du site ; → 293603 le 19/10/2026, limite du registre, synchronisation archivée ; → 293588 le 19/10/2026, page client hôtel : le premier dessin est le bon ; → 293535 le 19/10/2026, secret de la relance, mesure du 29/09 archivée ; → 292115 le 20/10/2026, rôle agent archivé, accès agent suspendu ; → 288725 le 20/10/2026, accès de la réception archivé, seul Barbaros supprime ; → 285057 le 21/10/2026, thème du partenaire archivé, réception V2 ; → 285051 le 21/10/2026, la carte de la réception après une réservation ; → 284972 le 21/10/2026, réception 10/10 : rien de vert d'office, bon sans boutons sur PC ; → 284959 le 22/10/2026, marque et Google : pages françaises d'acquisition ; → 55308 le 22/10/2026, rangement général : toute l'histoire dans memoire/, ne restent que les règles vraies aujourd'hui ; → 55304 le 23/10/2026, courses de l'admin au départ de l'hôtel, détails du comptoir archivés ; → 55286 le 23/10/2026, arrivée à l'hôtel et rattachement à la main, quota partenaire archivé ; → 55281 le 23/10/2026, une centrale et un large réseau, textes publics resserrés ; → 55269 le 24/10/2026, double vérification de l'admin, connexion archivée ; → 55139 le 24/10/2026, grille par tranches, forfaits Paris et accueil, prix des pages retiré, fusion avec la double vérification ; → 55138 le 24/10/2026, données métier sur le serveur ; → 55137 le 24/10/2026, easyHotel refuse d'être cité : le co-marquage vit sur la fiche ; → 55134 le 24/10/2026, marche à 27 km, fusion avec les données métier et la fiche easyHotel ; → 55098 le 24/10/2026, messages au client : la trace et le pense-bête, notification resserrée, fusion avec la marche à 27 km ; → 55095 le 24/10/2026, code admin choisi au lieu de l'application de codes ; → 55091 le 24/10/2026, la recherche et « Me localiser » n'attendent plus le plus lent ; → 55080 le 24/10/2026, la liste des lieux : une pastille, le nom, l'adresse dessous ; → 55063 le 24/10/2026, la troisième couleur (l'or doux des pictogrammes), pièges des icônes archivés ; → 55061 le 24/10/2026, une seule famille d'icônes, une couleur par sujet ; → 55060 le 24/10/2026, la règle des priorités, section « Travailler avec Barbaros » resserrée ; → 55047 le 25/10/2026, P0 : une demande non vue ne se tait plus, « Vu » n'arrête que l'alarme ; → 55008 le 25/10/2026, étape 2 : battement de la relance, bandeau des non vues, alerte d'essai, réactivité ; annonce resserrée ; → 55006 le 28/10/2026, alertes des conseillers Supabase qualifiées, webhook et secrets resserrés ; → 54999 le 29/10/2026, preuves commerciales (#426) : lien seul vers les avis Google, phrase « utilisé », avis et réseau resserrés, fusion avec l'audit sécurité ; → 54995 le 30/10/2026, easyHotel nommé sur la seule page du QR, sujets clos resserrés ; → 54992 le 31/10/2026, preuve « Déjà utilisé dans l'hôtellerie », jamais au pluriel)
+const PLAFOND_MEMO = 54915; // octets — ne monte jamais, descend à chaque rangement (319000 → 316200 le 11/10/2026, rangement de l'itinéraire ; → 315950 le 14/10/2026, hébergement ; → 314950 le 14/10/2026, marque et Google ; → 311050 le 14/10/2026, tarif ; → 311045 le 15/10/2026, indexation ; → 309590 le 15/10/2026, avis et liens des partenaires ; → 309415 le 15/10/2026, programme partenaire ; → 308798 le 17/10/2026, branches ; → 303355 le 17/10/2026, sites vitrines et phrases périmées ; → 303086 le 18/10/2026, hébergement et vraie 404 ; → 303029 le 18/10/2026, trafic ; → 300524 le 18/10/2026, positionnement, programme partenaire, documents légaux et note Google ; → 299646 le 19/10/2026, prix à toutes les distances et péages ; → 299511 le 19/10/2026, réconciliation avec main : partenaire au conditionnel, lanceur des suites ; → 296017 le 19/10/2026, cinq services archivés, finition visuelle ; → 296002 le 19/10/2026, trafic : l'entonnoir dit où l'on perd ; → 295141 le 19/10/2026, registre et délai de confirmation ; → 295138 le 19/10/2026, référence : collision au dépôt ; → 294011 le 19/10/2026, voyant archivé, erreurs du site ; → 293603 le 19/10/2026, limite du registre, synchronisation archivée ; → 293588 le 19/10/2026, page client hôtel : le premier dessin est le bon ; → 293535 le 19/10/2026, secret de la relance, mesure du 29/09 archivée ; → 292115 le 20/10/2026, rôle agent archivé, accès agent suspendu ; → 288725 le 20/10/2026, accès de la réception archivé, seul Barbaros supprime ; → 285057 le 21/10/2026, thème du partenaire archivé, réception V2 ; → 285051 le 21/10/2026, la carte de la réception après une réservation ; → 284972 le 21/10/2026, réception 10/10 : rien de vert d'office, bon sans boutons sur PC ; → 284959 le 22/10/2026, marque et Google : pages françaises d'acquisition ; → 55308 le 22/10/2026, rangement général : toute l'histoire dans memoire/, ne restent que les règles vraies aujourd'hui ; → 55304 le 23/10/2026, courses de l'admin au départ de l'hôtel, détails du comptoir archivés ; → 55286 le 23/10/2026, arrivée à l'hôtel et rattachement à la main, quota partenaire archivé ; → 55281 le 23/10/2026, une centrale et un large réseau, textes publics resserrés ; → 55269 le 24/10/2026, double vérification de l'admin, connexion archivée ; → 55139 le 24/10/2026, grille par tranches, forfaits Paris et accueil, prix des pages retiré, fusion avec la double vérification ; → 55138 le 24/10/2026, données métier sur le serveur ; → 55137 le 24/10/2026, easyHotel refuse d'être cité : le co-marquage vit sur la fiche ; → 55134 le 24/10/2026, marche à 27 km, fusion avec les données métier et la fiche easyHotel ; → 55098 le 24/10/2026, messages au client : la trace et le pense-bête, notification resserrée, fusion avec la marche à 27 km ; → 55095 le 24/10/2026, code admin choisi au lieu de l'application de codes ; → 55091 le 24/10/2026, la recherche et « Me localiser » n'attendent plus le plus lent ; → 55080 le 24/10/2026, la liste des lieux : une pastille, le nom, l'adresse dessous ; → 55063 le 24/10/2026, la troisième couleur (l'or doux des pictogrammes), pièges des icônes archivés ; → 55061 le 24/10/2026, une seule famille d'icônes, une couleur par sujet ; → 55060 le 24/10/2026, la règle des priorités, section « Travailler avec Barbaros » resserrée ; → 55047 le 25/10/2026, P0 : une demande non vue ne se tait plus, « Vu » n'arrête que l'alarme ; → 55008 le 25/10/2026, étape 2 : battement de la relance, bandeau des non vues, alerte d'essai, réactivité ; annonce resserrée ; → 55006 le 28/10/2026, alertes des conseillers Supabase qualifiées, webhook et secrets resserrés ; → 54999 le 29/10/2026, preuves commerciales (#426) : lien seul vers les avis Google, phrase « utilisé », avis et réseau resserrés, fusion avec l'audit sécurité ; → 54995 le 30/10/2026, easyHotel nommé sur la seule page du QR, sujets clos resserrés ; → 54918 le 31/10/2026, fusion : le « oui » écrit de Barbaros pour cette PR, histoire dans memoire/branches.md, fusion avec les preuves commerciales ; → 54915 le 31/10/2026, preuve « Déjà utilisé dans l'hôtellerie », jamais au pluriel, fusion avec le « oui » écrit pour cette PR)
 {
   const taille = Buffer.byteLength(doc, "utf8");
   verifier("CLAUDE.md tient sous son plafond (" + Math.round(PLAFOND_MEMO / 1000) + " Ko)",
@@ -695,6 +695,98 @@ if (reglesTexte !== null) {
   verifier("PROJECT_STATE.md ne tient pas de liste de priorités P0…P3",
     !/^\s*(?:[-*|]|\d+\.).*\bP[0-3]\b/m.test(etatProjet),
     "les priorités du moment sont les étiquettes des Issues (TEAM_RULES §11), jamais un état recopié.");
+}
+
+/* ═══ 10. AUCUNE FUSION SANS LE « OUI » ÉCRIT DE BARBAROS POUR CETTE PR ═══
+   29 octobre 2026, sa décision, définitive (TEAM_RULES.md §2). GitHub ne
+   l'impose pas : zéro approbation exigée, les PR sont sous son compte. La
+   règle ne tient donc que par les consignes que lisent les agents — et une
+   seule phrase suffit à la défaire : « /nouveau-site » disait encore « on
+   fusionne sans redemander », et CLAUDE.md « une fois l'accord donné :
+   ouvrir la PR et la fusionner », sans dire quel accord. La PR #404 est
+   partie sur un « Ok fait le ».
+   DEUX CONTRÔLES. (a) Les ancres de la règle : TEAM_RULES la porte en
+   entier (pour qui, ce qui n'est pas un accord, ce qui est interdit avant),
+   et chaque porte d'entrée d'un agent y renvoie en disant « cette PR ».
+   (b) Aucune consigne active ne dit de fusionner, pousser sur main ou
+   publier sans demander, ni n'active une fusion automatique.
+   ON LIT LES CONSIGNES ACTIVES, PAS L'HISTOIRE : memoire/ raconte au passé
+   et n'est pas lu. Les compétences de .claude/skills/ sont des paquets
+   tiers qui décrivent d'autres projets ; seul leur README, écrit ici, est
+   lu. UNE PHRASE QUI INTERDIT N'AUTORISE PAS : une phrase qui porte
+   « jamais », « aucun », « interdit », « ni », « never »… AVANT ou DANS la
+   formule passe. Éprouvé contre l'ancien code : « /nouveau-site » et
+   l'ancien CLAUDE.md tombent. */
+{
+  const lire = (f) => existsSync(f) ? readFileSync(f, "utf8") : "";
+  const dossier = (d, motif) => existsSync(d)
+    ? readdirSync(d).filter((n) => motif.test(n)).map((n) => d + "/" + n) : [];
+  const consignes = [
+    ...readdirSync(".").filter((n) => /\.md$/.test(n)),
+    ...dossier(".github", /\.(md|txt|json|yml)$/),
+    ...dossier(".github/ISSUE_TEMPLATE", /\.(md|yml)$/),
+    ...dossier(".github/workflows", /\.ya?ml$/),
+    ...dossier(".ai", /\.md$/), ...dossier(".ai/scripts", /\.sh$/), ...dossier(".ai/validation", /\.md$/),
+    ...dossier(".claude/commands", /\.md$/), ...dossier(".claude/hooks", /\.(mjs|js|sh)$/),
+    ...dossier(".claude/outils", /\.(mjs|js|sh)$/),
+    ".claude/settings.json", ".claude/skills/README.md", "opencode.json", "package.json",
+  ].filter((f) => existsSync(f));
+  verifier("le garde-fou des fusions lit les consignes des agents",
+    ["TEAM_RULES.md", "AGENTS.md", "CLAUDE.md", ".claude/commands/nouveau-site.md", ".ai/README.md"]
+      .every((f) => consignes.includes(f)) && consignes.length >= 20,
+    "liste des fichiers lus vide ou amputée : un garde-fou qui ne lit rien passe toujours au vert.");
+
+  /* (a) Les ancres durables de la règle, pas une formulation du jour. */
+  const regle = reglesTexte || "";
+  verifier("TEAM_RULES §2 : la décision de fusionner n'appartient qu'à Barbaros",
+    /décision de fusionner n'appartient qu'à Barbaros/i.test(regle), "");
+  verifier("TEAM_RULES §2 : un accord nomme la PR et ne vaut que pour elle",
+    /fusionner la PR #N/.test(regle) && /ne vaut que pour\s+cette PR/i.test(regle), "");
+  verifier("TEAM_RULES §2 : « ok », « vas-y », « continue », « fais-le » ne sont pas des accords",
+    ["ok", "vas-y", "continue", "fais-le"].every((m) => regle.includes("« " + m + " »")), "");
+  verifier("TEAM_RULES §2 : interdits avant l'accord — Squash, Rebase, main, publication à la main",
+    /Squash/.test(regle) && /Rebase/.test(regle) && /pousser\s+ou écrire sur `main`/.test(regle)
+      && /publication en\s+production/.test(regle), "");
+  verifier("TEAM_RULES §2 : la règle vaut pour tous les agents",
+    ["Claude Code", "Codex", "ChatGPT", "Agent\nlocal", "commande automatisée"]
+      .every((m) => regle.replace(/\s+/g, " ").includes(m.replace(/\s+/g, " "))), "");
+  for (const f of ["CLAUDE.md", "AGENTS.md", ".github/copilot-instructions.md", ".ai/README.md"]) {
+    const t = lire(f);
+    verifier(f + " dit qu'un accord de fusion vaut pour CETTE PR, et renvoie à TEAM_RULES §2",
+      /TEAM_RULES\.md`?\s*§2\b/.test(t) && /pour cette PR/i.test(t),
+      "chaque porte d'entrée d'un agent doit porter la règle : pas de fusion sans le « oui » écrit de Barbaros pour cette PR précise.");
+  }
+  const equipe = lire(".ai/agents.yml");
+  verifier(".ai/agents.yml : ni fusion ni production automatique, validation humaine obligatoire",
+    /^\s*fusion_automatique:\s*false\s*$/m.test(equipe) && /^\s*production_automatique:\s*false\s*$/m.test(equipe)
+      && /^\s*validation_humaine_main:\s*obligatoire\s*$/m.test(equipe), "");
+
+  /* (b) Les formules qui autorisent sans accord. */
+  const DANGER = [
+    /\bfusionn\w*\b[^.;!?]{0,60}?\b(directement|automatiquement|tout de suite|aussitôt|d'office|sans (?:re)?demander|sans (?:attendre|son accord|l'accord|accord|validation|confirmation|relecture))/i,
+    /\bmerg\w*\b[^.;!?]{0,60}?\b(directly|automatically|right away|immediately|without (?:asking|approval|review|confirmation|waiting))/i,
+    /\bsans (?:re)?demander\b[^.;!?]{0,40}?\b(fusion\w*|merg\w*|publi\w*)/i,
+    // Les VERBES seulement : « 122 commits sur main » raconte, il n'ordonne rien.
+    /\b(?:pousse[rz]?|poussons|push(?:er|ez)?|écrire)\b[^.;!?]{0,30}?\b(?:sur|dans|vers|to|on|into)\s+`?(?:origin\/)?main\b/i,
+    /\bgit\s+push\b[^;\n]{0,40}?\b(?:origin\s+)?(?:HEAD:)?(?:refs\/heads\/)?main\b/i,
+    /\bpubli(?:er|e|ez|ons)\b[^.;!?]{0,40}?\b(directement|sans (?:re)?demander|sans (?:attendre|son accord|l'accord|accord|validation))/i,
+    /\bpublish\w*\b[^.;!?]{0,40}?\b(directly|without (?:asking|approval|review|confirmation))/i,
+    /\bgh\s+pr\s+merge\b|\bauto-?merge\b|enablePullRequestAutoMerge|merge_pull_request|\bpulls\.merge\s*\(/i,
+  ];
+  const NEGATION = /\b(?:jamais|aucun\w*|interdi\w*|ni|never|refus\w*|ne\s+pas|ne\s+\S+\s+pas|n'\S+\s+pas|pas\s+d[eu]|pas\s+d'|not|don't|do\s+not|must\s+not|no)\b/i;
+  const fautes = [];
+  for (const f of consignes) {
+    const phrases = lire(f).replace(/\r/g, "")
+      .split(/\n\s*\n|\n(?=\s*(?:[-*]|\d+\.)\s)/)
+      .flatMap((bloc) => bloc.replace(/\s+/g, " ").split(/(?<=[.!?;])\s+/));
+    for (const p of phrases) for (const motif of DANGER) {
+      const m = p.match(motif);
+      if (m && !NEGATION.test(p.slice(0, m.index + m[0].length))) fautes.push(f + " : « " + p.trim().slice(0, 140) + " »");
+    }
+  }
+  verifier("aucune consigne d'agent n'autorise une fusion, un push sur main ou une publication sans accord",
+    fautes.length === 0,
+    fautes.join("\n      ") + "\n      La fusion attend le « oui » écrit de Barbaros pour cette PR précise (TEAM_RULES.md §2).");
 }
 
 /* --------------------------------------------------------------- */

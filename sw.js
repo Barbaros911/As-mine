@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v228";
+const CACHE = "elatransfer-v229";
 const SHELL = ["./", "./index.html", "./application.html",
                "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,

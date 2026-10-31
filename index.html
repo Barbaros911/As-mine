@@ -12573,8 +12573,19 @@ window.ELA_TEXTES = {
        demande… » sur une course partie la veille (régression de #402,
        test-nouveau-confirmation). On compare à « bonSoumis », jamais au seul
        bon affiché. */
-    var ko = envoiEtat === false && bon === bonSoumis && !confirme && !bon.partiel;
-    var attenteDepot = envoiEtat === null && bon === bonSoumis && !confirme && !bon.partiel;
+    /* UN BON ROUVERT DEPUIS « MES COURSES » DIT CE QUE DIT LA LISTE (29/10/2026,
+       audit P0, mesuré sur le site construit). Dépôt refusé, page rechargée :
+       la liste disait « Envoi à vérifier », et le bon ouvert juste après
+       titrait « Demande reçue — vous recevrez la confirmation » — un client
+       dont la demande n'était jamais arrivée attendait une voiture. Seul
+       « recu » vient du serveur (« marquerDepot », « rafraichirCourses ») :
+       tout autre « depot » écrit par cet appareil reste « à vérifier ». */
+    /* La même course rouverte depuis la liste est une autre copie : c'est la
+       référence qui dit si elle est celle de l'envoi en cours. */
+    var soumis = !!bonSoumis && bon.ref === bonSoumis.ref;
+    var douteux = !soumis && !!bon.depot && bon.depot !== "recu";
+    var ko = (douteux || envoiEtat === false && soumis) && !confirme && !bon.partiel;
+    var attenteDepot = envoiEtat === null && soumis && !confirme && !bon.partiel;
     var cleEnvoi = envoiVerif ? "envoi_verif" : "envoi_cours";
     var cleEtat = attenteDepot ? cleEnvoi : ko ? "bon_etat_ko" : (confirme ? "bon_etat_ok" : "bon_etat");
     /* Au comptoir, la phrase d'attente parle à la réception, pas au client :

@@ -10,7 +10,7 @@ Avant toute modification de ce dépôt :
 6. Ne jamais écraser un changement plus récent.
 7. Une seule tâche à la fois peut modifier une même zone critique.
 8. Travailler sur une branche fraîche depuis le dernier `main`, puis PR.
-9. Avant fusion, comparer avec le dernier `main` et résoudre tout conflit.
+9. Avant de demander la fusion, comparer avec le dernier `main` et résoudre tout conflit. Ne jamais fusionner, pousser sur `main` ni lancer une publication sans le « oui » écrit de Barbaros pour cette PR précise (`TEAM_RULES.md` §2).
 10. Après fusion, mettre à jour `PROJECT_STATE.md` seulement si une décision ou un plan a changé.
 
 Pour toute règle détaillée, `TEAM_RULES.md` fait autorité, puis `AGENTS.md`.

@@ -43,10 +43,10 @@ règle absolue de ne jamais toucher aux fichiers d'As-mine, et la section
    clair, en français, sur le pourquoi plutôt que le quoi.
 6. Pousser (dans un appel séparé du commit), puis ouvrir une pull request
    vers `main` avec un résumé du site créé.
-7. Fusionner la pull request directement — c'est un site client, la règle
-   d'As-mine s'applique : on fusionne sans redemander, pour que le lien
-   fonctionne.
-8. Donner le lien final à l'utilisateur :
+7. **Ne pas fusionner.** Montrer les captures, puis attendre le « oui » écrit
+   de Barbaros pour CETTE pull request (« Oui, tu peux fusionner la PR #N »).
+   « ok », « vas-y » ou « continue » n'en sont pas (`TEAM_RULES.md` §2).
+8. Une fois ce « oui » reçu seulement : fusionner, puis donner le lien final :
    `https://barbaros911.github.io/As-mine/<nom-du-dossier>/`, avec un
    résumé court de ce qui est réel vs à compléter (coordonnées, avis,
    photos).
