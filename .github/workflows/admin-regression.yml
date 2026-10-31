@@ -54,14 +54,15 @@ jobs:
           # elles-mêmes.
           npx --yes http-server . -s -p 8099 >/tmp/serveur.log 2>&1 &
           for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8099/ && break; sleep 1; done
-          # LA RÈGLE, PAS LA LISTE : toute suite « test-admin-* » qui ne demande
-          # pas Admin v2 éprouve l'admin retenu. Celles qui posent
-          # ELA_AVEC_ADMIN_V2 tournent dans « Contrôle Admin v2 ».
+          # LA RÈGLE, PAS LA LISTE : toute suite « test-admin-* » tourne ici,
+          # y compris celles qui construisent aussi Admin v2 (1er novembre
+          # 2026). Elles étaient sautées et ne tournaient que dans « Contrôle
+          # Admin v2 », filtré par chemins sans index.html : la commission de
+          # l'admin retenu (test-admin-commission) n'était éprouvée sur aucune
+          # PR qui ne touchait qu'au site. Chacune construit elle-même la
+          # variante qu'elle demande.
           suites=""
-          for f in test-admin-*.mjs; do
-            grep -q ELA_AVEC_ADMIN_V2 "$f" && continue
-            suites="$suites ${f%.mjs}"
-          done
+          for f in test-admin-*.mjs; do suites="$suites ${f%.mjs}"; done
           # test-nouveau-bascule éprouve ce qui part EN LIGNE : c'est elle qui
           # vérifie qu'aucune page de l'admin ni de la réception ne publie ses
           # notes de travail. Hors CI, l'oubli d'une ligne dans construire.sh
