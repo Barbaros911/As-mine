@@ -56,14 +56,13 @@ Histoire : `memoire/methode-de-travail.md`.
 
 ## Git et publication
 
-- **RIEN NE PART SANS QUE BARBAROS L'AIT VU** (août 2026, après deux fusions
-  passées avant qu'il ait regardé) : faire, **montrer** (une capture, pas une
-  description), **attendre son accord**, puis pousser. Vaut aussi pour un
-  changement interne. L'urgence d'un lien à envoyer n'est pas une
-  autorisation. **GitHub ne l'impose pas** (zéro approbation exigée, les PR
-  sont sous son compte) : c'est une discipline, donc on la tient.
-- Une fois l'accord donné : ouvrir la PR **et la fusionner** — sans la fusion,
-  le lien envoyé au client ne marche pas.
+- **RIEN NE PART SANS QUE BARBAROS L'AIT VU** : faire, **montrer** (une
+  capture, pas une description), attendre son accord, puis pousser. Vaut
+  aussi pour un changement interne.
+- **AUCUNE FUSION SANS SON « OUI » ÉCRIT POUR CETTE PR** (« Oui, tu peux
+  fusionner la PR #N ») : « ok », « vas-y », « fais-le », « continue » n'en
+  sont pas, un accord ne vaut que pour sa PR. Ni push sur `main`, ni
+  publication lancée à la main. GitHub ne l'impose pas (`TEAM_RULES.md` §2).
 - **Une tâche = une branche courte partie du dernier `main`**, PR vers `main`
   (`TEAM_RULES.md` §2). Plus d'`ai-dev`, ni d'aucune branche d'intégration.
 - **Une fusion se juge sur `git diff main...branche`, jamais sur un compte de

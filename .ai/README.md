@@ -18,7 +18,8 @@ supérieure.
   `[TEAM]` ;
 - l'orchestrateur attribue automatiquement les reprises selon `.ai/agents.yml`
   et continue la branche/PR existante lorsque c'est possible ;
-- Burak peut changer une attribution, et reste seul à valider une fusion.
+- Burak peut changer une attribution, et reste seul à valider une fusion :
+  par écrit, pour cette PR précise (`TEAM_RULES.md` §2).
 
 ## Le relais (handoff) — automatique, traçable, révocable par Burak
 

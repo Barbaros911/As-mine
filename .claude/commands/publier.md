@@ -32,4 +32,5 @@ Ensuite :
   l'incrémenter dans `sw.js`.
 - **Envoyer les captures à Barbaros et attendre son accord** avant
   d'ouvrir la pull request. C'est sa règle, et elle vaut aussi pour ce
-  qui paraît anodin.
+  qui paraît anodin. La fusion, elle, attend son « oui » écrit pour cette
+  PR précise (`TEAM_RULES.md` §2).

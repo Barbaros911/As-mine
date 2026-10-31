@@ -1,6 +1,7 @@
 // Parcours réels sur les documents construits ; aucun appel de production.
 // ÉPROUVÉ CONTRE L'ANCIEN CODE : sans le verrou de soumission, 7 contrôles tombent ; sans la reprise
-// après rechargement, les contrôles « rechargé pendant l'envoi » tombent (bon jamais rouvert, référence perdue).
+// après rechargement, les contrôles « rechargé pendant l'envoi » tombent (bon jamais rouvert, référence perdue) ;
+// sur le jugement du bon d'avant le 29/10/2026, un bon jamais accusé rouvert depuis « Mes courses » titre « Demande reçue ».
 import { chromium, webkit } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
@@ -153,6 +154,25 @@ try{
   check('nouvelle course volontaire après un échec : plus rien n’est repris au rechargement',await ecranActif(r.p)!=='ecran-bon');
   await r.p.evaluate(()=>[...document.querySelectorAll('.barre [data-onglet="courses"]')].find(e=>e.offsetParent).click());await r.p.waitForTimeout(300);
   check('« Mes courses » dit « à vérifier », pas « en attente »',/vérifier/i.test(await r.p.locator('.course-etat').first().textContent()));
+  await r.ctx.close();
+ }
+ // UN BON ROUVERT DEPUIS « MES COURSES » DIT CE QUE DIT LA LISTE (29/10/2026, audit P0, mesuré) : un dépôt jamais
+ // accusé titrait « Demande reçue — vous recevrez la confirmation ». Connu du serveur à la relecture, il l'est.
+ for(const cas of ['laisse','vu','connue']){
+  const r=await form('public','error');await r.submit();await r.p.waitForTimeout(1000);
+  if(cas==='laisse')await r.p.click('#btnNouvelleCourse');
+  if(cas==='connue')for(const b of r.requests)r.rows.set(b.ref,b);
+  await r.p.reload();await r.p.waitForTimeout(1000);
+  await r.p.evaluate(()=>[...document.querySelectorAll('.barre [data-onglet="courses"]')].find(e=>e.offsetParent).click());await r.p.waitForTimeout(500);
+  const avant=r.requests.length;
+  await r.p.locator('.course').first().click();await r.p.waitForTimeout(500);
+  const tete=await r.p.locator('#bonEtat').textContent();
+  if(cas==='connue')check('« Mes courses » → bon connu du serveur : « Demande reçue »',await ecranActif(r.p)==='ecran-bon'&&/reçue/i.test(tete));
+  else{
+   check('« Mes courses » → bon jamais accusé ('+cas+') : « Envoi à vérifier » en tête, jamais « Demande reçue »',await ecranActif(r.p)==='ecran-bon'&&/vérifier/i.test(tete)&&!/reçue/i.test(tete));
+   check('« Mes courses » → bon jamais accusé ('+cas+') : « Nous appeler » proposé, aucun dépôt ne repart',await r.p.locator('#btnAppelerBon').isVisible()&&r.requests.length===avant);
+  }
+  check('« Mes courses » → bon ('+cas+') : aucune exception JS',r.errors.length===0);
   await r.ctx.close();
  }
 }finally{await browser.close();server.close();}
