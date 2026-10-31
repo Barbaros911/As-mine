@@ -27,3 +27,25 @@ claude/session-creation-without-asmine-to9axd 8ef0c6629cc1fab53c6d94cb37c620702a
 # supprimer la branche »). Mesuré : sa tête 215a0f4 est la fusion de la PR
 # #384, ancêtre de main ; « git diff main...branche » vide ; aucune PR ouverte.
 claude/elatransfer-audit-security-se0bzt 215a0f40cb2e507c8b96ad02a10637df89865b5a
+#
+# Septième ménage, 31 octobre 2026, audit « stabiliser avant d'ouvrir »
+# (Barbaros : « une branche ancienne ne peut être supprimée que si tu
+# prouves que son travail utile est déjà dans main, ou qu'elle ne contient
+# rien à conserver »). Mesuré sur main 4eced52, aucune PR ouverte dessus :
+# - claude/supabase-migrations-audit-sqw9k6 : sa tête b624038 est la
+#   fusion de la PR #422, ancêtre de main ; zéro commit absent de main,
+#   « git diff main...branche » vide.
+# - claude/elatransfer-prioritization-system-rxggvh : UN commit absent de
+#   main (63a1f01, 24/10, jamais proposé en PR). Il remplaçait la note
+#   d'origine de TEAM_RULES §11 (« 122 commits sur main en trois jours…
+#   pendant que le P0 #399 n'avait plus ni branche ni PR ») par, mot pour
+#   mot : « 24/10/2026, à la demande de Barbaros : éviter de disperser le
+#   développement sur des améliorations secondaires pendant que des sujets
+#   plus importants restent ouverts. Le même jour, `/etat` affichait une
+#   liste d'Issues vide alors que deux étaient ouvertes. » À NE PAS
+#   CONSERVER : la note de main est exacte (#399 était ouverte, sans travail
+#   en cours, et l'audit du 29/10 y a trouvé un vrai défaut, PR #430) ; la
+#   réécriture retire le fait mesuré (122 commits) pour une affirmation non
+#   vérifiable d'ici. Recopiée ci-dessus : rien ne se perd.
+claude/supabase-migrations-audit-sqw9k6 b624038360a791ba4c6de924997b1f4a07921d55
+claude/elatransfer-prioritization-system-rxggvh 63a1f015a97748a8dbebf7b316537ffe43abc9b3
