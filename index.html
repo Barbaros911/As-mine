@@ -11040,6 +11040,13 @@ window.ELA_TEXTES = {
       if(!this.actif() || !bon || !bon.ref) return Promise.resolve(false);
       var ctrl = new AbortController();
       var minuteur = setTimeout(function(){ ctrl.abort(); }, 8000);
+      /* LA CAUSE D'UN ÉCHEC EST GARDÉE (1er novembre 2026, audit). Un dépôt
+         qui rend « false » ne disait pas pourquoi : délai dépassé, réseau
+         coupé, refus du serveur, accusé illisible — autant de pannes
+         différentes, une seule case. « causeDepot » les nomme, et
+         « signalerDepot » les remonte à « erreur-client » au verdict. Vide
+         tant que rien n'a échoué. */
+      nuage.causeDepot = "";
       /* La clé publique ne va QUE dans « apikey », jamais en « Bearer ».
          Supabase distribue deux formats de clé publique — l'ancien JWT
          « eyJ… » et le nouveau « sb_publishable_… » — et le nouveau n'est
@@ -11074,13 +11081,16 @@ window.ELA_TEXTES = {
            puis tire une autre référence. Avant, le client lisait « non
            transmise » et la demande était perdue sans alerte. */
         if(r.status === 409) return "reference";
-        if(!r.ok) return false;
+        if(!r.ok){ nuage.causeDepot = "http " + r.status; return false; }
         return r.json().then(function(j){
           if(j && Number(j.numero) > 0) poserNumeroClient(bon, Number(j.numero));
           return true;
         }, function(){ return true; });
       })
-      .catch(function(){ return false; })
+      .catch(function(e){
+        nuage.causeDepot = (e && e.name === "AbortError") ? "délai de 8 s dépassé" : "réseau";
+        return false;
+      })
       .then(function(ok){ clearTimeout(minuteur); return ok; });
     },
 
@@ -11232,6 +11242,15 @@ window.ELA_TEXTES = {
         .replace(/\d(?:[\s.-]?\d){5,}/g, "…")
         .trim();
     }
+    /* LA VERSION DU SITE (1er novembre 2026, audit) : construire.sh pose
+       « <meta name="ela-version"> » (commit et cache du service worker) ;
+       sans elle, une erreur ne disait pas si elle venait d'une page gardée
+       en cache depuis trois mises en ligne. Vide dans le dépôt, posée sur le
+       site construit. */
+    function versionSite(){
+      var m = document.querySelector('meta[name="ela-version"]');
+      return m ? String(m.getAttribute("content") || "").slice(0, 40) : "";
+    }
     function signalerErreur(message, source){
       try{
         if(!nuage.actif() || !message) return;
@@ -11246,11 +11265,15 @@ window.ELA_TEXTES = {
             espace: espaceErreur(), chemin: String(location.pathname || "/").slice(0, 120),
             ecran: actif ? actif.id : "", message: m, source: masquerErreur(source).slice(0, 160),
             appareil: (typeof appareilMesure === "function" ? appareilMesure() : ""),
-            langue: (typeof LANGUE === "string" ? LANGUE : "")
+            langue: (typeof LANGUE === "string" ? LANGUE : ""),
+            version: versionSite()
           })
         }).catch(function(){});
       }catch(e){ /* la remontée ne doit jamais casser la page */ }
     }
+    /* La même porte pour un dépôt raté (voir « signalerDepot ») : un seul
+       envoi par message, cinq par chargement, même masquage. */
+    nuage.signaler = signalerErreur;
     window.addEventListener("error", function(e){
       var src = e && e.filename ? String(e.filename).replace(/[?#].*$/, "").split("/").pop() + ":" + (e.lineno || 0) : "";
       signalerErreur((e && (e.message || (e.error && e.error.message))) || "erreur", src);
@@ -12457,6 +12480,7 @@ window.ELA_TEXTES = {
        proposer quoi que ce soit. Le serveur ignore ce champ. */
     bonCourant.depot = "encours";
     bonSoumis = bonCourant;
+    depotEchecCause = "";   // une nouvelle demande part sans l'histoire de la précédente
     var depot = deposerDemande(bonSoumis);
     /* ═══ PLUS AUCUNE APPLICATION NE S'OUVRE AU CLIC (4 octobre 2026) ═══
        Option A, décidée par Barbaros. Le dépôt suffit : la demande arrive
@@ -12482,7 +12506,10 @@ window.ELA_TEXTES = {
       if(ok) return afficherEtatEnvoi(true);
       /* ON NE CRIE PAS À L'ÉCHEC DEPUIS L'ARRIÈRE-PLAN. Voir
          « reprendreDepot » : tant que la page est cachée, un échec ne veut
-         rien dire. */
+         rien dire. On retient la cause : si la reprise aboutit, la trace
+         dira « reçu après … », et Barbaros saura combien de premiers envois
+         échouent en silence. */
+      depotEchecCause = nuage.causeDepot || "inconnue";
       reprendreDepot(bonCourant);
     });
   });
@@ -12527,6 +12554,7 @@ window.ELA_TEXTES = {
        On ne lui rouvrira pas ce bon au prochain chargement — seule une page
        rechargée AVANT le verdict (« encours ») est reprise. */
     if(etat === false) marquerDepot(bonSoumis || bonCourant, "vu");
+    signalerDepot(etat, verification);
     blocEnvoi.hidden = false;
     blocEnvoi.className = "envoi" + (etat === true ? " ok" : etat === false ? " ko" : "");
     /* AU COMPTOIR, L'ÉCHEC N'ENVOIE PAS SUR WHATSAPP — il n'y a plus de
@@ -12711,6 +12739,36 @@ window.ELA_TEXTES = {
      demande. 1,5 s de pause et deux rejeux ferment cette fenêtre : la ligne
      a le temps d'exister, et le rejeu la reconnaît. */
   var PAUSE_REJEU_MS = 1500, REJEUX_IDENTIQUES = 2, TIRAGES_MAX = 2;
+  /* ═══ UN DÉPÔT RATÉ LAISSE UNE TRACE (1er novembre 2026, audit) ═══
+     « journal_depots » n'écrit que ce que le serveur a REFUSÉ. Un téléphone
+     qui n'a jamais joint le serveur — délai dépassé dans un hall d'aéroport,
+     réseau coupé, accusé illisible — ne laissait rien : le client lisait
+     « Envoi à vérifier », et personne d'autre ne l'apprenait. Au verdict,
+     la page envoie à « erreur-client » (même porte, même masquage, même
+     quota) : « dépôt : échec (cause) Réf. », puis, si la reprise ou le
+     rechargement aboutit, « dépôt : reçu après (cause) Réf. ». LA RÉFÉRENCE
+     Y VA, ET ELLE SEULE : c'est la clé qui rapproche l'appel d'un client de
+     sa ligne, et « journal_depots » la porte déjà côté serveur. Ni nom, ni
+     téléphone, ni adresse. Un succès direct n'envoie rien. Rien ici ne peut
+     casser la page : la prise est gardée, l'envoi est détaché. */
+  var depotEchecCause = "";
+  /* Le dernier tiret devient un point médian : le masque des numéros de
+     téléphone (six chiffres ou plus, séparés par un tiret au plus) mangerait
+     une référence dont les cinq signes commencent par deux chiffres
+     (« ELA-26-11-23… »), ici comme sur le serveur. Les cinq signes restent
+     lisibles tels quels, c'est par eux que l'on cherche. */
+  function refPourTrace(ref){ return String(ref).replace(/-(?=[^-]*$)/, "·"); }
+  function signalerDepot(etat, verification){
+    var bon = bonSoumis || bonCourant;
+    if(!bon || !bon.ref || typeof nuage.signaler !== "function") return;
+    if(etat === false){
+      depotEchecCause = nuage.causeDepot || (verification ? "non vérifié après rechargement" : "inconnue");
+      nuage.signaler("dépôt : échec (" + depotEchecCause + ") " + refPourTrace(bon.ref), "");
+    } else if(etat === true && (depotEchecCause || verification)){
+      nuage.signaler("dépôt : reçu après " + (depotEchecCause || "rechargement") + " " + refPourTrace(bon.ref), "");
+      depotEchecCause = "";
+    }
+  }
   function deposerDemande(bon, tirages, rejeux){
     tirages = tirages || 0; rejeux = rejeux || 0;
     return nuage.deposer(bon).then(function(res){
@@ -12720,6 +12778,7 @@ window.ELA_TEXTES = {
           .then(function(){ return deposerDemande(bon, tirages, rejeux + 1); });
       }
       if(tirages < TIRAGES_MAX && retirerReference(bon)) return deposerDemande(bon, tirages + 1, 0);
+      nuage.causeDepot = "référence déjà prise après deux tirages";
       return false;
     });
   }
@@ -12793,10 +12852,11 @@ window.ELA_TEXTES = {
       if(bonSoumis !== bon) return;
       if(d && typeof d === "object"){
         if(Number(d.numero) > 0) poserNumeroClient(bon, Number(d.numero));
-        afficherEtatEnvoi(true);
+        afficherEtatEnvoi(true, true);
         return;
       }
-      afficherEtatEnvoi(false);
+      nuage.causeDepot = (d === "absente") ? "inconnu du serveur après rechargement" : "vérification muette après rechargement";
+      afficherEtatEnvoi(false, true);
     });
     return true;
   }
@@ -16800,7 +16860,7 @@ window.ELA_TEXTES = {
       ligne.hidden = false;
       ligne.classList.toggle("recente", n1 > 0);
       txt.textContent = n + " erreur" + (n > 1 ? "s" : "") + " du site en 24 h" + (n1 > 0 ? " (" + n1 + " dans l'heure)" : "");
-      var detail = (Array.isArray(m.messages) ? m.messages : []).map(function(x){ return (x.n || 1) + " × [" + (x.espace || "?") + "] " + String(x.message || "").slice(0, 120); });
+      var detail = (Array.isArray(m.messages) ? m.messages : []).map(function(x){ return (x.n || 1) + " × [" + (x.espace || "?") + (x.version ? " · " + x.version : "") + "] " + String(x.message || "").slice(0, 120); });
       ligne.title = detail.join("\n");
     }).catch(function(){
       var ligne = document.getElementById("adminErreurs"); if(ligne) ligne.hidden = true;

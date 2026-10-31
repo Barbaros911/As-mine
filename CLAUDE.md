@@ -383,8 +383,9 @@ Histoire : `memoire/itineraire.md`.
   jamais `ASM`, jamais un compteur local. **Le N° court** vient de la base
   (`20261006000000_numero_court.sql`), recopié dans `bon.numero`, en tête de
   toute alerte ; ne jamais nommer sa colonne ni passer à `select=*`. **Un 409
-  au dépôt n'est pas une demande perdue** : on rejoue deux fois puis on tire
-  une autre référence (`deposerDemande`, `autreCourse` côté admin).
+  au dépôt n'est pas une demande perdue** : le serveur relit et rend « rejoué »
+  pour la même demande ; sinon le site rejoue deux fois puis tire une autre
+  référence (`deposerDemande`, `autreCourse`).
   `memoire/reference.md`.
 - **Un seul bon, identique partout** : le vrai logo, la pastille d'état,
   **jamais la couleur d'un partenaire** ; attente = pastille grise, confirmé =
@@ -675,24 +676,24 @@ Histoire : `memoire/chauffeurs-et-commission.md`.
   (existante, récente, jamais annoncée) ; ni nom, ni téléphone, ni chambre
   (`departPublic`) ; titre sous 90 caractères ; **aucun `parse_mode`** ; rien
   de configuré rend une **erreur**. Les saisies de l'exploitant ne sonnent
-  pas. **Pas de serveur loué** : les fonctions Supabase suffisent.
-- **`a-coller.ts` est fabriqué par `assembler.mjs`** (secours au téléphone) ;
-  le déploiement normal passe par `fonctions.yml`.
+  pas.
+- **`a-coller.ts` est fabriqué par `assembler.mjs`** ; le déploiement passe
+  par `fonctions.yml`.
 - **La relance tourne toutes les 20 s** (pg_cron, `x-ela-relance`) : la
   **notification ELA est l'alarme**, **Telegram informe**, chaque rappel
-  efface le précédent. **Non vue, une demande ne se tait jamais** (25/10, sa
-  décision, nuit comprise). **« Vu »** (bouton, ou course ouverte dans
+  efface le précédent. **Non vue, une demande ne se tait jamais** (25/10, nuit
+  comprise). **« Vu »** (bouton, ou course ouverte dans
   l'admin) **arrête l'alarme, pas le suivi** : 30 min après, H-2, H-30. Un
   dernier message au départ ; confirmée ou refusée, plus rien. Cadence :
   `memoire/alertes-relance.md`. `aPrevenir` resté 15 min : un rappel, un à H-3.
 - **Dans l'admin ouvert** : un lecteur de son, débloqué au premier appui
-  (`#sonCoupe`) ; l'alarme se répète jusqu'à un appui. **Le bandeau des non
+  (`#sonCoupe`), répété jusqu'à un appui. **Le bandeau des non
   vues** (`#bordNonVues`, lu au journal) dit depuis quand, combien
   d'alertes, CRITIQUE à 10 min ; il remplace `#sonCoupe` et sonne aussi à
   l'ouverture. **Admin fermé**, seuls la notification, Telegram et la
   pastille arrivent : ne pas promettre l'inverse.
-- **WhatsApp ne peut pas sonner tout seul** (API Business : vérification et
-  numéro dédié) : ne pas le promettre.
+- **WhatsApp ne peut pas sonner tout seul** (API Business) : ne pas le
+  promettre.
 - **Le voyant** (« Alertes OK / en panne / non vérifiées ») : un seul juge,
   `admin-sante.js`, partagé avec le chien de garde ; une mesure,
   `ela_sante_alertes()`. **La relance se juge sur son battement**
@@ -702,8 +703,9 @@ Histoire : `memoire/chauffeurs-et-commission.md`.
   verrouillé. **Réactivité** au Registre (`ela_reactivite`).
 - **Le chien de garde GitHub** (15 min, Issue unique, jamais Telegram) est
   un filet : GitHub le réveille mal.
-- **Les erreurs JavaScript du site** sont comptées sous le voyant
-  (`erreur-client`, masquées). `memoire/erreurs-client.md`.
+- **Les erreurs du site et les dépôts ratés côté téléphone remontent par
+  `erreur-client`** (cause, référence, version `ela-version` de la page),
+  masqués, comptés sous le voyant. `memoire/erreurs-client.md`.
 
 Histoire : `memoire/alertes-notifications.md`.
 
