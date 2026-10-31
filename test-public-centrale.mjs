@@ -102,6 +102,11 @@ for (const [chemin, langue] of PAGES) {
     check(`${nom} : la preuve d'activité existe`, t.reference.trim().length > 15, t.reference);
     const precis = /Roissy|CDG|Orly|Tremblay|Villepinte|Bourget|zone|\bun hôtel\b|\bun seul\b|premier|\bfirst\b|\ba hotel\b|\bone hotel\b|\barea\b/i;
     check(`${nom} : la preuve ne nomme ni un lieu précis ni un compte`, !precis.test(t.reference), t.reference);
+    // JAMAIS AU PLURIEL (31/10/2026, Barbaros : « pense à ma place ») : « des professionnels »
+    // ferait croire à plusieurs clients, agences et entreprises comprises, quand un seul
+    // établissement s'en sert. À rouvrir le jour où un deuxième l'utilise vraiment.
+    const pluriel = /\bdes (?:professionnels|hôtels|établissements|entreprises|agences|clients|partenaires)\b|\bplusieurs\b|\bnombreu|\bhotels\b|\bbusinesses\b|\bagencies\b|\bseveral\b|\bmany\b|\bprofessionals\b/i;
+    check(`${nom} : la preuve ne parle pas de clients au pluriel`, !pluriel.test(t.reference), t.reference);
     // LE MÉCANISME DU LIEN NE SE VEND PAS (23/10/2026, Barbaros) : le client
     // règle « directement au chauffeur, avant le départ » ; « par lien » reste
     // au client qui réserve, aux CGV et au message qui porte le lien.

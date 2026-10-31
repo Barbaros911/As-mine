@@ -254,3 +254,24 @@ l'accueil s'arrête à « l'hôtellerie »). Toujours ni nom, ni lieu, ni nombre
 - Réserve écrite dans la PR, sans rien changer : « en conditions réelles » est
   le vocabulaire d'un essai ; un directeur peut y lire « on teste ». « Déjà
   utilisé dans l'hôtellerie » dirait la même chose plus court. À lui de choisir.
+
+## 31 octobre 2026 — « Déjà utilisé dans l'hôtellerie », jamais au pluriel
+
+Barbaros proposait « déjà utilisé par des professionnels, sans le nombre », puis :
+« pense à ma place ». Tranché par Claude :
+**« Déjà utilisé dans l'hôtellerie, en Île-de-France. »** (l'encart de l'accueil
+s'arrête à « l'hôtellerie ») ; anglais « Already in use in the hotel sector, in
+the Paris region. ».
+- **Pas « des professionnels »** : plus vague (n'importe quel site peut
+  l'écrire) donc moins convaincant pour un directeur d'hôtel, qui cherche si
+  d'AUTRES HÔTELS s'en servent ; et trompeur aujourd'hui : le pluriel fait
+  croire à plusieurs clients, et la page pro titre juste au-dessus « Hôtels ·
+  Agences · Entreprises · Événements » — le lecteur comprendrait que des
+  agences et des entreprises l'utilisent déjà. Un seul établissement s'en sert.
+- **« en conditions réelles » retiré** : c'est le vocabulaire d'un essai ; un
+  directeur peut y lire « encore en test ».
+- `test-public-centrale` refuse désormais toute preuve au pluriel (« des
+  professionnels », « des hôtels », « plusieurs », « hotels »…) : éprouvé, il
+  tombe sur « Déjà utilisé par des professionnels ». **À rouvrir le jour où un
+  deuxième établissement, une agence ou une entreprise l'utilise vraiment** :
+  « des hôtels » ou « des professionnels » sera alors vrai, et plus fort.
