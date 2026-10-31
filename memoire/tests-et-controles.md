@@ -428,3 +428,62 @@ ces parcours.
 - `jsqr` et `http_ece` sont installés par la CI à version exacte, jamais dans
   le dépôt : absents, `test-nouveau-affiche` et `test-push` échouent au lieu
   de sauter leur contrôle.
+
+### LA CI EN QUATRE MACHINES, ET LE TROU DE LA COMMISSION (1er novembre 2026)
+
+**L'audit.** Le contrôle exigé `admin` durait 45 min 33 (passage 206, PR
+#435), dont 45 min 05 de suites lancées l'une après l'autre sur une seule
+machine : installation 20 s, construction du site 2 s (refaite par 55
+suites), 85 lancements de Chromium (~45 s). Les quinze suites les plus lentes
+faisaient 52 % du temps (`test-grille-publique` 3 min 16 en tête). Les autres
+contrôles exigés rendent leur verdict en moins d'une minute : le « contrôle
+rapide » existait déjà. Le 31/10, `admin` a tourné 8 fois en 7 heures ; deux
+passages sont tombés sans défaut du site (`test-admin-non-vues` instable, et
+trois suites qui ne tombaient que sur GitHub).
+
+**Le trou trouvé en route (P1).** `test-admin-commission` ouvre l'admin
+retenu (taux du carnet, % posé, euros fixes jamais au-dessus du prix, total
+par chauffeur) et `test-admin-prix` vérifie qu'`index.html` ne recopie pas le
+calcul du prix. Comme elles construisent AUSSI Admin v2, « admin » les
+sautait (`grep -q ELA_AVEC_ADMIN_V2 && continue`) ; elles ne tournaient que
+dans « Contrôle Admin v2 », filtré par chemins sans `index.html`. Mesuré : sur
+les branches du P0 #399 et des preuves commerciales, ce contrôle n'a tourné
+aucune fois. Même famille : `verifier-tarif-hotel.mjs` (« trois endroits, un
+seul prix ») ne tournait que dans un contrôle filtré et non exigé.
+- Les huit suites Admin v2 tournent dans `admin` ; `verifier-tarif-hotel`
+  dans `build-mobile-desktop`.
+- `test-doc.mjs` ne compte plus une suite comme lancée que par un workflow qui
+  tourne sur TOUTE PR (ni `paths`, ni `paths-ignore`, ni `types`), et refuse
+  le saut. Éprouvé : il tombe sur les workflows de `main`, et sur une suite
+  nommée seulement dans un workflow filtré ; l'ancien laissait passer les deux.
+  Le premier jet, sans la règle du saut, restait vert sur `main` : le motif
+  `test-admin-*.mjs` couvrait les suites que la boucle sautait.
+
+**Le découpage.** Quatre machines, une par domaine (`admin`, `public`,
+`reservation`, `partenaires`), chacune avec son serveur, son `site/` et ses
+ports ; jamais deux suites en même temps sur une machine (elles effacent toutes
+le même `site/`, onze ports sont partagés). `groupe_de()` range chaque suite :
+une suite sans groupe fait tomber les quatre machines en la nommant (éprouvé
+sur `test-textes`, ajoutée par la PR #436). `fail-fast: false` : par défaut,
+GitHub arrête toute la matrice à la première rouge. Le job final garde le nom
+exigé `admin` (la règle de `main` ne change pas) et tourne en `if: always()` :
+**sans cela, un groupe rouge le fait sauter, et GitHub compte un contrôle
+exigé sauté comme réussi.**
+
+**Mesure et plafond.** Chaque groupe écrit la durée de chaque suite dans le
+résumé du passage (l'outil qui lit les journaux GitHub n'en rend que les 5 000
+dernières lignes : les 22 premières suites y étaient invisibles). Une suite
+figée est arrêtée à 15 min et nommée « FIGÉE » au lieu de bloquer tout le
+contrôle. Une nouvelle poussée annule le passage du commit précédent.
+
+**Écarté, et pourquoi.** Cache de Playwright (20 s d'installation, ~10 s à
+gagner contre un navigateur qui ne suit plus) ; construire une fois pour toutes
+les suites (55 suites à modifier pour ~30 s par machine) ; filtre
+« documentation seule » (quatre suites navigateur lisent la doc :
+`test-nouveau-bascule`, `-exploitant`, `-whatsapp`, `test-seo-en`) ; plusieurs
+suites en même temps sur une machine (collisions de `site/` et de ports).
+
+**Reste au parking** : 1 261 pauses fixes (`waitForTimeout`) contre 202
+attentes de condition, et 96 attentes qui avalent leur propre échec. Elles se
+traitent une suite à la fois, quand une suite tombe pour rien ou ralentit son
+groupe — `test-admin-non-vues` d'abord.
