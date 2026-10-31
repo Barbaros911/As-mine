@@ -19,7 +19,7 @@ import { extname, join, normalize } from 'node:path';
 execSync('sh construire.sh', { stdio: 'ignore' });
 const TYPES = {'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json',
   '.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png',
-  '.webp':'image/webp','.jpg':'image/jpeg','.txt':'text/plain','.xml':'application/xml'};
+  '.webp':'image/webp','.jpg':'image/jpeg','.txt':'text/plain','.xml':'application/xml','.mp4':'video/mp4'};
 const serveur = createServer(async (req, res) => {
   try {
     const chemin = normalize(decodeURIComponent(req.url.split('?')[0])).replace(/^(\.\.[/\\])+/, '');
@@ -52,7 +52,10 @@ async function ouvrir(w, h = 900, langue = 'fr', url = PAGE) {
 // 1. La page publiée existe, et elle est indexable.
 const brut = await (await fetch(PAGE)).text();
 check('la page est publiée par construire.sh', /Elatransfer gère tout le reste/.test(brut), brut.slice(0, 60));
-check('le titre nomme la marque et le public', /<title>[^<]*Elatransfer[^<]*(hôtel|Hôtel)/.test(brut));
+// La marque et le public, dans n'importe quel ordre (28/10/2026 : le titre suit
+// la forme des pages d'acquisition, « Transferts … pour hôtels … | Elatransfer »).
+const titrePage = (brut.match(/<title>([^<]*)<\/title>/) || [, ''])[1];
+check('le titre nomme la marque et le public', /Elatransfer/.test(titrePage) && /hôtel/i.test(titrePage), titrePage);
 check('elle a une description', /<meta name="description" content="[^"]{80,}"/.test(brut));
 check('elle est indexable', /<meta name="robots" content="index/.test(brut) && !/noindex/i.test(brut));
 check('sa canonique est son adresse', brut.includes('<link rel="canonical" href="https://elatransfer.com/professionnels/">'));
@@ -61,6 +64,20 @@ const plan = await (await fetch(SITE + 'sitemap.xml')).text();
 check('elle est au plan du site', plan.includes('<loc>https://elatransfer.com/professionnels/</loc>'));
 let ld = {}; try { ld = JSON.parse((brut.match(/<script type="application\/ld\+json">([^<]+)<\/script>/) || [, '{}'])[1]); } catch (e) {}
 check('ses données désignent l\'entreprise #organisation', (ld.provider || {})['@id'] === 'https://elatransfer.com/#organisation');
+// Les vidéos décrites à Google (28/10/2026) existent sur le site construit, et
+// rattachées à la même entreprise : une adresse morte dans les données serait
+// une vidéo fantôme dans les résultats.
+{
+  const vids = (ld.subjectOf || []).filter(v => v['@type'] === 'VideoObject');
+  const morts = [];
+  for (const v of vids) for (const u of [v.contentUrl, v.thumbnailUrl]) {
+    const chemin = String(u || '').replace('https://elatransfer.com/', '');
+    const r = await fetch(SITE + chemin); if (r.status !== 200 || !/^professionnels\/(video|affiche)-/.test(chemin)) morts.push(u);
+  }
+  check('les vidéos décrites à Google existent, avec leur image, et désignent #organisation',
+    vids.length >= 2 && morts.length === 0 && vids.every(v => (v.publisher || {})['@id'] === 'https://elatransfer.com/#organisation' && /^PT\d+S$/.test(v.duration) && v.uploadDate),
+    morts.join(' ') || String(vids.length));
+}
 const constr = await readFile('construire.sh', 'utf8');
 const lignesCmd = constr.split('\n').filter(l => !/^\s*#/.test(l)).join('\n');
 check('construire.sh réserve les noms « professionnels » et « demo »', /reserves="[^"]*\bprofessionnels\b[^"]*\bdemo\b/.test(lignesCmd));
@@ -255,6 +272,153 @@ for (const langue of ['fr', 'en']) {
     check('accueil : un appui ouvre vraiment le formulaire /professionnels/#demo', p.url() === PAGE + '#demo', p.url());
   }
   await p.context().close();
+}
+
+// 6. L'ESPACE PROFESSIONNELS PREMIUM (28/10/2026, audit de Barbaros). Trois
+//    règles : la démo reste à portée depuis l'en-tête collant, à toutes les
+//    largeurs (sur téléphone, il ne gardait que le logo et EN) ; le bandeau
+//    montre le produit, nos captures de la démo, en le disant ; le pied relie
+//    les pages des voyageurs, en anglais quand la page l'est.
+for (const [w, h] of [[320, 640], [390, 844], [768, 1024], [1366, 768]]) {
+  const p = await ouvrir(w, h);
+  const d = await p.evaluate(() => {
+    const a = document.querySelector('.tete a[href="#demo"]'); if (!a) return null;
+    const r = a.getBoundingClientRect(), x = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    return { haut: r.height, recoit: !!x && a.contains(x), dedans: r.left >= 0 && r.right <= innerWidth, texte: a.innerText.trim() };
+  });
+  check(`${w} px : l'en-tête garde un accès à la démo, visible, d'au moins 44 px, qui reçoit l'appui`,
+    !!d && d.haut >= 44 && d.recoit && d.dedans && /d[ée]mo/i.test(d.texte), JSON.stringify(d));
+  // On descend loin, puis on touche le bouton de l'en-tête : il mène au formulaire.
+  if (d && d.recoit) {
+    await p.evaluate(() => scrollTo({ top: document.body.scrollHeight * 0.6, behavior: 'instant' }));
+    await p.click('.tete a[href="#demo"]');
+    for (let i = 0, y = -1; i < 50; i++) { await p.waitForTimeout(100); const z = await p.evaluate(() => scrollY); if (z === y) break; y = z; }
+  }
+  const haut = d && d.recoit ? await p.evaluate(() => Math.round(document.getElementById('demo').getBoundingClientRect().top)) : null;
+  check(`${w} px : depuis le bas de la page, l'en-tête ramène au formulaire de la démo`, haut !== null && haut >= 0 && haut < 200, String(haut));
+  if (w === 1366) {
+    await p.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+    await p.waitForFunction(() => [...document.querySelectorAll('.hero img')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 5000 }).catch(() => {});
+    const v = await p.evaluate(() => ({ imgs: [...document.querySelectorAll('.hero img')].map(i => { const r = i.getBoundingClientRect();
+      return { src: i.getAttribute('src'), vue: r.top < innerHeight && r.bottom > 0 && r.width >= 100, chargee: i.naturalWidth > 0, alt: i.alt.length }; }),
+      legende: (document.querySelector('.hero figcaption') || {}).textContent || '' }));
+    check('1366 px : le bandeau montre le produit — les captures de la démo, dans le premier écran, chargées et décrites',
+      v.imgs.length >= 2 && v.imgs.every(i => /^\/professionnels\/apercu-[a-z]+-[a-z]+-fr\.webp$/.test(i.src) && i.vue && i.chargee && i.alt >= 40), JSON.stringify(v.imgs));
+    check('le bandeau dit que ces captures viennent de la démonstration, avec des données fictives', /démonstration/i.test(v.legende) && /fictive/i.test(v.legende), v.legende);
+  }
+  await p.context().close();
+}
+for (const langue of ['fr', 'en']) {
+  const p = await ouvrir(1280, 900, langue);
+  const pied = await p.$$eval('footer a[href]', l => l.map(a => a.getAttribute('href')));
+  const attendus = langue === 'fr' ? ['/transfert-cdg-paris', '/transfert-orly-paris', '/chauffeur-prive-paris']
+    : ['/en/cdg-airport-transfer-paris/', '/en/orly-airport-transfer-paris/', '/en/'];
+  check(`${langue.toUpperCase()} : le pied relie les pages des voyageurs${langue === 'en' ? ', en anglais' : ''}`, attendus.every(h => pied.includes(h)), pied.join(' '));
+  await p.context().close();
+}
+
+// 7. VOIR L'OUTIL EN VIDÉO (28/10/2026, Barbaros : « une vidéo de l'outil de
+//    réception aussi », « version ordinateur aussi »). Nos vidéos seulement,
+//    rien de téléchargé avant l'appui (une vidéo pèse 2 à 3 Mo), le format de
+//    l'écran (portrait sur téléphone), la langue de la page, et chaque fichier
+//    publié : une vidéo oubliée par construire.sh serait une 404 en ligne.
+{
+  const publies = new Set();
+  for (const [w, h, ecran] of [[390, 844, 'telephone'], [1366, 768, 'ordinateur']]) for (const langue of ['fr', 'en']) {
+    const ctx = await b.newContext({ viewport: { width: w, height: h }, locale: langue === 'en' ? 'en-US' : 'fr-FR' });
+    await ctx.addInitScript(l => { try { localStorage.setItem('ela_langue', l); } catch (e) {} }, langue);
+    const p = await ctx.newPage();
+    const videos = []; p.on('request', r => { if (/\.(mp4|webm|mov)(\?|$)/.test(r.url())) videos.push(r.url()); });
+    await p.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+    await p.goto(PAGE, { waitUntil: 'load' });
+    const lire = () => p.evaluate(() => { const e = document.getElementById('videoDemo'); return e && { src: e.getAttribute('src'), affiche: e.getAttribute('poster'),
+      preload: e.getAttribute('preload'), controls: e.controls, inline: e.hasAttribute('playsinline'), label: e.getAttribute('aria-label'),
+      presse: [...document.querySelectorAll('.choix-video button[aria-pressed="true"]')].map(x => x.dataset.video).join() }; });
+    const nom = (parcours) => new RegExp(`^/professionnels/video-${parcours}-${ecran}-${langue}\\.mp4$`);
+    const v1 = await lire();
+    check(`${w} px ${langue.toUpperCase()} : la vidéo du client, au format ${ecran}, dans la langue de la page`,
+      !!v1 && nom('client').test(v1.src) && v1.affiche === v1.src.replace('/video-', '/affiche-').replace('.mp4', '.webp') && v1.presse === 'client', JSON.stringify(v1));
+    check(`${w} px ${langue.toUpperCase()} : commandes visibles, lecture dans la page, rien de chargé d'avance`,
+      !!v1 && v1.controls && v1.inline && v1.preload === 'none', JSON.stringify(v1));
+    check(`${w} px ${langue.toUpperCase()} : le lecteur d'écran entend ce que montre la vidéo, dans la langue de la page`,
+      !!v1 && (langue === 'en' ? /^Demonstration video/ : /^Vidéo de la démonstration/).test(v1.label), v1 && v1.label);
+    const bouton = p.locator('.choix-video button[data-video="reception"]');
+    let recoit = false;
+    if (await bouton.count()) {
+      await p.evaluate(() => document.querySelector('.choix-video').scrollIntoView({ block: 'center', behavior: 'instant' }));
+      recoit = await bouton.evaluate(e => { const r = e.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === e; });
+      await bouton.click(); await p.waitForTimeout(200);
+    }
+    const v2 = await lire();
+    check(`${w} px ${langue.toUpperCase()} : « réception » reçoit l'appui et met sa vidéo, au même format`,
+      recoit && !!v2 && nom('reception').test(v2.src) && v2.presse === 'reception' && v2.affiche === v2.src.replace('/video-', '/affiche-').replace('.mp4', '.webp'), JSON.stringify(v2));
+    const dims = await p.evaluate(() => { const v = document.getElementById('videoDemo'); if (!v) return { l: 0, h: 0, droite: Infinity }; const e = v.getBoundingClientRect(); return { l: e.width, h: e.height, droite: e.right }; });
+    check(`${w} px ${langue.toUpperCase()} : la vidéo tient dans l'écran, ${ecran === 'telephone' ? 'en portrait' : 'en paysage'}`,
+      dims.droite <= w && (ecran === 'telephone' ? dims.h > dims.l : dims.l > dims.h), JSON.stringify(dims));
+    check(`${w} px ${langue.toUpperCase()} : aucune vidéo téléchargée sans appui`, videos.length === 0, videos.join(' '));
+    for (const v of [v1, v2]) if (v) { publies.add(v.src); publies.add(v.affiche); }
+    // Elle se lit vraiment : un appui, et le temps avance (une seule fois, sur
+    // ordinateur en français — le décodeur est le même pour les huit).
+    // SEULEMENT LÀ OÙ LE NAVIGATEUR A UN DÉCODEUR H.264 (31/10/2026) : le
+    // Chromium libre de la CI n'en a pas (« no supported source »), alors que
+    // Chrome, Safari, Edge et Firefox lisent ce format. Sans décodeur, on
+    // éprouve le FICHIER à la place (H.264, « faststart » : de quoi démarrer
+    // avant la fin du téléchargement) — et le contrôle le dit dans son nom.
+    if (w === 1366 && langue === 'fr') {
+      const l = await p.evaluate(async () => { const e = document.getElementById('videoDemo'); if (!e) return null;
+        const decodeur = e.canPlayType('video/mp4; codecs="avc1.640032"') !== '';
+        if (!decodeur) return { decodeur, src: e.getAttribute('src') };
+        try { await e.play(); } catch (x) { return { decodeur, t: 'refus : ' + x.message }; }
+        await new Promise(r => setTimeout(r, 2000)); e.pause(); return { decodeur, t: e.currentTime }; });
+      if (l && l.decodeur) check('la vidéo se lit vraiment (le temps avance après l\'appui)', typeof l.t === 'number' && l.t > 0.8, String(l.t));
+      else {
+        const o = l && l.src ? Buffer.from(await (await fetch(SITE + l.src.slice(1))).arrayBuffer()) : Buffer.alloc(0);
+        const moov = o.indexOf('moov'), mdat = o.indexOf('mdat'), avcC = o.indexOf('avcC');
+        check('sans décodeur H.264 dans ce navigateur : la vidéo est un MP4 H.264 « faststart » (lisible par Chrome, Safari, Edge, Firefox)',
+          o.toString('latin1', 4, 8) === 'ftyp' && moov > 0 && mdat > moov && avcC > moov && avcC < mdat, JSON.stringify({ src: l && l.src, moov, mdat, avcC }));
+      }
+    }
+    await ctx.close();
+  }
+  check('les huit vidéos et leurs images d\'attente sont nommées', publies.size === 16, [...publies].join(' '));
+  const manquent = [];
+  for (const f of publies) { const r = await fetch(SITE + f.slice(1)); const n = (await r.arrayBuffer()).byteLength;
+    if (r.status !== 200 || n < (f.endsWith('.mp4') ? 200e3 : 5e3)) manquent.push(`${f} (${r.status}, ${n} o)`); }
+  check('chaque vidéo et chaque image d\'attente est publiée par construire.sh', manquent.length === 0, manquent.join(' | '));
+}
+
+// 8. SUR ORDINATEUR, LA PAGE N'EST PLUS UNE FEUILLE BLANCHE (29/10/2026,
+//    Barbaros : « beaucoup trop blanche et vide » ; validé sur capture). Le
+//    papier du site, jamais le blanc ; « Comment ça marche » sur un bandeau
+//    bleu nuit qui va d'un bord à l'autre ; les questions en deux colonnes.
+//    Sur téléphone, rien ne change.
+for (const [w, h] of [[1440, 900], [1100, 800], [390, 844]]) {
+  const p = await ouvrir(w, h); const ctx = p.context();
+  const r = await p.evaluate(() => { const fond = getComputedStyle(document.body).backgroundColor;
+    const c = document.getElementById('comment'), cs = getComputedStyle(c);
+    const h2 = document.querySelector('#questions > h2').getBoundingClientRect(), q = document.querySelector('#questions > details').getBoundingClientRect();
+    document.documentElement.style.scrollBehavior = 'auto'; c.scrollIntoView({ block: 'center' });
+    const rc = c.getBoundingClientRect();
+    return { fond, bandeau: cs.backgroundColor, milieu: Math.round(rc.top + rc.height / 2), titreBlanc: getComputedStyle(c.querySelector('h2')).color,
+      faqDeuxCol: h2.right <= q.left && Math.abs(h2.top - q.top) < 30 }; });
+  /* Le bandeau d'un bord à l'autre : la couleur VUE à 2 px du bord gauche de
+     l'écran, lue sur une capture (une ombre ne se touche pas du doigt). */
+  const png = await p.screenshot({ clip: { x: 0, y: r.milieu, width: 8, height: 1 } });
+  const lecteur = await ctx.newPage();
+  r.bord = await lecteur.evaluate(async b64 => { const i = new Image(); i.src = 'data:image/png;base64,' + b64; await i.decode();
+    const c = document.createElement('canvas'); c.width = i.width; c.height = i.height; const x = c.getContext('2d'); x.drawImage(i, 0, 0);
+    const d = x.getImageData(2, 0, 1, 1).data; return `rgb(${d[0]}, ${d[1]}, ${d[2]})`; }, png.toString('base64'));
+  const sombre = c => { const m = /rgba?\((\d+), (\d+), (\d+)/.exec(c); return !!m && (+m[1] + +m[2] + +m[3]) < 200; };
+  if (w >= 1000) {
+    check(`${w} px : le fond est le papier du site (#F2F5F9), pas le blanc`, r.fond === 'rgb(242, 245, 249)', r.fond);
+    check(`${w} px : « Comment ça marche » sur un bandeau bleu nuit, d'un bord à l'autre, titre en blanc`, sombre(r.bandeau) && sombre(r.bord) && r.titreBlanc === 'rgb(255, 255, 255)', JSON.stringify(r));
+    check(`${w} px : les questions en deux colonnes, le titre à gauche`, r.faqDeuxCol, JSON.stringify(r));
+  } else {
+    check(`${w} px : sur téléphone, le fond reste blanc (inchangé)`, r.fond === 'rgb(255, 255, 255)', r.fond);
+    check(`${w} px : sur téléphone, les questions restent sous leur titre (inchangé)`, !r.faqDeuxCol, JSON.stringify(r));
+  }
+  check(`${w} px : aucune erreur`, p._errs.length === 0, p._errs.join(' ; '));
+  await ctx.close();
 }
 
 await b.close();

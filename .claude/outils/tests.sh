@@ -113,7 +113,17 @@ for f in $SUITES; do
   else
     echo "$bilan"
     detail=$(echo "$sortie" | sed -n '/=== ÉCHECS/,/^$/p' | head -6)
-    [ -n "$detail" ] && { echo "$detail" | sed 's/^/      /'; ECHECS=$((ECHECS+1)); }
+    [ -n "$detail" ] && echo "$detail" | sed 's/^/      /'
+    # LE CODE DE SORTIE DÉCIDE ICI AUSSI (31/10/2026). Un bilan affiché ne
+    # disait une suite tombée que s'il contenait « === ÉCHECS » : or
+    # test-public-ordinateur écrit « === 273 réussis, 1 échecs === » et
+    # « ÉCHEC : … », sortait en 1, et la série se disait « TOUT EST AU VERT ».
+    # La CI, qui juge sur le code, l'a vue tomber.
+    if [ "$code" -ne 0 ] && [ -z "$detail" ]; then
+      echo "      !!! code de sortie $code"
+      echo "$sortie" | grep -E "ÉCHEC|✘" | head -4 | sed 's/^/      /'
+    fi
+    { [ -n "$detail" ] || [ "$code" -ne 0 ]; } && ECHECS=$((ECHECS+1))
   fi
 done
 
@@ -155,7 +165,17 @@ for f in $HORS_NAV; do
   else
     echo "$bilan"
     detail=$(echo "$sortie" | sed -n '/=== ÉCHECS/,/^$/p' | head -6)
-    [ -n "$detail" ] && { echo "$detail" | sed 's/^/      /'; ECHECS=$((ECHECS+1)); }
+    [ -n "$detail" ] && echo "$detail" | sed 's/^/      /'
+    # LE CODE DE SORTIE DÉCIDE ICI AUSSI (31/10/2026). Un bilan affiché ne
+    # disait une suite tombée que s'il contenait « === ÉCHECS » : or
+    # test-public-ordinateur écrit « === 273 réussis, 1 échecs === » et
+    # « ÉCHEC : … », sortait en 1, et la série se disait « TOUT EST AU VERT ».
+    # La CI, qui juge sur le code, l'a vue tomber.
+    if [ "$code" -ne 0 ] && [ -z "$detail" ]; then
+      echo "      !!! code de sortie $code"
+      echo "$sortie" | grep -E "ÉCHEC|✘" | head -4 | sed 's/^/      /'
+    fi
+    { [ -n "$detail" ] || [ "$code" -ne 0 ]; } && ECHECS=$((ECHECS+1))
   fi
 done
 
