@@ -72,7 +72,7 @@ Le chemin complet est dans `TEAM_RULES.md` §2. Ce qui se vérifie à chaque tâ
 - Créer chaque branche depuis le dernier `main`, jamais depuis une branche de travail ancienne. Il n'y a plus de branche d'intégration (`ai-dev`, retirée le 17 octobre 2026).
 - Une branche = une tâche clairement définie.
 - Nom : celui que donne la session (`claude/<sujet>-<suffixe>`), sinon `ela/<numero-ou-sujet-court>` ou `fix/<sujet-court>`.
-- Une PR cible `main` et ne fusionne jamais automatiquement : rien n'est fusionné avant l'accord explicite de Barbaros.
+- Une PR cible `main` et ne fusionne jamais automatiquement : rien n'est fusionné avant l'accord explicite de Barbaros **pour cette PR précise** — « ok », « vas-y » ou « continue » n'en sont pas (`TEAM_RULES.md` §2).
 - Si `main` change pendant le travail, fusionner `main` dans la branche (sans réécrire une branche déjà poussée) et attendre les contrôles verts sur ce nouveau commit avant de demander la fusion.
 - Avant toute fusion, comparer avec le dernier `main` par `git diff main...branche` — pas par un compte de commits — et vérifier qu’aucun changement plus récent ne sera écrasé.
 - Fusionner une seule PR à la fois sur une même zone critique.

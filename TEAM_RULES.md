@@ -15,7 +15,7 @@ d'exécution des agents IA (relais, rôles, outils locaux) est dans
 |---|---|
 | **Barbaros** (propriétaire) | tarifs, produit, commercial, visuel, arbitrages — **et chaque fusion** |
 | **ChatGPT** | spécification, cohérence, **le site réellement publié** |
-| **Claude Code** | code, tests, build, déploiement : les faits techniques mesurables |
+| **Claude Code** | code, tests, build, vérification du déploiement : les faits techniques mesurables |
 | **Agent local ELA** | petites tâches bornées et non critiques (`.ai/README.md`) |
 
 **Un choix produit se tranche par Barbaros. Un fait technique se tranche par
@@ -67,6 +67,30 @@ dernier main → une branche courte par tâche → PR vers main
 - Après la fusion, `branche-apres-fusion.yml` supprime la branche (sauf
   `.github/branches-a-garder.txt`). **Aucune branche d'intégration** entre les
   agents et `main` : `ai-dev` est retirée (17/10/2026), ne pas la recréer.
+
+**LA DÉCISION DE FUSIONNER N'APPARTIENT QU'À BARBAROS** (29/10/2026, sa
+décision, définitive). Elle vaut pour Claude Code, Codex, ChatGPT, l'Agent
+local ELA, toute commande automatisée et toute IA à venir.
+
+- **Est un accord** : un message de Barbaros qui nomme la PR — « Oui, tu peux
+  fusionner la PR #N » — ou l'équivalent sans ambiguïté. **Il ne vaut que pour
+  cette PR**, jamais pour une autre.
+- **N'est pas un accord** : « fais-le », « continue », « corrige », « lance »,
+  « prépare », « ok », « vas-y », « fais le P0 », « termine », « applique les
+  corrections » ; des contrôles verts ; un accord ancien ou donné pour une
+  autre PR ; l'urgence d'un lien à envoyer.
+- **Interdit avant cet accord** : fusionner (Merge, Squash, Rebase), pousser
+  ou écrire sur `main`, toute action qui revient à une fusion, fermer une
+  tâche parce que ses tests sont verts, lancer à la main une publication en
+  production.
+- **Le chemin d'un agent s'arrête donc à** : branche → tests → commit → push →
+  PR → CI → « À VALIDER » → **stop**. Après l'accord : fusion, publication
+  automatique, vérification en ligne. L'automatisation qui suit une fusion
+  autorisée reste : c'est la décision de fusionner qui est réservée.
+- `test-doc.mjs` refuse qu'une consigne d'agent dise le contraire.
+
+*(22/10 — la PR #404 a été fusionnée sur un « Ok fait le ». 29/10 — Barbaros :
+ce n'est pas un accord de fusion.)*
 
 **Avant de commencer quoi que ce soit :** lire le dernier `main`, les PR
 ouvertes, les Issues `[TEAM]`, les branches actives sur la zone et les
