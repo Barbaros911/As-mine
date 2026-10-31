@@ -205,6 +205,20 @@ confirmé.
   une page publique y est définie. Éprouvé contre l'ancien code : cinq
   contrôles tombent, dont « telValide is not defined ».
 
+## 31 octobre 2026 — le dictionnaire sort du moteur
+
+Première extraction du plan d'architecture : le bloc `window.ELA_TEXTES`
+(490 lignes en tête du moteur d'`index.html`) devient `textes.js`, données
+seules, identique octet pour octet. `T()` et `appliquerLangue()` restent dans
+la page. `test-textes.mjs` (Node, sans navigateur) exige la parité fr/en et
+que chaque clé demandée par la page existe.
+
+Retiré de `CLAUDE.md` le même jour, parce que c'est de l'histoire : « L'espagnol
+et l'arabe seraient les langues suivantes (l'arabe retourne toute la page) » ;
+et, sur les juges de l'heure passée, « ça a bouclé » (deux juges qui se
+rappelaient l'un l'autre, septembre 2026) ; et la date du retrait du préavis
+minimum (4 octobre 2026, `memoire/preavis.md`).
+
 ## 31 OCTOBRE 2026 — LE PRIX NE SE COUPE JAMAIS, ET L'ÉCRAN DES COORDONNÉES MESURÉ
 
 - À **320 px**, « 80,00 € » du récapitulatif se rendait « 80,0 / 0 € » : le
