@@ -49,7 +49,7 @@ try {
       return liste.includes(src) && !i.getClientRects().length;
     }).map(i => i.getAttribute('src')), images);
     check(`${w} px : aucune image d'un écran caché n'est téléchargée au chargement`, cachees.length === 0, cachees.join(', '));
-    check(`${w} px : le logo du bon (141 Ko) n'est pas pris sur l'accueil`, !images.some(u => /\/brand-logo\.webp$/.test(u)), images.join(', '));
+    check(`${w} px : le logo du bon n'est pas pris sur l'accueil`, !images.some(u => /\/brand-logo\.webp$/.test(u)), images.join(', '));
     check(`${w} px : l'accueil ne touche pas au serveur des réservations`, serveurResa.length === 0, serveurResa.join(', '));
     await ctx.close();
   }
