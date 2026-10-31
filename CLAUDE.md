@@ -802,7 +802,7 @@ une couleur par sujet, jamais le bleu des boutons (`test-public-icones.mjs`).
   `memoire/accueil-pro.md`, `memoire/ordre-accueil.md`.
 - **Une centrale, un large réseau** (23/10) : « un large réseau » de
   chauffeurs, jamais un nombre ; ni nombre ni lieu d'un partenaire (« Déjà
-  utilisé en conditions réelles dans l'hôtellerie », à retirer s'il cesse) ;
+  utilisé dans l'hôtellerie », à retirer s'il cesse ; jamais au pluriel) ;
   aucune disponibilité garantie ; suivi « jusqu'à la prise en charge » (CGV
   art. 2) ; `chiffres.json` éteint faute de source.
   `test-public-centrale.mjs`, `memoire/centrale-et-reseau.md`.
