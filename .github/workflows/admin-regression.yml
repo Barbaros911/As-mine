@@ -22,7 +22,13 @@ permissions: {contents: read}
 jobs:
   admin:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # 75 MINUTES (31/10/2026). Mesuré sur les trois dernières PR : 42 min 14,
+    # 42 min 25, 42 min 58 pour un plafond de 45 — deux minutes de marge, un
+    # GitHub un peu lent et le contrôle exigé tombait sans qu'aucune suite
+    # soit rouge. Les quinze suites ajoutées ce jour-là allongent encore.
+    # Un plafond atteint n'est pas un échec de suite : relire la durée avant
+    # de chercher un défaut.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v7
