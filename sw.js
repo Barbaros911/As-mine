@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v231";
+const CACHE = "elatransfer-v232";
 const SHELL = ["./", "./index.html", "./application.html",
                "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
@@ -35,6 +35,9 @@ const SHELL = ["./", "./index.html", "./application.html",
                /* Les deux langues (31/10/2026) : sans lui hors ligne, le moteur
                   refuse de démarrer, exactement comme sans itineraire-partage.js. */
                "./textes.js",
+               /* Les réglages du tunnel et la grille de repli (31/10/2026) : même
+                  garde que textes.js, le moteur refuse de démarrer sans lui. */
+               "./config.js",
                "./telephone.js",
                /* Le bon du client, partagé par la réception et l'admin. */
                "./bon-client.js",

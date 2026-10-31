@@ -394,7 +394,9 @@ const ecranActif = p => p.evaluate(() => (document.querySelector('.ecran.actif')
 /* --- LE PAS DES CRÉNEAUX, ET PLUS AUCUNE TRACE DU PRÉAVIS ------------- */
 const src = await (await fetch('http://127.0.0.1:8099/index.html')).text();
 const step = src.match(/id="heure"[^>]*step="(\d+)"/);
-const pas = src.match(/var PAS_MINUTES\s*=\s*(\d+)/);
+/* PAS_MINUTES vit dans config.js depuis le 31/10/2026 (deuxième extraction). */
+const cfg = await (await fetch('http://127.0.0.1:8099/config.js')).text();
+const pas = cfg.match(/var PAS_MINUTES\s*=\s*(\d+)/);
 check('le champ d\'heure et le script ont le même pas',
   step && pas && Number(step[1]) === Number(pas[1]) * 60, step && pas ? step[1]+' s contre '+pas[1]+' min' : '');
 check('le pas est bien de 5 minutes', pas && pas[1] === '5', pas ? pas[1] : '');

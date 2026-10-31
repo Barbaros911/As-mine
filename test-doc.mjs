@@ -33,6 +33,10 @@ import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { execSync } from "node:child_process";
 
 const page = readFileSync("index.html", "utf8");
+/* LES CONSTANTES DU TUNNEL VIVENT DANS config.js (31 octobre 2026) : la
+   grille de repli, les forfaits, l'accueil, le pas des créneaux… se lisent
+   là, plus dans la page. Une constante absente des deux est nulle. */
+const config = readFileSync("config.js", "utf8");
 const doc  = readFileSync("CLAUDE.md", "utf8");
 /* TEAM_RULES peut ne pas exister sur une branche ancienne : on saute
    plutôt que de faire tomber la suite pour un fichier absent. */
@@ -83,7 +87,8 @@ verifier(
 
 /* --- Une constante du code, lue dans la page ---------------------- */
 function constante(nom){
-  const m = page.match(new RegExp("\\b" + nom + "\\s*=\\s*([0-9]+(?:\\.[0-9]+)?)"));
+  const m = config.match(new RegExp("\\b" + nom + "\\s*=\\s*([0-9]+(?:\\.[0-9]+)?)"))
+         || page.match(new RegExp("\\b" + nom + "\\s*=\\s*([0-9]+(?:\\.[0-9]+)?)"));
   return m ? Number(m[1]) : null;
 }
 
@@ -93,7 +98,7 @@ function constante(nom){
    l'histoire des tarifs (« il a fait baisser les deux tarifs »), et une
    narration au passé n'est pas une affirmation au présent. */
 const gammes = {};
-const blocGammes = page.match(/var GAMMES\s*=\s*\[([\s\S]*?)\]/);
+const blocGammes = config.match(/var GAMMES\s*=\s*\[([\s\S]*?)\]/);
 if(blocGammes){
   for(const l of blocGammes[1].matchAll(
         /cle:"([a-z_]+)"[^}]*parKm:\s*([0-9.]+)[^}]*mini:\s*([0-9]+)/g)){
@@ -101,7 +106,7 @@ if(blocGammes){
   }
 }
 verifier("le code déclare ses deux gammes", Object.keys(gammes).length >= 2,
-  "GAMMES n'a pas pu être relu dans index.html — le reste ne vérifie rien");
+  "GAMMES n'a pas pu être relu dans config.js — le reste ne vérifie rien");
 
 const nomVersCle = { berline:"berline", van:"van" };
 let lignesLues = 0;
@@ -136,7 +141,7 @@ verifier("le tableau de la grille est lisible dans CLAUDE.md", lignesLues >= 2,
    (GRILLE_PUBLIQUE, FORFAITS_PUBLICS, ACCUEIL_EUR) — c'est ce chiffre-là
    qu'on annonce au téléphone. */
 {
-  const bloc = (page.match(/var GRILLE_PUBLIQUE\s*=\s*\{([\s\S]*?)\n\s*\};/) || [])[1] || "";
+  const bloc = (config.match(/var GRILLE_PUBLIQUE\s*=\s*\{([\s\S]*?)\n\s*\};/) || [])[1] || "";
   const gamme = cle => {
     const m = bloc.match(new RegExp(cle + ":\\s*\\{\\s*tranches:\\[([^\\]]*)\\],\\s*auDela:([0-9.]+)"));
     return m ? { km: [...m[1].matchAll(/km:(\d+(?:\.\d+)?)/g)].map(x => x[1]).join(" / "),
@@ -145,7 +150,7 @@ verifier("le tableau de la grille est lisible dans CLAUDE.md", lignesLues >= 2,
   };
   const gb = gamme("berline"), gv = gamme("van");
   const forfaits = {};
-  for (const m of page.matchAll(/\{ cle:"(orly|cdg|disney)"[^}]*?prix:\{ berline:(\d+), van:(\d+) \}/g)) forfaits[m[1]] = [m[2], m[3]];
+  for (const m of config.matchAll(/\{ cle:"(orly|cdg|disney)"[^}]*?prix:\{ berline:(\d+), van:(\d+) \}/g)) forfaits[m[1]] = [m[2], m[3]];
   if (verifier("le code déclare la grille du site public (GRILLE_PUBLIQUE, FORFAITS_PUBLICS)",
         !!gb && !!gv && Object.keys(forfaits).length === 3)) {
     const sp = s => (s || "").replace(/\s+/g, " ").trim();
@@ -341,7 +346,7 @@ if(refs){
    du sujet qu'on touche vers memoire/, dans la même PR, et il repasse.
    Il DESCEND à chaque rangement, jamais l'inverse. Il tourne sur chaque
    PR (quality-gate) : c'est là qu'il doit mordre, pas à la publication. */
-const PLAFOND_MEMO = 54908; // octets — ne monte jamais, descend à chaque rangement (319000 → 316200 le 11/10/2026, rangement de l'itinéraire ; → 315950 le 14/10/2026, hébergement ; → 314950 le 14/10/2026, marque et Google ; → 311050 le 14/10/2026, tarif ; → 311045 le 15/10/2026, indexation ; → 309590 le 15/10/2026, avis et liens des partenaires ; → 309415 le 15/10/2026, programme partenaire ; → 308798 le 17/10/2026, branches ; → 303355 le 17/10/2026, sites vitrines et phrases périmées ; → 303086 le 18/10/2026, hébergement et vraie 404 ; → 303029 le 18/10/2026, trafic ; → 300524 le 18/10/2026, positionnement, programme partenaire, documents légaux et note Google ; → 299646 le 19/10/2026, prix à toutes les distances et péages ; → 299511 le 19/10/2026, réconciliation avec main : partenaire au conditionnel, lanceur des suites ; → 296017 le 19/10/2026, cinq services archivés, finition visuelle ; → 296002 le 19/10/2026, trafic : l'entonnoir dit où l'on perd ; → 295141 le 19/10/2026, registre et délai de confirmation ; → 295138 le 19/10/2026, référence : collision au dépôt ; → 294011 le 19/10/2026, voyant archivé, erreurs du site ; → 293603 le 19/10/2026, limite du registre, synchronisation archivée ; → 293588 le 19/10/2026, page client hôtel : le premier dessin est le bon ; → 293535 le 19/10/2026, secret de la relance, mesure du 29/09 archivée ; → 292115 le 20/10/2026, rôle agent archivé, accès agent suspendu ; → 288725 le 20/10/2026, accès de la réception archivé, seul Barbaros supprime ; → 285057 le 21/10/2026, thème du partenaire archivé, réception V2 ; → 285051 le 21/10/2026, la carte de la réception après une réservation ; → 284972 le 21/10/2026, réception 10/10 : rien de vert d'office, bon sans boutons sur PC ; → 284959 le 22/10/2026, marque et Google : pages françaises d'acquisition ; → 55308 le 22/10/2026, rangement général : toute l'histoire dans memoire/, ne restent que les règles vraies aujourd'hui ; → 55304 le 23/10/2026, courses de l'admin au départ de l'hôtel, détails du comptoir archivés ; → 55286 le 23/10/2026, arrivée à l'hôtel et rattachement à la main, quota partenaire archivé ; → 55281 le 23/10/2026, une centrale et un large réseau, textes publics resserrés ; → 55269 le 24/10/2026, double vérification de l'admin, connexion archivée ; → 55139 le 24/10/2026, grille par tranches, forfaits Paris et accueil, prix des pages retiré, fusion avec la double vérification ; → 55138 le 24/10/2026, données métier sur le serveur ; → 55137 le 24/10/2026, easyHotel refuse d'être cité : le co-marquage vit sur la fiche ; → 55134 le 24/10/2026, marche à 27 km, fusion avec les données métier et la fiche easyHotel ; → 55098 le 24/10/2026, messages au client : la trace et le pense-bête, notification resserrée, fusion avec la marche à 27 km ; → 55095 le 24/10/2026, code admin choisi au lieu de l'application de codes ; → 55091 le 24/10/2026, la recherche et « Me localiser » n'attendent plus le plus lent ; → 55080 le 24/10/2026, la liste des lieux : une pastille, le nom, l'adresse dessous ; → 55063 le 24/10/2026, la troisième couleur (l'or doux des pictogrammes), pièges des icônes archivés ; → 55061 le 24/10/2026, une seule famille d'icônes, une couleur par sujet ; → 55060 le 24/10/2026, la règle des priorités, section « Travailler avec Barbaros » resserrée ; → 55047 le 25/10/2026, P0 : une demande non vue ne se tait plus, « Vu » n'arrête que l'alarme ; → 55008 le 25/10/2026, étape 2 : battement de la relance, bandeau des non vues, alerte d'essai, réactivité ; annonce resserrée ; → 55006 le 28/10/2026, alertes des conseillers Supabase qualifiées, webhook et secrets resserrés ; → 54999 le 29/10/2026, preuves commerciales (#426) : lien seul vers les avis Google, phrase « utilisé », avis et réseau resserrés, fusion avec l'audit sécurité ; → 54995 le 30/10/2026, easyHotel nommé sur la seule page du QR, sujets clos resserrés ; → 54918 le 31/10/2026, fusion : le « oui » écrit de Barbaros pour cette PR, histoire dans memoire/branches.md, fusion avec les preuves commerciales ; → 54915 le 31/10/2026, preuve « Déjà utilisé dans l'hôtellerie », jamais au pluriel, fusion avec le « oui » écrit pour cette PR ; → 54908 le 31/10/2026, le dictionnaire des deux langues dans textes.js, langues suivantes et juges de l'heure archivés)
+const PLAFOND_MEMO = 54900; // octets — ne monte jamais, descend à chaque rangement (319000 → 316200 le 11/10/2026, rangement de l'itinéraire ; → 315950 le 14/10/2026, hébergement ; → 314950 le 14/10/2026, marque et Google ; → 311050 le 14/10/2026, tarif ; → 311045 le 15/10/2026, indexation ; → 309590 le 15/10/2026, avis et liens des partenaires ; → 309415 le 15/10/2026, programme partenaire ; → 308798 le 17/10/2026, branches ; → 303355 le 17/10/2026, sites vitrines et phrases périmées ; → 303086 le 18/10/2026, hébergement et vraie 404 ; → 303029 le 18/10/2026, trafic ; → 300524 le 18/10/2026, positionnement, programme partenaire, documents légaux et note Google ; → 299646 le 19/10/2026, prix à toutes les distances et péages ; → 299511 le 19/10/2026, réconciliation avec main : partenaire au conditionnel, lanceur des suites ; → 296017 le 19/10/2026, cinq services archivés, finition visuelle ; → 296002 le 19/10/2026, trafic : l'entonnoir dit où l'on perd ; → 295141 le 19/10/2026, registre et délai de confirmation ; → 295138 le 19/10/2026, référence : collision au dépôt ; → 294011 le 19/10/2026, voyant archivé, erreurs du site ; → 293603 le 19/10/2026, limite du registre, synchronisation archivée ; → 293588 le 19/10/2026, page client hôtel : le premier dessin est le bon ; → 293535 le 19/10/2026, secret de la relance, mesure du 29/09 archivée ; → 292115 le 20/10/2026, rôle agent archivé, accès agent suspendu ; → 288725 le 20/10/2026, accès de la réception archivé, seul Barbaros supprime ; → 285057 le 21/10/2026, thème du partenaire archivé, réception V2 ; → 285051 le 21/10/2026, la carte de la réception après une réservation ; → 284972 le 21/10/2026, réception 10/10 : rien de vert d'office, bon sans boutons sur PC ; → 284959 le 22/10/2026, marque et Google : pages françaises d'acquisition ; → 55308 le 22/10/2026, rangement général : toute l'histoire dans memoire/, ne restent que les règles vraies aujourd'hui ; → 55304 le 23/10/2026, courses de l'admin au départ de l'hôtel, détails du comptoir archivés ; → 55286 le 23/10/2026, arrivée à l'hôtel et rattachement à la main, quota partenaire archivé ; → 55281 le 23/10/2026, une centrale et un large réseau, textes publics resserrés ; → 55269 le 24/10/2026, double vérification de l'admin, connexion archivée ; → 55139 le 24/10/2026, grille par tranches, forfaits Paris et accueil, prix des pages retiré, fusion avec la double vérification ; → 55138 le 24/10/2026, données métier sur le serveur ; → 55137 le 24/10/2026, easyHotel refuse d'être cité : le co-marquage vit sur la fiche ; → 55134 le 24/10/2026, marche à 27 km, fusion avec les données métier et la fiche easyHotel ; → 55098 le 24/10/2026, messages au client : la trace et le pense-bête, notification resserrée, fusion avec la marche à 27 km ; → 55095 le 24/10/2026, code admin choisi au lieu de l'application de codes ; → 55091 le 24/10/2026, la recherche et « Me localiser » n'attendent plus le plus lent ; → 55080 le 24/10/2026, la liste des lieux : une pastille, le nom, l'adresse dessous ; → 55063 le 24/10/2026, la troisième couleur (l'or doux des pictogrammes), pièges des icônes archivés ; → 55061 le 24/10/2026, une seule famille d'icônes, une couleur par sujet ; → 55060 le 24/10/2026, la règle des priorités, section « Travailler avec Barbaros » resserrée ; → 55047 le 25/10/2026, P0 : une demande non vue ne se tait plus, « Vu » n'arrête que l'alarme ; → 55008 le 25/10/2026, étape 2 : battement de la relance, bandeau des non vues, alerte d'essai, réactivité ; annonce resserrée ; → 55006 le 28/10/2026, alertes des conseillers Supabase qualifiées, webhook et secrets resserrés ; → 54999 le 29/10/2026, preuves commerciales (#426) : lien seul vers les avis Google, phrase « utilisé », avis et réseau resserrés, fusion avec l'audit sécurité ; → 54995 le 30/10/2026, easyHotel nommé sur la seule page du QR, sujets clos resserrés ; → 54918 le 31/10/2026, fusion : le « oui » écrit de Barbaros pour cette PR, histoire dans memoire/branches.md, fusion avec les preuves commerciales ; → 54915 le 31/10/2026, preuve « Déjà utilisé dans l'hôtellerie », jamais au pluriel, fusion avec le « oui » écrit pour cette PR ; → 54908 le 31/10/2026, le dictionnaire des deux langues dans textes.js, langues suivantes et juges de l'heure archivés ; → 54900 le 31/10/2026, la grille de repli dans config.js, date du retrait des prix par page archivée)
 {
   const taille = Buffer.byteLength(doc, "utf8");
   verifier("CLAUDE.md tient sous son plafond (" + Math.round(PLAFOND_MEMO / 1000) + " Ko)",
@@ -465,7 +470,7 @@ const PLAFOND_MEMO = 54908; // octets — ne monte jamais, descend à chaque ran
       catch(e){ /* la ligne a changé de forme : le contrôle suivant le dira */ }
     }
     const client = {};
-    const bloc = (page.match(/var GAMMES = \[([\s\S]*?)\];/) || [,""])[1];
+    const bloc = (config.match(/var GAMMES = \[([\s\S]*?)\];/) || [,""])[1];
     for(const m of bloc.matchAll(/cle:"(\w+)"[^}]*parKm:([\d.]+)[^}]*mini:(\d+)/g)){
       client[m[1]] = { km: parseFloat(m[2]), mini: parseFloat(m[3]) };
     }

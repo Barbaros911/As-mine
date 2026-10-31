@@ -155,7 +155,8 @@ jobs:
           # navigateur ni réseau, et jamais lancés jusqu'ici (31/10/2026).
           # Le dictionnaire des deux langues (31/10/2026) : parité fr/en et clés
           # demandées par la page, sans navigateur.
-          for t in test-notification test-push test-textes; do
+          # Et les réglages du tunnel, la grille de repli (31/10/2026).
+          for t in test-notification test-push test-textes test-config; do
             echo "::group::$t"
             if node "$t.mjs"; then echo "$t : au vert"; else echo "::error::$t est tombé"; echecs="$echecs $t"; fi
             echo "::endgroup::"

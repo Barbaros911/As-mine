@@ -6517,6 +6517,7 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
      arriver après. C'est la seule dépendance de fichier de cette page — et
      elle existe pour qu'il n'y ait pas DEUX lecteurs à tenir. -->
 <script src="textes.js"></script>
+<script src="config.js"></script>
 <script src="telephone.js"></script>
 <script src="bon-client.js"></script>
 <script src="intake-demande.js"></script>
@@ -6624,6 +6625,7 @@ var HOTEL_OSM          = window.ELA_ROUTE.HOTEL_OSM,
    ce script et éprouvées par test-textes.mjs. Ce qui reste ici en décide
    l'USAGE : la langue retenue, « T() », « appliquerLangue() ». */
 if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
+if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
 
   /* =====================================================================
      LA DATE DU JOUR — DANS LE FUSEAU DU CLIENT, PAS EN UTC
@@ -6852,20 +6854,7 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
      Le terminal est écrit EN PREMIER dans le libellé : neuf lignes
      commençant toutes par « Aéroport Roissy-Charles de… » se ressemblent
      une fois tronquées, et le client ne peut plus choisir le sien. */
-  var AEROPORTS = {
-    cdg: { nom:"Aéroport Roissy-Charles de Gaulle", nomEn:"Paris-Charles de Gaulle Airport",
-      mots:["cdg","roissy","charles","gaulle"],
-      terminaux:{ "Terminal 1":[49.0067,2.5479], "Terminal 2A":[49.0053,2.5695],
-        "Terminal 2B":[49.0037,2.5695], "Terminal 2C":[49.0025,2.5715],
-        "Terminal 2D":[49.0013,2.5715], "Terminal 2E":[48.9998,2.5740],
-        "Terminal 2F":[48.9985,2.5740], "Terminal 2G":[48.9970,2.5760],
-        "Terminal 3":[49.0102,2.5450] } },
-    orly: { nom:"Aéroport de Paris-Orly", nomEn:"Paris-Orly Airport", mots:["orly"],
-      terminaux:{ "Orly 1":[48.7233,2.3794], "Orly 2":[48.7228,2.3805],
-        "Orly 3":[48.7218,2.3815], "Orly 4":[48.7289,2.3592] } },
-    beauvais: { nom:"Aéroport de Beauvais-Tillé", nomEn:"Paris-Beauvais Airport", mots:["beauvais","tille"],
-      terminaux:{ "Terminal unique":[49.4544,2.1128] } }
-  };
+  var AEROPORTS = window.ELA_CONFIG.AEROPORTS;
   /* LE LIBELLÉ D'UN TERMINAL SUIT LA LANGUE DU CLIENT (audit des quatre
      prompts, 16 octobre 2026). Le voyageur venu de /en/ lisait
      « Terminal 2E — Aéroport Roissy-Charles de Gaulle » dans un moteur
@@ -6875,7 +6864,7 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
      (« Terminal 2E », « Orly 3 »), identique dans les deux langues ; seul
      « Terminal unique » a une forme anglaise, qu'il reconnaît aussi. Les
      noms anglais sont ceux des pages /en/. */
-  var TERMINAL_EN = { "Terminal unique":"Single terminal" };
+  var TERMINAL_EN = window.ELA_CONFIG.TERMINAL_EN;
   function libelleTerminal(cle, t){
     var ap = AEROPORTS[cle];
     if(LANGUE === "en") return (TERMINAL_EN[t] || t) + " — " + (ap.nomEn || ap.nom);
@@ -7590,7 +7579,7 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
      pour la recherche d'adresse) ; les autres à leur « rayonKm ». Les zones
      ne se recouvrent pas — la plus proche l'une de l'autre, Paris et Le
      Bourget, sont à 11 km. */
-  var RAYON_AEROPORT_KM = 2;
+  var RAYON_AEROPORT_KM = window.ELA_CONFIG.RAYON_AEROPORT_KM;
   var hotelDestZone = null;   // la destination du flyer où tombe l'adresse, ou null
   function destDuPoint(pt){
     if(!hotel || !pt) return null;
@@ -8887,7 +8876,7 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
   var btnGeoloc = document.getElementById("btnGeoloc");
   var geoEtat = document.getElementById("geoEtat");
   /* Au-delà, la position ne situe plus un numéro dans la rue. */
-  var PRECISION_GEO_M = 100;
+  var PRECISION_GEO_M = window.ELA_CONFIG.PRECISION_GEO_M;
 
   function direGeo(cle, raté){
     geoEtat.textContent = T(cle);
@@ -9088,10 +9077,7 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
      donc les mêmes chiffres que la source serveur au moment où ce
      fichier est écrit ; un changement fait depuis l'admin les corrige
      en mémoire, il ne les réécrit jamais ici. */
-  var GAMMES = [
-    { cle:"berline", nom:"Berline", parKm:2.90, mini:35, places:4 },
-    { cle:"van",     nom:"Van",     parKm:4.70, mini:50, places:7 }
-  ];
+  var GAMMES = window.ELA_CONFIG.GAMMES;
 
   /* ═══ LA GRILLE DU SITE PUBLIC (23 octobre 2026, décision de Barbaros) ═══
      Depuis cette date, GAMMES (au kilomètre) ne sert plus qu'aux pages des
@@ -9115,20 +9101,12 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
      LA MARCHE À 27 KM (24 octobre 2026, « j'accepte ») : de 22 à 32 km, une
      seule marche faisait payer 70 € à 22,1 km comme à 32 km. Elle coupe le
      plus grand saut en deux : 60 € en berline, 95 € en van. */
-  var GRILLE_PUBLIQUE = {
-    berline: { tranches:[{km:12,prix:35},{km:22,prix:50},{km:27,prix:60},{km:32,prix:70},{km:42,prix:90}], auDela:2.50 },
-    van:     { tranches:[{km:12,prix:50},{km:22,prix:80},{km:27,prix:95},{km:32,prix:110},{km:42,prix:130}], auDela:3.80 }
-  };
+  var GRILLE_PUBLIQUE = window.ELA_CONFIG.GRILLE_PUBLIQUE;
   /* Un aéroport se reconnaît à ses terminaux (« AEROPORTS », même rayon que
      le flyer), Disneyland à un point et un rayon — les mêmes que la
      destination « Disney » du flyer. On MESURE, jamais un mot. */
-  var FORFAITS_PUBLICS = [
-    { cle:"orly",   nom:"Orly",             aeroport:"orly", prix:{ berline:55, van:80 } },
-    { cle:"cdg",    nom:"Roissy-CDG",       aeroport:"cdg",  prix:{ berline:70, van:110 } },
-    { cle:"disney", nom:"Disneyland Paris", lat:48.8722, lon:2.7758, rayonKm:3,
-      prix:{ berline:90, van:130 } }
-  ];
-  var ACCUEIL_EUR = 10;
+  var FORFAITS_PUBLICS = window.ELA_CONFIG.FORFAITS_PUBLICS;
+  var ACCUEIL_EUR = window.ELA_CONFIG.ACCUEIL_EUR;
 
   /* PARIS, C'EST LA COMMUNE, LUE DANS LES CHAMPS DE LA SOURCE (code postal
      75…, ville « Paris ») et jamais dans le libellé. Un rayon autour du
@@ -9174,19 +9152,9 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
      une sortie des arrivées, et une gare de RER n'est pas une grande gare.
      Coordonnées des gares : jeu de données ouvert trainline-eu/stations
      (ODbL), relevé le 23/10/2026. */
-  var LE_BOURGET = { lat:48.9694, lon:2.4414 };
-  var RAYON_AEROPORT_ACCUEIL_KM = 3, RAYON_GARE_KM = 0.4;
-  var GRANDES_GARES = [
-    { nom:"Paris Gare du Nord",             lat:48.880185, lon:2.355151 },
-    { nom:"Paris Gare de l'Est",            lat:48.876742, lon:2.358424 },
-    { nom:"Paris Gare de Lyon",             lat:48.844888, lon:2.373520 },
-    { nom:"Paris Austerlitz",               lat:48.842285, lon:2.364891 },
-    { nom:"Paris Montparnasse",             lat:48.841172, lon:2.320514 },
-    { nom:"Paris Saint-Lazare",             lat:48.876242, lon:2.325331 },
-    { nom:"Paris Bercy",                    lat:48.839170, lon:2.382780 },
-    { nom:"Marne-la-Vallée–Chessy",         lat:48.869856, lon:2.782720 },
-    { nom:"Massy TGV",                      lat:48.725758, lon:2.261254 }
-  ];
+  var LE_BOURGET = window.ELA_CONFIG.LE_BOURGET;
+  var RAYON_AEROPORT_ACCUEIL_KM = window.ELA_CONFIG.RAYON_AEROPORT_ACCUEIL_KM, RAYON_GARE_KM = window.ELA_CONFIG.RAYON_GARE_KM;
+  var GRANDES_GARES = window.ELA_CONFIG.GRANDES_GARES;
   function departAeroport(l){
     if(!l) return false;
     if(terminalDuLibelle(l.label)) return true;
@@ -9590,7 +9558,7 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
     return prixSitePublic(g, course.km, choix.depart, choix.arrivee);
   }
 
-  var OPTION_PANCARTE_EUR = 10;
+  var OPTION_PANCARTE_EUR = window.ELA_CONFIG.OPTION_PANCARTE_EUR;
   var optionPancarte = false;
   function supplementPancarte(){
     return (optionPancarte && pancarteProposee()) ? OPTION_PANCARTE_EUR : 0;
@@ -9657,7 +9625,7 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
      la donnée : sinon un jour où l'on rangerait la durée sur le bon, elle
      partirait déjà majorée, et une deuxième marge s'ajouterait à la
      première sans que personne ne le voie. */
-  var MARGE_DUREE_MIN = 5, MARGE_DUREE_MAX = 10;
+  var MARGE_DUREE_MIN = window.ELA_CONFIG.MARGE_DUREE_MIN, MARGE_DUREE_MAX = window.ELA_CONFIG.MARGE_DUREE_MAX;
   function dureeAnnoncee(min){
     return { bas:min + MARGE_DUREE_MIN, haut:min + MARGE_DUREE_MAX };
   }
@@ -10130,7 +10098,7 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
      pense en quarts et en cinquièmes d'heure. Le champ porte « step="300" »
      — 300 secondes — et ce nombre-ci doit rester d'accord avec lui ; un
      test compare les deux. */
-  var PAS_MINUTES = 5;
+  var PAS_MINUTES = window.ELA_CONFIG.PAS_MINUTES;
   /* Le premier créneau de la grille des 5 minutes, à partir de maintenant.
      À 1 h 41, c'est 1 h 45 — sur la grille, puisque « step » est compté à
      partir de « min ». Il n'y a plus de préavis ajouté. */
@@ -19118,7 +19086,7 @@ if(!window.ELA_TEXTES) throw new Error("textes.js n'est pas chargé");
    « pas renseigné » un air rassurant qu'il n'a pas.
    ===================================================================== */
   var CLE_CHAUFFEURS = "ela_chauffeurs";
-  var JOURS_ALERTE = 30;
+  var JOURS_ALERTE = window.ELA_CONFIG.JOURS_ALERTE;
 
   function chauffeurs(){
     try{

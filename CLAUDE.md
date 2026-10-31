@@ -219,8 +219,8 @@ puis accueil. Les pages des hôtels gardent le kilométrage.
 
 - **Le serveur est la vérité** : `chargerTarifsServeur()` lit `grille_publique`,
   `tarif_public` (hôtels) et `forfaits_partenaires_publics` ; `GRILLE_PUBLIQUE`,
-  `FORFAITS_PUBLICS`, `ACCUEIL_EUR`, `GAMMES` et `HOTELS` ne sont que le
-  **repli**, qui doit suivre la production. Réglages → « Tarifs ». Une grille
+  `FORFAITS_PUBLICS`, `ACCUEIL_EUR`, `GAMMES` (dans `config.js`) et `HOTELS`
+  ne sont que le **repli**, qui suit la production. Réglages → « Tarifs ». Une grille
   serveur refusée par `grilleValide` n'est pas appliquée, en entier.
   « Voir mon prix » attend la lecture (`tarifsLus`, 4 s). `test-doc.mjs`
   compare ces tableaux au code.
@@ -238,8 +238,7 @@ puis accueil. Les pages des hôtels gardent le kilométrage.
 - TVA 10 % incluse. Le prix est **annoncé avant**, **ferme à la confirmation**.
 - **TOUCHER AU PRIX VEUT DIRE TOUCHER AUX CGV**, dans les deux langues, **sans
   y écrire un chiffre**, et leur date change avec elles.
-- **Plus de prix par page** (`prix_pages`, retiré le 23/10) : une page ne
-  change pas le prix.
+- **Plus de prix par page** (`prix_pages`) : une page ne change pas le prix.
 - `prixSitePublic()` sert le client ET « Saisir par téléphone » ; l'étiquette
   de « Nouvelle course » vient de la grille (`ecrireGrille()`).
 - `deposer-course` ne contrôle que par le bas (tranche de la ligne droite ;
