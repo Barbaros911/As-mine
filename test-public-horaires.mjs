@@ -84,6 +84,26 @@ for (const [chemin, langue] of PAGES) {
   await p.context().close();
 }
 
+/* LA PAGE PRO NE MET EN SCÈNE AUCUNE HEURE OÙ PERSONNE NE RÉPOND (#426,
+   25/10/2026). Son premier défi disait « Il le demande à 5 h » sous
+   « Assistance humaine de 7 h à 22 h » : le directeur lisait que sa demande
+   tomberait dans le vide. Toute heure citée sur la page, en français comme en
+   anglais, tombe dans la plage d'assistance qu'elle annonce. */
+{
+  const p = await ouvrir(390, '/professionnels/');
+  const lire = () => p.evaluate(() => document.body.innerText);
+  const heures = (t, l) => l === 'fr'
+    ? [...plat(t).matchAll(/\b(\d{1,2}) ?h\b/g)].map(m => +m[1])
+    : [...plat(t).matchAll(/\b(\d{1,2}) ?(am|pm)\b/g)].map(m => (+m[1] % 12) + (m[2] === 'pm' ? 12 : 0));
+  const fr = heures(await lire(), 'fr');
+  await p.click('#langue'); await p.waitForTimeout(300);
+  const en = heures(await lire(), 'en');
+  const hors = [...fr, ...en].filter(h => h < 7 || h > 22);
+  check('/professionnels/ : toute heure citée (FR et EN) tombe entre 7 h et 22 h, la plage d\'assistance annoncée',
+    fr.length > 0 && en.length > 0 && hors.length === 0, JSON.stringify({ fr, en }));
+  await p.context().close();
+}
+
 /* L'accueil : la même phrase dans le bandeau et au pied, en français et en
    anglais (une seule clé, hero_notes). */
 for (const [chemin, langue] of [['/', 'fr'], ['/?lang=en', 'en']]) {

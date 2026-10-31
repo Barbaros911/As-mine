@@ -235,3 +235,22 @@ après l'appui sur « Voir la démo hôtel » — en plein défilement doux (905
 s'arrête ; la règle (« sous l'en-tête collant ») n'a pas bougé. Sur `main`, la
 même lecture donnait déjà 581 px à 700 ms sur une machine chargée : le
 contrôle passait de justesse.
+
+## 29 octobre 2026 — « Déjà utilisé en conditions réelles » (#426)
+
+Barbaros confirme (25/10) qu'au moins une vraie course venue de l'hôtel (QR ou
+comptoir) a été réalisée. La phrase de preuve devient, sur la page
+Professionnels, l'encart pro de l'accueil et la fiche hôtels : « Déjà utilisé
+en conditions réelles dans l'hôtellerie, en Île-de-France. » (l'encart de
+l'accueil s'arrête à « l'hôtellerie »). Toujours ni nom, ni lieu, ni nombre ;
+`test-public-centrale` vert.
+- **Anglais** : la phrase proposée, « Already used in real conditions », est un
+  calque du français (on dit « real-world » en anglais). Écrit « Already in
+  real-world use in the hotel sector, in the Paris region. » : même sens,
+  correction de langue seulement, signalée à Barbaros dans la PR.
+- **« Île-de-France » ne se coupe plus au trait d'union** en fin de ligne
+  (mesuré sur la capture à 390 px : « Île-de- / France ») : U+2060 après chaque
+  trait d'union, la parade déjà employée pour « 7 h–22 h ».
+- Réserve écrite dans la PR, sans rien changer : « en conditions réelles » est
+  le vocabulaire d'un essai ; un directeur peut y lire « on teste ». « Déjà
+  utilisé dans l'hôtellerie » dirait la même chose plus court. À lui de choisir.

@@ -12,12 +12,13 @@
 // avis-google.json. Le jour où la note change, on modifie UNE ligne.
 //
 // CE QUI L'ÉTEINT, PARTOUT À LA FOIS :
-// - « afficher » à false — le jour où la fiche est suspendue ;
+// - « afficher » à false — c'est le cas depuis le 25/10/2026 (plus bas) ;
 // - un relevé de plus de 60 jours : un chiffre périmé finit par mentir ;
 // - une donnée mal formée (note hors de 1–5, nombre nul, lien étranger à
 //   Google, date illisible ou dans le futur).
-// Dans ces trois cas le repère est RETIRÉ et la construction CONTINUE : une
-// note absente ne doit jamais empêcher une correction urgente d'être publiée.
+// Dans ces trois cas la note disparaît (le lien seul la remplace, si le lien
+// mène à Google) et la construction CONTINUE : une note absente ne doit jamais
+// empêcher une correction urgente d'être publiée.
 //
 // Le même délai est recopié sur la page (data-expire) avec trois lignes de
 // script : un site qu'on ne reconstruit pas pendant deux mois retire sa note
@@ -28,6 +29,14 @@
 // note elle-même, et test-avis-google le vérifie sur tout le site construit.
 // Les pages construites depuis index.html pour un hôtel, sa réception,
 // l'admin ou la démo ne portent pas la note : leur repère est retiré.
+//
+// LE LIEN SEUL QUAND LA NOTE EST ÉTEINTE (25 octobre 2026, #426, Barbaros :
+// « le nombre d'avis ne se met pas à jour », « le peu d'avis, ça fait
+// amateur »). Le repère devient « Voir nos avis sur Google » / « See our
+// reviews on Google », vers le même lien : le visiteur vérifie lui-même, et
+// rien sur la page ne vieillit (ni note, ni nombre, ni date). Il n'est retiré
+// que si le lien lui-même ne mène pas à Google. La note revient d'elle-même le
+// jour où « afficher » repasse à true (à rouvrir vers ~50 avis).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -65,7 +74,22 @@ export function juger(d, aujourdhui = new Date().toISOString().slice(0, 10)) {
   };
 }
 
+// Le lien seul ne dépend que du lien : ni note, ni nombre, ni date à juger.
+export function jugerLien(d) {
+  if (!d || typeof d !== 'object') return { ok: false, raison: 'fichier illisible' };
+  if (typeof d.lien !== 'string' || !LIEN_GOOGLE.test(d.lien)) return { ok: false, raison: 'lien qui ne mène pas à Google' };
+  return { ok: true, lien: d.lien };
+}
+
 const echapper = s => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+export const TEXTE_LIEN = { fr: 'Voir nos avis sur Google', en: 'See our reviews on Google' };
+
+export function rendreLien(lien, langues) {
+  const corps = langues.map(l =>
+    `<span lang="${l}"><a href="${echapper(lien)}" target="_blank" rel="noopener">${TEXTE_LIEN[l]}</a></span>`).join('');
+  return `<p class="note-google">${corps}</p>`;
+}
 
 export function rendre(j, langues, forme) {
   const lien = langue => {
@@ -101,17 +125,23 @@ function pages(dossier) {
 
 export function appliquer(dossier, donnees, aujourdhui) {
   const j = juger(donnees, aujourdhui);
-  const bilan = { j, remplies: [], retirees: [] };
+  const l = j.ok ? null : jugerLien(donnees);
+  const bilan = { j, l, remplies: [], liens: [], retirees: [] };
   const demo = path.join(dossier, 'demo') + path.sep;
   for (const f of pages(dossier)) {
     const html = fs.readFileSync(f, 'utf8');
     if (!html.includes('class="note-google"')) continue;
-    const poser = j.ok && !f.startsWith(demo) && !autreEspace(html);
-    const neuf = html.replace(REPERE, (_, langues, forme) =>
-      poser ? rendre(j, langues.trim().split(/\s+/), /pro/.test(forme) ? 'pro' : 'court') : '');
+    const publique = !f.startsWith(demo) && !autreEspace(html);
+    const pose = !publique ? 'retiree' : j.ok ? 'note' : l.ok ? 'lien' : 'retiree';
+    const neuf = html.replace(REPERE, (_, langues, forme) => {
+      const ls = langues.trim().split(/\s+/);
+      if (pose === 'note') return rendre(j, ls, /pro/.test(forme) ? 'pro' : 'court');
+      if (pose === 'lien') return rendreLien(l.lien, ls);
+      return '';
+    });
     if (neuf === html) continue;
     fs.writeFileSync(f, neuf);
-    (poser ? bilan.remplies : bilan.retirees).push(path.relative(dossier, f));
+    bilan[pose === 'note' ? 'remplies' : pose === 'lien' ? 'liens' : 'retirees'].push(path.relative(dossier, f));
   }
   return bilan;
 }
@@ -121,7 +151,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const source = process.env.ELA_AVIS_GOOGLE || 'avis-google.json';
   let donnees = null;
   try { donnees = JSON.parse(fs.readFileSync(source, 'utf8')); } catch (e) { donnees = null; }
-  const { j, remplies, retirees } = appliquer(dossier, donnees, process.env.ELA_AUJOURDHUI || undefined);
+  const { j, l, remplies, liens, retirees } = appliquer(dossier, donnees, process.env.ELA_AUJOURDHUI || undefined);
   if (j.ok) console.log(`Note Google : ${j.note.fr} · ${j.nombre} avis, relevée il y a ${j.age} j, posée sur ${remplies.length} page(s)`);
-  else console.log(`Note Google ÉTEINTE (${j.raison}) : retirée de ${retirees.length} page(s). La publication continue.`);
+  else if (l.ok) console.log(`Note Google éteinte (${j.raison}) : « ${TEXTE_LIEN.fr} » posé sur ${liens.length} page(s), sans note ni nombre.`);
+  else console.log(`Note Google ÉTEINTE (${j.raison}) et lien refusé (${l.raison}) : retirée de ${retirees.length} page(s). La publication continue.`);
 }

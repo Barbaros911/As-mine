@@ -56,9 +56,13 @@ Dans `TEAM_RULES.md`. En cas de contradiction avec ce fichier-ci, c'est
 - **`construire.sh` est la seule recette de publication**, partagée par GitHub
   Actions et Cloudflare Pages.
 - **Aucun faux avis** (L132-2 Code conso.), jamais, même demandé. **La note
-  Google s'affiche** (18/10/2026, Barbaros : les 25 avis viennent tous de
-  clients) depuis le seul `avis-google.json`, jamais arrondie vers le haut,
-  jamais en données structurées, éteinte seule au-delà de 60 jours.
+  Google chiffrée est ÉTEINTE** (25/10/2026, Barbaros, #426 : « le nombre
+  d'avis ne se met pas à jour », « le peu d'avis, ça fait amateur ») ; à
+  rouvrir vers ~50 avis. À sa place, **un lien seul, « Voir nos avis sur
+  Google »**, sur l'accueil, les pages aéroport (FR/EN) et Professionnels —
+  jamais sur un hôtel, son comptoir, l'admin ni la démo. Tout vient du seul
+  `avis-google.json` (`afficher: true` rallume la note), jamais arrondie vers
+  le haut, jamais en données structurées.
 - **Une marque, deux entrées** (18/10/2026, ses décisions) : l'accueil parle au
   voyageur et ne porte plus de bouton dans le bandeau ; l'offre aux hôtels,
   agences et entreprises vit sur `/professionnels/`, avec un bloc « Devenez
@@ -190,7 +194,11 @@ l'admin, « Centre de contrôle », aucun taux n'est écrit dans le code) ·
 tarifs · politique d'annulation · conditions contractuelles · rôle juridique
 · identité et logo · engagement envers un partenaire.
 **Ne jamais présenter easyHotel comme « partenaire officiel » sans accord
-formalisé** — dire « tarifs au départ de easyHotel Aéroville ».
+formalisé** — dire « tarifs au départ de easyHotel Aéroville », et **seulement
+sur la page du QR du flyer** (et au comptoir) : son nom n'apparaît nulle part
+ailleurs, ni dans Google (30/10/2026, Barbaros : « seulement pour les clients
+de l'hôtel qui se connectent avec le QR code qui est sur le flyer »). Le QR du
+flyer est fait par l'imprimeur, pas par l'affiche de l'admin.
 
 ### Qui tient quoi — ce qui reste du 16 septembre
 **Deux sessions Claude ont travaillé ce dépôt en parallèle le 16 septembre**,
@@ -267,7 +275,7 @@ parce qu'une liste les nomme.
 |---|---|---|
 | Pilotage Produit + Opérations (distinct du traitement des courses) — **blocs 1, 2 et 3 FUSIONNÉS et DÉPLOYÉS le 6/10/2026** (PR #327, #329, #330 ; migration `20261006010000_pilotage.sql` appliquée en production, exécution n° 30). **VÉRIFIÉ EN PRODUCTION le 18/10/2026** sur le téléphone de Barbaros : première vraie carte créée, relue après fermeture de l'admin, priorité modifiée, historique lu (deux lignes, heure de Paris). La vue ordinateur n'est éprouvée que sur le site construit, en CI. Un bloc 4 seulement si le besoin se voit (`memoire/pilotage.md`) | Barbaros | #197 (fermée) |
 | Paiement Stripe — **plus prévu** : le modèle retenu le 10/10 est le lien de paiement du chauffeur. Le code d'empreinte TEST reste dans le dépôt, sans appelant, Live éteint (voir « Paiement Stripe — ce qui existe vraiment »). À rouvrir seulement sur décision de Barbaros, après le SIRET | Barbaros | #173 |
-| Note Google : relever note et nombre dans `avis-google.json` avant le 17/12/2026 (sinon elle s'éteint seule, sans casser le site) ; y mettre le lien « Partager » de la fiche, plus sûr que la recherche `query=Elatransfer` posée aujourd'hui | Barbaros, puis Claude | `memoire/avis.md` |
+| Avis Google : vérifier sur son téléphone que « Voir nos avis sur Google » ouvre bien SA fiche (la recherche `query=Elatransfer` posée aujourd'hui n'a pas pu être essayée d'ici : Google est injoignable) ; sinon, coller le lien « Partager » de la fiche dans `avis-google.json`, une ligne. La note chiffrée reste éteinte jusqu'à ~50 avis (#426) | Barbaros, puis Claude | `memoire/avis.md` |
 | Alerte avant expiration du jeton Supabase `github-production` (1er octobre 2027, posé le 4/10/2026) | Claude | à ouvrir |
 
 ## Ce qui bloque, et par qui
