@@ -789,6 +789,45 @@ if (reglesTexte !== null) {
     fautes.join("\n      ") + "\n      La fusion attend le « oui » écrit de Barbaros pour cette PR précise (TEAM_RULES.md §2).");
 }
 
+/* ═══ TOUTE SUITE DU DÉPÔT TOURNE DANS LA CI (31/10/2026, audit) ═══
+   Mesuré sur main 4eced52 : treize suites — « Mes réservations »
+   (test-nouveau-courses, un morceau du P0 #399), le paiement par lien, la
+   suppression, le chiffrement des notifications… — ne tournaient dans AUCUN
+   workflow. Le lanceur local les prend toutes ; la CI, elle, restait verte
+   si l'une tombait. Une suite qui ne tourne qu'à la main ne tourne pas le
+   jour où l'on oublie (même leçon que l'admin retenu le 3/10).
+   ON VÉRIFIE LA COUVERTURE, PAS UNE LISTE : chaque « test-*.mjs » du dépôt
+   doit être lancé par une ligne de COMMANDE d'un workflow — nommé, attrapé
+   par un motif « test-xxx-*.mjs », ou par un « npm run » qui l'appelle.
+   Ne comptent pas : un commentaire (une suite nommée dans une explication
+   n'est pas lancée) ni un chemin de déclenchement (« paths: », qui dit
+   QUAND un workflow part, pas ce qu'il lance). Une suite Admin v2
+   (ELA_AVEC_ADMIN_V2) n'est jamais prise par un motif — « admin » la saute
+   exprès — : elle doit être nommée là où l'on construit Admin v2. */
+{
+  const dossierWf = ".github/workflows";
+  const scripts = JSON.parse(readFileSync("package.json", "utf8")).scripts || {};
+  const lignes = readdirSync(dossierWf).filter(f => /\.ya?ml$/.test(f))
+    .flatMap(f => readFileSync(dossierWf + "/" + f, "utf8").split("\n"))
+    .filter(l => !/^\s*#/.test(l) && !/^\s*-\s*['"][^'"]*['"]\s*$/.test(l))
+    .map(l => l.replace(/\bnpm run ([\w:.-]+)/g, (m, s) => m + " " + (scripts[s] || "")));
+  const texte = lignes.join("\n");
+  const nommees = new Set([...texte.matchAll(/\b(test-[a-z0-9-]*[a-z0-9])(?:\.mjs)?\b/g)].map(m => m[1]));
+  const motifs = [...texte.matchAll(/\b(test-[a-z0-9-]+-)\*\.mjs/g)].map(m => m[1]);
+  const suites = readdirSync(".").filter(f => /^test-.*\.mjs$/.test(f));
+  verifier("des suites et des workflows ont été lus", suites.length > 20 && lignes.length > 200,
+    suites.length + " suite(s), " + lignes.length + " ligne(s)");
+  const oubliees = suites.filter(f => {
+    const nom = f.replace(/\.mjs$/, "");
+    if(nommees.has(nom)) return false;
+    if(readFileSync(f, "utf8").includes("ELA_AVEC_ADMIN_V2")) return true;
+    return !motifs.some(p => nom.startsWith(p));
+  });
+  verifier("toute suite test-*.mjs est lancée par la CI", oubliees.length === 0,
+    "jamais lancée(s) par un workflow : " + oubliees.join(", ") +
+    ". L'ajouter à admin-regression.yml (une suite Admin v2 : admin-v2-regression.yml) ; ne pas la retirer du dépôt.");
+}
+
 /* --------------------------------------------------------------- */
 console.log("");
 if(echecs.length){

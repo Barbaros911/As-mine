@@ -344,9 +344,10 @@ un hôtel partenaire qui accepte d'être cité** — avec son accord écrit.
 
 **Interdits de récit** : leader, milliers de clients, dizaines d'hôtels,
 technologie brevetée, couverture nationale, nombre de partenaires, nombre de
-chauffeurs. Une phrase vraie : « déjà en service dans l'hôtellerie, en
-Île-de-France » — sans compte ni lieu précis (23/10/2026,
-`memoire/centrale-et-reseau.md`), et à retirer si ce service cesse.
+chauffeurs. Une phrase vraie : « Déjà utilisé dans l'hôtellerie, en
+Île-de-France » — sans compte ni lieu précis, jamais au pluriel (23 et
+31/10/2026, `memoire/centrale-et-reseau.md`), et à retirer si ce service
+cesse.
 
 ---
 

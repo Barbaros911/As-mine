@@ -22,7 +22,13 @@ permissions: {contents: read}
 jobs:
   admin:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # 75 MINUTES (31/10/2026). Mesuré sur les trois dernières PR : 42 min 14,
+    # 42 min 25, 42 min 58 pour un plafond de 45 — deux minutes de marge, un
+    # GitHub un peu lent et le contrôle exigé tombait sans qu'aucune suite
+    # soit rouge. Les quinze suites ajoutées ce jour-là allongent encore.
+    # Un plafond atteint n'est pas un échec de suite : relire la durée avant
+    # de chercher un défaut.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v7
@@ -32,7 +38,12 @@ jobs:
       # verte ici est tombée là-bas pour cette seule raison (septembre 2026).
       - name: Navigateur
         run: |
-          npm install --no-save playwright@1.56.1
+          # Avec Playwright, deux tiers qui jugent à notre place, jamais dans
+          # le dépôt : jsQR décode l'affiche QR, http_ece déchiffre une
+          # notification. Absents, leurs suites ÉCHOUENT au lieu de sauter le
+          # contrôle. Une seule installation : une seconde « --no-save »
+          # retirerait ce que la première a posé hors de package.json.
+          npm install --no-save playwright@1.56.1 jsqr@1.4.0 http_ece@1.2.1
           npx playwright install --with-deps chromium
       - name: Suites de l'admin retenu
         shell: bash
@@ -106,6 +117,15 @@ jobs:
           # de vrai sur le site en ligne ; une sonde qui se tromperait
           # enregistrerait une fausse course. Éprouvée ici, hors ligne.
           suites="$suites test-monitoring-sonde"
+          # LES SUITES QUI NE TOURNAIENT QU'À LA MAIN (audit du 31 octobre
+          # 2026) : la recherche d'adresse, la carte, « Me localiser », les
+          # langues, « Mes réservations » (un morceau du P0 #399), le paiement
+          # par lien, les garde-fous, les cartes de services, la suppression,
+          # l'affiche QR (décodée par jsQR), l'icône de l'espace exploitant.
+          # Aucun workflow ne les lançait : la CI restait verte si l'une
+          # tombait. test-doc.mjs refuse désormais toute suite du dépôt
+          # qu'aucun workflow ne lance.
+          suites="$suites test-nouveau test-nouveau-carte test-nouveau-geoloc test-nouveau-langues test-nouveau-courses test-nouveau-paiement test-nouveau-gardes test-nouveau-services test-nouveau-suppression test-nouveau-affiche test-nouveau-icone test-agent-rbac"
           echecs=""
           # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
           # Et le contrôle ne s'arrête jamais à la première rouge.
@@ -130,5 +150,13 @@ jobs:
           echo "::group::test-etat"
           if node test-etat.mjs; then echo "test-etat : au vert"; else echo "::error::test-etat est tombé"; echecs="$echecs test-etat"; fi
           echo "::endgroup::"
+          # Le texte de l'alerte qui réveille Barbaros, et le chiffrement des
+          # notifications au client DÉCHIFFRÉ PAR UN TIERS (http_ece) : sans
+          # navigateur ni réseau, et jamais lancés jusqu'ici (31/10/2026).
+          for t in test-notification test-push; do
+            echo "::group::$t"
+            if node "$t.mjs"; then echo "$t : au vert"; else echo "::error::$t est tombé"; echecs="$echecs $t"; fi
+            echo "::endgroup::"
+          done
           if [ -n "$echecs" ]; then echo "Suites tombées :$echecs"; exit 1; fi
           echo "Toutes les suites de l'admin retenu sont au vert."

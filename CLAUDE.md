@@ -69,7 +69,7 @@ Histoire : `memoire/methode-de-travail.md`.
   commits** (« deux commits d'avance » cachait une branche qui aurait effacé le
   site). Toute branche nommée ici doit exister. `memoire/branches.md`.
 - `main` est protégée par un ruleset dont `.github/ruleset-main.json` est la
-  cible ; `protections-main.yml` compare chaque jour. Compter ~22 min de CI.
+  cible ; `protections-main.yml` compare chaque jour. Compter ~50 min de CI.
 - Vérifier `git branch --show-current` avant `git push`. **Ne jamais committer
   et pousser dans le même appel** (déjà bloqué par le classificateur).
 - `.claude/` n'a aucun effet sur le site publié. Les compétences installées
