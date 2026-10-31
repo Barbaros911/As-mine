@@ -266,19 +266,20 @@ Histoire : `memoire/prix-toutes-distances.md`.
 
 ## Le tunnel du client
 
-- **Deux gammes**, `berline` et `van` : ces clés ne changent jamais (elles sont
-  dans l'historique). **Deux langues**, écrites à la main, jamais de
+- **Deux gammes**, `berline` et `van` : ces clés ne changent jamais
+  (historique). **Deux langues**, écrites à la main, jamais de
   traduction automatique sur un site où le prix engage ; `data-t` et
-  `data-t-aria` se traduisent tous les deux. L'espagnol et l'arabe seraient les
-  suivantes (l'arabe retourne toute la page).
+  `data-t-aria` se traduisent tous les deux. **Le dictionnaire vit dans
+  `textes.js`**, données seules, avant le moteur ; `test-textes.mjs` exige
+  la parité fr/en.
 - **LES CRÉNEAUX VONT DE 5 EN 5 MINUTES** : `step="300"` sur le champ et
   `PAS_MINUTES` dans le script, comparés par un test. Le formulaire s'ouvre sur
   le prochain créneau (`prochainCreneau()`) ; une heure non touchée se
   recalcule (`rafraichirHeureProposee()`) ; **une heure choisie et passée n'est
   jamais envoyée, elle est dite** (`#heurePassee`, sortie « Partir dès que
   possible », `course.immediat`). « Passée » se juge sur l'heure affichée.
-  **Aucun juge n'en rappelle un autre** (ça a bouclé). Plus de préavis
-  minimum depuis le 4/10. `memoire/preavis.md`.
+  **Aucun juge n'en rappelle un autre.** Plus de préavis minimum.
+  `memoire/preavis.md`.
 - **LA DATE DU JOUR SE COMPOSE EN LOCAL** (`dateLocale()`), jamais avec
   `toISOString` : entre minuit et 2 h, l'UTC rend la veille. La borne se
   rafraîchit au focus et au retour sur l'onglet.
