@@ -153,7 +153,9 @@ jobs:
           # Le texte de l'alerte qui réveille Barbaros, et le chiffrement des
           # notifications au client DÉCHIFFRÉ PAR UN TIERS (http_ece) : sans
           # navigateur ni réseau, et jamais lancés jusqu'ici (31/10/2026).
-          for t in test-notification test-push; do
+          # Le dictionnaire des deux langues (31/10/2026) : parité fr/en et clés
+          # demandées par la page, sans navigateur.
+          for t in test-notification test-push test-textes; do
             echo "::group::$t"
             if node "$t.mjs"; then echo "$t : au vert"; else echo "::error::$t est tombé"; echecs="$echecs $t"; fi
             echo "::endgroup::"

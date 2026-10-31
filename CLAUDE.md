@@ -269,7 +269,10 @@ Histoire : `memoire/prix-toutes-distances.md`.
 - **Deux gammes**, `berline` et `van` : ces clés ne changent jamais (elles sont
   dans l'historique). **Deux langues**, écrites à la main, jamais de
   traduction automatique sur un site où le prix engage ; `data-t` et
-  `data-t-aria` se traduisent tous les deux. L'espagnol et l'arabe seraient les
+  `data-t-aria` se traduisent tous les deux. **Le dictionnaire `ELA_TEXTES`
+  vit dans `textes.js`** (données seules, chargé avant le moteur, qui refuse
+  de démarrer sans lui) ; `test-textes.mjs` exige la parité fr/en et chaque
+  clé demandée par la page. L'espagnol et l'arabe seraient les
   suivantes (l'arabe retourne toute la page).
 - **LES CRÉNEAUX VONT DE 5 EN 5 MINUTES** : `step="300"` sur le champ et
   `PAS_MINUTES` dans le script, comparés par un test. Le formulaire s'ouvre sur
