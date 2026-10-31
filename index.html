@@ -15253,7 +15253,7 @@ window.ELA_TEXTES = {
     if(fg && c.statut === "realisee" && isFinite(fg.montant))
       return { montant: +fg.montant, taux: fg.taux, mode: fg.mode, source: fg.source, figee: true };
     ch = ch || trouverChauffeur(c.chauffeur && c.chauffeur.nom, c.chauffeur && c.chauffeur.telephone);
-    if(ch && tauxChauffeur(ch)) return appliquerTaux(prix, ch.tauxMode, ch.taux, "carnet");
+    if(false && ch && tauxChauffeur(ch)) return appliquerTaux(prix, ch.tauxMode, ch.taux, "carnet");
     /* LE TAUX DU CANAL EN DERNIER (30/09/2026) : le plus général. Un
        montant posé sur la course ou sur le chauffeur est un choix précis,
        il passe devant. */
