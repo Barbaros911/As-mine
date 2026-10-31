@@ -450,6 +450,15 @@ dans « Contrôle Admin v2 », filtré par chemins sans `index.html`. Mesuré : 
 les branches du P0 #399 et des preuves commerciales, ce contrôle n'a tourné
 aucune fois. Même famille : `verifier-tarif-hotel.mjs` (« trois endroits, un
 seul prix ») ne tournait que dans un contrôle filtré et non exigé.
+- **Ce qui était vraiment sans garde, mesuré par mutation de `commissionDe`**
+  (1er novembre 2026). Taux du carnet ignoré : tombent aussi
+  `test-admin-controle`, `test-admin-donnees-serveur` et
+  `test-nouveau-chauffeurs`, déjà exigées. % posé sur la course ignoré : tombe
+  aussi `test-admin-controle`. **Plafond des euros fixes retiré (une
+  commission plus chère que la course) : seule `test-admin-commission` tombe,
+  sur les 17 suites qui parlent de commission.** Le trou était plus étroit que
+  la première lecture de l'audit, mais réel. Leçon : un trou se mesure par une
+  mutation, pas en lisant les noms des suites.
 - Les huit suites Admin v2 tournent dans `admin` ; `verifier-tarif-hotel`
   dans `build-mobile-desktop`.
 - `test-doc.mjs` ne compte plus une suite comme lancée que par un workflow qui

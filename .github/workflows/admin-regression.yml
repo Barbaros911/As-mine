@@ -98,10 +98,12 @@ jobs:
               # L'ESPACE EXPLOITANT ET LES OUTILS. Toute suite « test-admin-* »,
               # y compris celles qui construisent aussi Admin v2 (1er novembre
               # 2026) : elles étaient sautées et ne tournaient que dans
-              # « Contrôle Admin v2 », filtré par chemins sans index.html — la
-              # commission de l'admin retenu (test-admin-commission) n'était
-              # éprouvée sur aucune PR qui ne touchait qu'au site. Chacune
-              # construit elle-même la variante qu'elle demande.
+              # « Contrôle Admin v2 », filtré par chemins sans index.html. Mesuré
+              # en retirant le plafond des euros fixes de commissionDe : seule
+              # test-admin-commission tombe, sur les 17 suites qui parlent de
+              # commission — une commission plus chère que la course passait
+              # donc toute PR qui ne touchait qu'au site. Chacune construit
+              # elle-même la variante qu'elle demande.
               # Sans navigateur ni réseau : le juge du voyant, qui est aussi
               # celui du chien de garde ; le comparateur des protections de main
               # (20/10/2026), qui doit nommer chaque écart, ni plus ni moins ;
