@@ -33,7 +33,7 @@ body.hotel.hotel-enhanced .logo-nom,body.hotel.hotel-enhanced .logo-sous{color:v
 body.hotel.hotel-enhanced .entete-actions{gap:7px!important}
 body.hotel.hotel-enhanced .langues{border:1px solid #d9e1e7!important;background:#f7f9fb!important;border-radius:999px!important;overflow:hidden!important}
 body.hotel.hotel-enhanced .langues button{min-width:38px!important;min-height:34px!important;color:#62717c!important;font-size:11px!important}
-body.hotel.hotel-enhanced .langues button[aria-pressed="true"]{background:var(--eh-pale)!important;color:var(--eh-action)!important;font-weight:900!important}
+body.hotel.hotel-enhanced .langues button[aria-pressed="true"]{background:var(--eh-pale)!important;color:var(--eh-pale-encre)!important;font-weight:900!important}
 body.hotel.hotel-enhanced .menu span{background:var(--eh-navy)!important}
 .hotel-partner-chip{display:flex;flex-direction:column;justify-content:center;margin-left:8px;padding-left:9px;border-left:1px solid #ccd5dc;line-height:1.05}
 .hotel-partner-chip b{font-size:10px;color:var(--eh-action)}.hotel-partner-chip span{font-size:7px;color:var(--eh-muted);margin-top:3px}
@@ -47,12 +47,12 @@ body.hotel.hotel-enhanced .hotel-tete{
   box-shadow:none!important;
 }
 body.hotel.hotel-enhanced .hotel-photo{display:none!important}
-body.hotel.hotel-enhanced .hotel-tete .hotel-sur{display:inline-flex!important;margin:0 0 7px!important;padding:6px 10px!important;border-radius:999px!important;background:var(--eh-action)!important;color:#fff!important;opacity:1!important;font-size:9px!important;font-weight:900!important;letter-spacing:.1em!important}
+body.hotel.hotel-enhanced .hotel-tete .hotel-sur{display:inline-flex!important;margin:0 0 7px!important;padding:6px 10px!important;border-radius:999px!important;background:var(--eh-action)!important;color:var(--h-texteAction,#fff)!important;opacity:1!important;font-size:9px!important;font-weight:900!important;letter-spacing:.1em!important}
 body.hotel.hotel-enhanced .hotel-tete .hotel-nom{margin:0!important;color:#fff!important;font-size:31px!important;line-height:1!important;font-weight:950!important;text-shadow:0 2px 8px rgba(0,0,0,.35)!important}
 body.hotel.hotel-enhanced .hotel-tete .hotel-adresse{margin:7px 0 13px!important;color:#fff!important;font-size:10px!important;line-height:1.35!important;text-shadow:0 1px 4px rgba(0,0,0,.45)!important}
 body.hotel.hotel-enhanced .hotel-sens{background:rgba(255,255,255,.97)!important;border:1px solid rgba(255,255,255,.9)!important;padding:4px!important;border-radius:13px!important;box-shadow:0 6px 18px rgba(0,0,0,.12)!important}
 body.hotel.hotel-enhanced .hotel-sens-btn{min-height:46px!important;border-radius:9px!important;color:var(--eh-ink)!important;background:transparent!important;font-size:11px!important;font-weight:850!important}
-body.hotel.hotel-enhanced .hotel-sens-btn.actif{background:linear-gradient(120deg,var(--eh-action),var(--eh-action2))!important;color:#fff!important;box-shadow:0 4px 12px rgba(11,49,83,.22)!important;box-shadow:0 4px 12px color-mix(in srgb,var(--eh-action) 22%,transparent)!important}
+body.hotel.hotel-enhanced .hotel-sens-btn.actif{background:linear-gradient(120deg,var(--eh-action),var(--eh-action2))!important;color:var(--h-texteAction,#fff)!important;box-shadow:0 4px 12px rgba(11,49,83,.22)!important;box-shadow:0 4px 12px color-mix(in srgb,var(--eh-action) 22%,transparent)!important}
 
 /* Formulaire client : clair, compact et logique hotel. */
 body.hotel.hotel-enhanced #ecran-accueil .bloc,body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early{
@@ -69,9 +69,9 @@ body.hotel.hotel-enhanced #ecran-accueil .champ,body.hotel.hotel-enhanced #blocC
 body.hotel.hotel-enhanced #ecran-accueil .champ-titre,body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early .champ-titre{font-size:10px!important;color:var(--eh-ink)!important;font-weight:850!important}
 body.hotel.hotel-enhanced #ecran-accueil input,body.hotel.hotel-enhanced #ecran-accueil select,body.hotel.hotel-enhanced #blocCoordonnees.hotel-guest-early input{font-size:16px!important;color:var(--eh-ink)!important}
 body.hotel.hotel-enhanced .champ-aide{color:var(--eh-muted)!important}
-body.hotel.hotel-enhanced .hotel-forfait{color:var(--eh-action)!important;font-size:14px!important;font-weight:900!important;margin:7px 5px 11px!important}
+body.hotel.hotel-enhanced .hotel-forfait{color:var(--eh-pale-encre)!important;font-size:14px!important;font-weight:900!important;margin:7px 5px 11px!important}
 body.hotel.hotel-enhanced #ecran-accueil .principal,body.hotel.hotel-enhanced #ecran-accueil button.principal,body.hotel.hotel-enhanced #btnVoirPrix{
-  background:linear-gradient(120deg,var(--eh-action),var(--eh-action2))!important;color:#fff!important;border-color:var(--eh-action)!important;
+  background:linear-gradient(120deg,var(--eh-action),var(--eh-action2))!important;color:var(--h-texteAction,#fff)!important;border-color:var(--eh-action)!important;
   min-height:48px!important;border-radius:10px!important;font-weight:900!important;box-shadow:0 8px 18px rgba(11,49,83,.17)!important;box-shadow:0 8px 18px color-mix(in srgb,var(--eh-action) 17%,transparent)!important;
 }
 
@@ -79,7 +79,7 @@ body.hotel.hotel-enhanced #ecran-accueil .principal,body.hotel.hotel-enhanced #e
 
 /* Navigation client : meme fond clair, WhatsApp conserve son vert metier. */
 body.hotel.hotel-enhanced .barre-bas{background:#fff!important;border-top:1px solid var(--eh-line)!important;box-shadow:0 -7px 22px rgba(20,47,68,.08)!important}
-body.hotel.hotel-enhanced .barre-bas .actif,body.hotel.hotel-enhanced .barre-bas .active{color:var(--eh-action)!important}
+body.hotel.hotel-enhanced .barre-bas .actif,body.hotel.hotel-enhanced .barre-bas .active{color:var(--eh-pale-encre)!important}
 
 @media(max-width:430px){
   .hotel-partner-chip{max-width:112px}.hotel-partner-chip span{display:none}
@@ -177,6 +177,7 @@ body.hotel.hotel-enhanced #ecran-vehicules .bouton,
 body.hotel.hotel-enhanced #ecran-recap .bouton,
 body.hotel.hotel-enhanced #ecran-bon .bouton{
   background:linear-gradient(120deg,var(--eh-action),var(--eh-action2))!important;
+  color:var(--h-texteAction,#fff)!important;
 }
 body.hotel.hotel-enhanced .veh-carte[aria-pressed="true"],
 body.hotel.hotel-enhanced .choix[aria-pressed="true"]{
@@ -184,7 +185,7 @@ body.hotel.hotel-enhanced .choix[aria-pressed="true"]{
   box-shadow:0 0 0 2px rgba(11,49,83,.14)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--eh-action) 14%,transparent)!important;
 }
 body.hotel.hotel-enhanced .barre-bas .onglet.actif{
-  color:var(--eh-action)!important;
+  color:var(--eh-pale-encre)!important;
 }
 @media(max-width:760px){
   body.hotel.hotel-enhanced .entete{
@@ -229,7 +230,7 @@ body.hotel.hotel-enhanced .barre-bas .onglet.actif{
   }
   body.hotel.hotel-enhanced .langues button[aria-pressed="true"]{
     background:#fff!important;
-    color:var(--eh-action)!important;
+    color:var(--eh-pale-encre)!important;
   }
 }
 @media(max-width:390px){
@@ -1294,7 +1295,7 @@ body.hotel.reception-premium :is(#ecran-accueil,#ecran-reception,#ecran-bon,.ent
   body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet span{font-size:14px}
   body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet svg,
   body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet::before{display:none}
-  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet.actif{color:var(--eh-action)}
+  body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet.actif{color:var(--eh-pale-encre)}
   body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet-wa{color:#128C43}
   body.hotel.hotel-enhanced:not(.reception):not(.reception-premium) .entete > .barre .onglet:hover{background:#F2F5F9}
 }

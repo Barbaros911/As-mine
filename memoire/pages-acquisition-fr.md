@@ -132,3 +132,21 @@ numéro (`test-public-horaires`, sur le site construit). Les trois pages ont
   `.hero .contact` sous 760 px gagnerait 70 px. `test-seo-en` l'accepte
   (il admet le bouton du bandeau *ou* celui de la barre). Petit gain, pas
   fait pour ne pas élargir la PR.
+
+## 31 octobre 2026 — la charte de l'accueil, enfin sur les trois pages
+
+Audit design du 31/10 (site construit, 320 → 1920 px) : ces trois pages
+étaient la seule zone publique hors charte. `seo-pages.css` demandait
+« Inter », **jamais chargée** — le téléphone affichait sa police système ;
+l'en-tête était blanc, avec le logo **écrit en lettres** (« ELA / TRANSFER »
+en texte, alors que la règle veut le fichier officiel, jamais redessiné).
+Un visiteur venu de Google cliquait « Réserver » et tombait sur un accueil
+qui n'avait pas la même tête. Les pages `/en/` équivalentes, elles,
+étaient déjà dans la charte depuis le 14/10.
+
+Fait, CSS et en-tête seulement, aucun texte touché : Figtree chargée comme
+sur `/en/` (`display=swap`), en-tête bleu nuit avec `brand-logo-negatif.webp`
+(82 × 36, le même que `/en/`), liens clairs, « Réserver » cyan à texte bleu
+nuit (8,3:1), focus visible cyan. Mesuré après : Figtree rendue à 390 et
+1280 px, aucun débordement, aucune erreur JavaScript. `CACHE` monté (la
+feuille est gardée « cache d'abord »).
