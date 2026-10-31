@@ -754,15 +754,24 @@ for (const w of [320, 375, 390, 430, 768, 820, 1280, 1366, 1440]) {
   await p.click('.demo-carte[data-dest="orly"]'); await p.waitForTimeout(900);
   /* En haut de la page, où le bandeau de la démo et l'en-tête se voient
      tous les deux (plus bas, l'en-tête collé en haut passe sur le bandeau,
-     comme avant). */
-  await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, 0); }); await p.waitForTimeout(200);
+     comme avant). LA PAGE EST REMONTÉE PUIS ATTENDUE IMMOBILE (31/10/2026) :
+     le choix d'une carte fait défiler la page, et sur la machine plus lente
+     de la CI ce défilement arrivait après notre remontée — la mesure se
+     faisait en bas de page, en-tête collé sur le bandeau. */
+  const immobile = await p.evaluate(async () => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    for (let essai = 0; essai < 20; essai++) {
+      window.scrollTo(0, 0); await new Promise(r => setTimeout(r, 250));
+      if (window.scrollY === 0) { await new Promise(r => setTimeout(r, 400)); if (window.scrollY === 0) return true; }
+    }
+    return false; });
   const r = await p.evaluate(() => { const q = s => document.querySelector(s).getBoundingClientRect();
     const dep = q('#blocDepart'), coord = q('#blocCoordonnees'), ban = q('#demoBandeau'), tete = q('.entete');
     const ong = [...document.querySelectorAll('.onglet')].filter(o => o.offsetParent).map(o => o.getBoundingClientRect());
     return { deuxCol: coord.left >= dep.right && Math.abs(coord.top - dep.top) < 40, n: ong.length,
       dansTete: ong.every(b => b.top >= tete.top && b.bottom <= tete.bottom), surBandeau: ong.some(b => b.top < ban.bottom && b.bottom > ban.top) }; });
   check('démo 1440 px : le trajet à gauche, le client à droite, comme la vraie page', r.deuxCol, JSON.stringify(r));
-  check('démo 1440 px : les onglets dans l\'en-tête, pas sur le bandeau de la démo', r.n === 4 && r.dansTete && !r.surBandeau, JSON.stringify(r));
+  check('démo 1440 px : les onglets dans l\'en-tête, pas sur le bandeau de la démo', immobile && r.n === 4 && r.dansTete && !r.surBandeau, JSON.stringify({ immobile, ...r }));
   check('démo 1440 px : aucune erreur', p.errs.length === 0, p.errs.join(' ; '));
   await ctx.close();
 }

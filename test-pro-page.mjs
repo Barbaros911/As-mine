@@ -359,11 +359,24 @@ for (const langue of ['fr', 'en']) {
     for (const v of [v1, v2]) if (v) { publies.add(v.src); publies.add(v.affiche); }
     // Elle se lit vraiment : un appui, et le temps avance (une seule fois, sur
     // ordinateur en français — le décodeur est le même pour les huit).
+    // SEULEMENT LÀ OÙ LE NAVIGATEUR A UN DÉCODEUR H.264 (31/10/2026) : le
+    // Chromium libre de la CI n'en a pas (« no supported source »), alors que
+    // Chrome, Safari, Edge et Firefox lisent ce format. Sans décodeur, on
+    // éprouve le FICHIER à la place (H.264, « faststart » : de quoi démarrer
+    // avant la fin du téléchargement) — et le contrôle le dit dans son nom.
     if (w === 1366 && langue === 'fr') {
-      const t = await p.evaluate(async () => { const e = document.getElementById('videoDemo'); if (!e) return null;
-        try { await e.play(); } catch (x) { return 'refus : ' + x.message; }
-        await new Promise(r => setTimeout(r, 2000)); e.pause(); return e.currentTime; });
-      check('la vidéo se lit vraiment (le temps avance après l\'appui)', typeof t === 'number' && t > 0.8, String(t));
+      const l = await p.evaluate(async () => { const e = document.getElementById('videoDemo'); if (!e) return null;
+        const decodeur = e.canPlayType('video/mp4; codecs="avc1.640032"') !== '';
+        if (!decodeur) return { decodeur, src: e.getAttribute('src') };
+        try { await e.play(); } catch (x) { return { decodeur, t: 'refus : ' + x.message }; }
+        await new Promise(r => setTimeout(r, 2000)); e.pause(); return { decodeur, t: e.currentTime }; });
+      if (l && l.decodeur) check('la vidéo se lit vraiment (le temps avance après l\'appui)', typeof l.t === 'number' && l.t > 0.8, String(l.t));
+      else {
+        const o = l && l.src ? Buffer.from(await (await fetch(SITE + l.src.slice(1))).arrayBuffer()) : Buffer.alloc(0);
+        const moov = o.indexOf('moov'), mdat = o.indexOf('mdat'), avcC = o.indexOf('avcC');
+        check('sans décodeur H.264 dans ce navigateur : la vidéo est un MP4 H.264 « faststart » (lisible par Chrome, Safari, Edge, Firefox)',
+          o.toString('latin1', 4, 8) === 'ftyp' && moov > 0 && mdat > moov && avcC > moov && avcC < mdat, JSON.stringify({ src: l && l.src, moov, mdat, avcC }));
+      }
     }
     await ctx.close();
   }
