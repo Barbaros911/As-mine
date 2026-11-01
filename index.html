@@ -819,15 +819,15 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    C'est l'objet que le client cherchera des yeux en sortant des bagages, et
    le voir à l'avance vaut mieux que de le décrire. */
 .pancarte{display:block;background:var(--noir);border-radius:14px;
-  padding:16px 16px 18px;text-align:center;}
+  padding:12px 14px 13px;text-align:center;}
 .pancarte-marque{display:block;font-size:13px;font-weight:800;
   letter-spacing:.06em;color:#fff;}
 .pancarte-marque i{font-style:normal;color:var(--accent-vif);}
 .pancarte-filet{display:block;width:52px;height:2px;border-radius:2px;
-  background:var(--accent-vif);margin:9px auto 12px;}
+  background:var(--accent-vif);margin:7px auto 9px;}
 /* Le nom peut être long : il se réduit plutôt que de sortir du cadre, et il
    coupe entre les mots plutôt qu'au milieu d'un patronyme. */
-.pancarte-nom{display:block;font-size:clamp(17px,5.4vw,23px);font-weight:800;
+.pancarte-nom{display:block;font-size:clamp(16px,4.8vw,21px);font-weight:800;
   letter-spacing:.04em;color:#fff;text-transform:uppercase;
   line-height:1.2;overflow-wrap:break-word;}
 
@@ -1032,7 +1032,12 @@ body.exploitant .entete{border-bottom:2px solid var(--accent);}
    montant à droite — un prix tronqué n'est plus un prix. */
 .ligne b{font-weight:700;text-align:right;min-width:0;overflow-wrap:anywhere;}
 .ligne.total{margin-top:2px;padding-top:11px;font-size:16px;}
-.ligne.total b{font-size:19px;font-weight:800;letter-spacing:-.02em;}
+.ligne.total b{font-size:19px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;}
+/* À 320 px, « 80,00 € » se coupait en « 80,0 / 0 € » : le libellé ne rétrécissait
+   jamais (flex 0 0 auto) et le montant, lui, pouvait casser n'importe où
+   (overflow-wrap:anywhere, utile aux adresses). Un prix ne se coupe jamais ;
+   c'est « Total à régler au chauffeur » qui passe à la ligne (31/10/2026). */
+.ligne.total span{flex:1 1 auto;}
 .bloc-note{margin:11px 0 0;font-size:11.5px;color:var(--gris);line-height:1.4;}
 /* Le règlement par lien vaut partout : site, flyer et comptoir d'hôtel
    (10–11/10/2026). Il n'y a plus de choix de règlement à faire. */

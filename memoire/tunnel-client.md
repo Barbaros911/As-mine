@@ -218,3 +218,21 @@ et l'arabe seraient les langues suivantes (l'arabe retourne toute la page) » ;
 et, sur les juges de l'heure passée, « ça a bouclé » (deux juges qui se
 rappelaient l'un l'autre, septembre 2026) ; et la date du retrait du préavis
 minimum (4 octobre 2026, `memoire/preavis.md`).
+
+## 31 OCTOBRE 2026 — LE PRIX NE SE COUPE JAMAIS, ET L'ÉCRAN DES COORDONNÉES MESURÉ
+
+- À **320 px**, « 80,00 € » du récapitulatif se rendait « 80,0 / 0 € » : le
+  libellé « Total à régler au chauffeur » ne rétrécissait jamais
+  (`flex:0 0 auto`) et le montant pouvait casser n'importe où
+  (`overflow-wrap:anywhere`, voulu pour les adresses). Désormais le montant
+  est insécable et c'est le libellé qui passe à la ligne.
+- **L'écran des coordonnées, mesuré à 390 px** : du bas du champ téléphone
+  au bouton « Envoyer ma demande », 834 px — plus qu'un écran. Entre les
+  deux : le choix du canal (150), « À votre arrivée » avec la pancarte (246),
+  « Ce qui se passe ensuite » (197), la ligne CGV. **Tout y est une décision
+  prise** (la pancarte au nom du client, les trois lignes au-dessus du
+  bouton, le canal choisi par le client) et `test-nouveau-option` les
+  éprouve. Seule la pancarte a été resserrée (même dessin, 17 px de moins).
+  Si l'entonnoir (Admin → Trafic, étape coordonnées → envoi) montre une
+  perte, c'est cet écran qu'il faut rouvrir, avec Barbaros : la chose à
+  trancher serait la place de la pancarte ou du bloc « ensuite », pas le CSS.
