@@ -74,3 +74,52 @@ apres.sql` sur un vrai PostgreSQL (CI, et local le 19/10).
   DERNIÈRE fonction, et tout rend 401 pour une raison sans rapport.
 - Playwright consulte la dernière route posée en premier : la route générale
   du serveur doit être posée AVANT la route précise, sinon elle avale tout.
+
+## Les dépôts ratés côté téléphone et la version de la page (1er novembre 2026)
+
+Audit fiabilité et observabilité, demandé par Barbaros (« tu fais tout comme
+un expert »). Le trou mesuré : `journal_depots` n'écrit que ce que le serveur
+a **refusé**. Un téléphone qui n'a jamais joint le serveur — délai de 8 s
+dépassé dans un hall d'aéroport, réseau coupé, accusé illisible, référence
+différente dans l'accusé — ne laissait rien : le client lisait « Envoi à
+vérifier », et personne d'autre ne l'apprenait. Exactement « le client dit que
+ça n'a pas marché, et on ne sait pas pourquoi ».
+
+- **`nuage.causeDepot`** nomme chaque échec (« délai de 8 s dépassé »,
+  « réseau », « http 503 », « accusé refusé », « accusé illisible », « référence
+  différente dans l'accusé », « référence déjà prise après deux tirages »,
+  « inconnu du serveur après rechargement », « vérification muette après
+  rechargement »). La passerelle de construction pose les causes de l'accusé.
+- **`signalerDepot`** envoie à `erreur-client`, au verdict seulement : « dépôt :
+  échec (cause) Réf. », puis « dépôt : reçu après (cause) Réf. » si la reprise,
+  le « Réessayer » ou le rechargement aboutit. Un succès direct n'envoie rien.
+  Même porte, même masquage, même quota, cinq messages par chargement.
+- **La référence y va, et elle seule** — décision prise sous le mandat de
+  Barbaros, à l'inverse de la règle du 19/10 qui l'excluait : sans elle, on
+  ne peut pas rapprocher l'appel d'un client de sa ligne, et `journal_depots`
+  la porte déjà côté serveur. Ni nom, ni téléphone, ni adresse. **Le dernier
+  tiret devient un point médian** (`ELA-26-11·K7QPM`) : le masque des
+  téléphones (six chiffres séparés d'un tiret au plus) aurait mangé une
+  référence dont les cinq signes commencent par deux chiffres, ici comme sur
+  le serveur. On cherche par les cinq signes.
+- **La version de la page** : `construire.sh` pose `<meta name="ela-version">`
+  (commit court · cache du service worker, les deux valeurs de
+  `version.json`) avant de construire les espaces d'hôtel, donc sur toutes
+  les pages du moteur. Chaque erreur la porte ; la migration
+  `20261101000000` ajoute la colonne, le résumé de l'admin la montre à côté
+  du message (la plus récente, jamais une ligne par version). Une version mal
+  formée devient NULL, jamais un refus.
+- **Côté serveur, un 409 à l'écriture est relu** (`deposer-course`) : la
+  contrainte UNIQUE ne se lève qu'une fois la ligne concurrente écrite ; si
+  elle porte la même empreinte, c'est notre demande, rendue « rejoué » avec
+  le N° court. Avant, ce 409 partait au site, qui rejouait deux fois puis
+  tirait une autre référence : sur un serveur lent, deux courses pour une
+  demande. Deux dépôts identiques en même temps rendent donc 201 et 200
+  « rejoué », plus jamais 201 et 409.
+
+Éprouvé : `test-public-depot-fiable` (91 contrôles, dont chaque mode d'échec
+et sa cause, la version sur le site construit, aucune identité dans la
+trace), `test-public-erreurs` (le champ part), `test-securite-fonctions`
+(409 relu : même empreinte → 200, autre → 409 journalisé),
+`supabase/tests/erreurs-client-apres.sql` sur PostgreSQL 16 (tombe sans la
+migration : la colonne manque).

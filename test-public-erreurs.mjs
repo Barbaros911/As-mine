@@ -40,6 +40,9 @@ check('l\'espace est « public », le chemin et l\'écran sont donnés', e.espac
 check('la source est un fichier et une ligne, pas une adresse complète', /^[^/?#]*:\d+$/.test(e.source||'') || e.source === '', e.source);
 check('la requête est « simple » (text/plain, sans clé) : pas de préflight, rien d\'identifiant', !!envois[0] && /text\/plain/.test(envois[0].entetes['content-type']||'') && !('apikey' in envois[0].entetes));
 check('aucun nom, téléphone ni référence dans ce qui part', !/\d{6,}|@|ELA-\d\d-\d\d-/.test(JSON.stringify(e)));
+/* La version de la page (1er/11/2026) part toujours, comme une chaîne : vide ici (le dépôt n'a pas la balise
+   « ela-version », construire.sh la pose), lue sur le site construit par test-public-depot-fiable. */
+check('le champ « version » part, vide sur la page du dépôt', typeof e.version === 'string' && e.version === '', JSON.stringify(e.version));
 
 /* 2. La même erreur dix fois : UN envoi. Dix erreurs différentes : cinq au plus. */
 await p.evaluate(() => { for (let i = 0; i < 10; i++) setTimeout(() => { throw new Error('Toujours la même'); }, 0); });
