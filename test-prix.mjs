@@ -56,54 +56,14 @@ const C = racine.ELA_CONFIG, R = racine.ELA_ROUTE;
      P.terminalDuLibelle(label)
    « tarifs » = { grille, forfaits, accueil } : ce que le moteur tient en
    mémoire (le repli de config.js, remplacé par le serveur s'il répond). */
-let P;
-if (existsSync("prix.js")) {
-  vm.runInNewContext(readFileSync("prix.js", "utf8"), bac);
-  P = racine.ELA_PRIX;
-} else {
-  /* AVANT L'EXTRACTION : les fonctions sont découpées dans index.html, à
-     leur nom, et évaluées avec l'état que le moteur leur donne. */
-  const page = readFileSync("index.html", "utf8");
-  const NOMS = ["sansAccents", "estGare", "terminalDuLibelle", "estParis", "zoneForfait", "forfaitEntre",
-    "departAeroport", "departGrandeGare", "accueilAuDepart", "prixSitePublic", "centimes", "grilleValide",
-    "grilleEnCentimes", "destDuPoint"];
-  const corps = NOMS.map((n) => {
-    const m = page.match(new RegExp("\\n  function " + n + "\\([^)]*\\)\\{[\\s\\S]*?\\n  \\}\\n"));
-    if (!m) throw new Error("test-prix : « " + n + " » introuvable dans index.html");
-    return m[0];
-  }).join("\n");
-  const constante = (motif) => { const m = page.match(motif); if (!m) throw new Error("test-prix : constante introuvable " + motif); return m[0]; };
-  const script = `
-    var AEROPORTS = window.ELA_CONFIG.AEROPORTS, TERMINAL_EN = window.ELA_CONFIG.TERMINAL_EN,
-        RAYON_AEROPORT_KM = window.ELA_CONFIG.RAYON_AEROPORT_KM, LE_BOURGET = window.ELA_CONFIG.LE_BOURGET,
-        RAYON_AEROPORT_ACCUEIL_KM = window.ELA_CONFIG.RAYON_AEROPORT_ACCUEIL_KM,
-        RAYON_GARE_KM = window.ELA_CONFIG.RAYON_GARE_KM, GRANDES_GARES = window.ELA_CONFIG.GRANDES_GARES;
-    var volDoiseauKm = window.ELA_ROUTE.volDoiseauKm;
-    var GAMMES, GRILLE_PUBLIQUE, FORFAITS_PUBLICS, ACCUEIL_EUR, hotel = null;
-    ${constante(/var PAS_UN_TRAIN = \[[^\]]*\];/)}
-    ${constante(/var PARIS_CENTRE = \{[^}]*\};/)}
-    ${corps}
-    window.__avant = {
-      poser: function(t, g){ GRILLE_PUBLIQUE = t.grille; FORFAITS_PUBLICS = t.forfaits; ACCUEIL_EUR = t.accueil; GAMMES = g; },
-      prixSitePublic: prixSitePublic, forfaitEntre: forfaitEntre, estParis: estParis,
-      accueilAuDepart: accueilAuDepart, departAeroport: departAeroport, departGrandeGare: departGrandeGare,
-      grilleValide: grilleValide, grilleEnCentimes: grilleEnCentimes,
-      destDuPoint: function(h, pt){ hotel = h; return destDuPoint(pt); },
-      sansAccents: sansAccents, estGare: estGare, terminalDuLibelle: terminalDuLibelle
-    };`;
-  vm.runInNewContext(script, bac);
-  const A = racine.__avant;
-  P = {
-    prixSitePublic: (t, g, km, a, b) => { A.poser(t, C.GAMMES); return A.prixSitePublic(g, km, a, b); },
-    forfaitEntre: (f, a, b) => { A.poser({ grille: C.GRILLE_PUBLIQUE, forfaits: f, accueil: C.ACCUEIL_EUR }, C.GAMMES); return A.forfaitEntre(a, b); },
-    estParis: A.estParis, accueilAuDepart: A.accueilAuDepart, departAeroport: A.departAeroport,
-    departGrandeGare: A.departGrandeGare,
-    grilleValide: (v, g, f) => { A.poser({ grille: C.GRILLE_PUBLIQUE, forfaits: f, accueil: C.ACCUEIL_EUR }, g); return A.grilleValide(v); },
-    grilleEnCentimes: (t, g) => { A.poser(t, g); return A.grilleEnCentimes(); },
-    destDuPoint: A.destDuPoint, sansAccents: A.sansAccents, estGare: A.estGare, terminalDuLibelle: A.terminalDuLibelle
-  };
-}
+const sourcePrix = existsSync("prix.js") ? readFileSync("prix.js", "utf8") : "";
+check("prix.js existe", sourcePrix.length > 0);
+const avant = Object.keys(racine).length;
+if (sourcePrix) vm.runInNewContext(sourcePrix, bac);
+const P = racine.ELA_PRIX;
+check("prix.js pose window.ELA_PRIX, et lui seul", !!P && Object.keys(racine).length === avant + 1, "noms posés : " + Object.keys(racine).join(", "));
 check("les règles du prix se chargent", !!P && typeof P.prixSitePublic === "function");
+if (!P) { console.log("=== ÉCHECS (" + ko.length + ") ==="); ko.forEach((l) => console.log("✘ " + l)); process.exit(1); }
 
 /* ── Les données du test ── */
 /* Le repli, tel que le moteur le tient : une COPIE, le test ne touche pas config.js. */
@@ -271,6 +231,36 @@ const BOURGET = L(48.9694, 2.4414, { label: "Aéroport de Paris-Le Bourget, 9335
   check("l'Opéra → « paris » (7 km du centre) ; Versailles → rien", d(OPERA) === "paris" && d(VERSAILLES) === "");
   check("sans point, ou sans hôtel : rien", P.destDuPoint(hotel, null) === null && P.destDuPoint(null, OPERA) === null);
   check("la première destination qui contient le point gagne (l'ordre de la fiche)", d(L(48.9694, 2.4414)) === "bourget");
+}
+
+/* ── 9. Le module est pur, et il est à sa place dans la page, la recette et le service worker ── */
+{
+  const sansCommentaires = (s) => s.replace(/<!--[\s\S]*?-->/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
+  const corps = sansCommentaires(sourcePrix);
+  check("prix.js ne touche ni au DOM, ni au réseau, ni au stockage, ni à l'horloge",
+    !/\b(document|navigator|location)\b|\bwindow\.[a-zA-Z_]|\bfetch\s*\(|\b(localStorage|sessionStorage)\b|\bDate\b|setTimeout/.test(corps));
+  check("prix.js ne tient aucun tarif : ni grille, ni forfait, ni montant, ni fiche d'hôtel",
+    !/tranches\s*:\s*\[|prix\s*:\s*\{|forfait\s*:\s*\{|\bHOTELS\b|parKm|mini\s*:/.test(corps));
+  check("prix.js ne nomme aucun partenaire", !/easyhotel|aeroville/i.test(corps));
+  const page = readFileSync("index.html", "utf8"), corpsPage = sansCommentaires(page);
+  const pos = (s) => page.indexOf(s);
+  check("la page charge prix.js après config.js et itineraire-partage.js, avant le moteur",
+    pos('<script src="config.js">') > 0 && pos('<script src="itineraire-partage.js">') < pos('<script src="prix.js">')
+    && pos('<script src="prix.js">') < pos('if(!window.ELA_PRIX) throw'));
+  check("le moteur refuse de démarrer sans prix.js", pos('if(!window.ELA_PRIX) throw') > 0);
+  const encore = ["function zoneForfait(", "function estParis(", "function departGrandeGare(", "function centimes(",
+    "PAS_UN_TRAIN", "PARIS_CENTRE", "/^75\\d{3}$/", "tranches_centimes.length !== lim.length"].filter((s) => corpsPage.includes(s));
+  check("le moteur ne porte plus les règles, seulement des alias d'une ligne", encore.length === 0, encore.join(" | "));
+  const alias = ["sansAccents", "estGare", "terminalDuLibelle", "destDuPoint", "forfaitEntre", "departAeroport",
+    "accueilAuDepart", "prixSitePublic", "grilleValide", "grilleEnCentimes"]
+    .filter((n) => !new RegExp("function " + n + "\\([^)]*\\)\\{\\s*return window\\.ELA_PRIX\\." + n + "\\(").test(corpsPage));
+  check("chaque appelant de la page passe par un alias qui nomme ELA_PRIX", alias.length === 0, "manquent : " + alias.join(", "));
+  check("c'est le moteur, et lui seul, qui change les tarifs en vigueur (appliquerGrille)", /function appliquerGrille\(/.test(corpsPage) && !/appliquerGrille/.test(corps));
+  const recette = readFileSync("construire.sh", "utf8").split("\n").filter((l) => !/^\s*#/.test(l)).join("\n");
+  check("construire.sh copie prix.js dans site/", /\bprix\.js\b/.test(recette.split("masquer-commentaires")[0]));
+  check("construire.sh masque les commentaires de site/prix.js", /site\/prix\.js/.test(recette));
+  check("sw.js garde prix.js dans son SHELL", /"\.\/prix\.js"/.test(sansCommentaires(readFileSync("sw.js", "utf8"))));
+  check("tests.sh lance test-prix.mjs", /test-prix\.mjs/.test(readFileSync(".claude/outils/tests.sh", "utf8")));
 }
 
 for (const l of ok) console.log("✔ " + l);
