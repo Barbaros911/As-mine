@@ -360,7 +360,8 @@ for (const [w, h] of [[900, 700], [1024, 768], [1366, 657], [1920, 1080]]) {
 // SI ce qu'elle annonce est une adresse. On lit la cible déclarée et on
 // appuie pour vérifier qu'on y arrive.
 {
-  const source = (await import('node:fs')).readFileSync('index.html', 'utf8');
+  /* ACCUEIL_EUR vit dans config.js depuis le 31/10/2026 (deuxième extraction). */
+  const source = (await import('node:fs')).readFileSync('config.js', 'utf8');
   /* Depuis le 23 octobre 2026, l'accueil est COMPRIS au départ d'un aéroport ou
      d'une grande gare : la carte dit son montant (ACCUEIL_EUR), sans « + ». */
   const accueil = Number((source.match(/var ACCUEIL_EUR\s*=\s*(\d+(?:\.\d+)?)/) || [])[1]);

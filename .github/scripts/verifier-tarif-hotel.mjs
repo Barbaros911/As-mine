@@ -21,6 +21,8 @@
 import { readFileSync, readdirSync } from 'node:fs';
 
 const site = readFileSync(process.argv[2] || 'site/index.html', 'utf8');
+/* GAMMES vit dans config.js, à côté de la page (31/10/2026, deuxième extraction). */
+const config = readFileSync((process.argv[2] || 'site/index.html').replace(/[^/]*$/, 'config.js'), 'utf8');
 
 /* ON REJOUE LES MIGRATIONS DANS L'ORDRE, PAS UNE SEULE. Le tarif général
    a été SEMÉ dans « 20260916100000_current_tariff_source.sql » (INSERT)
@@ -33,7 +35,7 @@ const migDir = 'supabase/migrations';
 const src = readdirSync(migDir).filter(f => f.endsWith('.sql')).sort()
   .map(f => readFileSync(`${migDir}/${f}`, 'utf8')).join('\n');
 
-const m = site.match(
+const m = config.match(
   /var GAMMES = \[\s*\{ cle:"berline"[^}]*parKm:([\d.]+), mini:(\d+)[^}]*\},\s*\{ cle:"van"[^}]*parKm:([\d.]+), mini:(\d+)/
 );
 if (!m) {
