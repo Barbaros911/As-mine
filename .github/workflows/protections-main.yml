@@ -52,7 +52,7 @@ jobs:
             *) echo "etat=lecture" >> "$GITHUB_OUTPUT" ;;
           esac
       - name: Ouvrir, mettre à jour ou clore l'écart
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           ETAT: ${{ steps.controle.outputs.etat }}
         with:
