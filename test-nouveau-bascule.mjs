@@ -1279,11 +1279,15 @@ for (const large of [1024, 1280, 1440]) {
    fichiers, ni son affichage sur l'accueil. Les empreintes sont celles de
    main au 6 octobre 2026 : changer le logo est SA décision, et la prise
    consiste alors à mettre à jour cette table dans la même PR — jamais à
-   contourner le contrôle. */
+   contourner le contrôle.
+   31 OCTOBRE 2026 : brand-logo.webp est RÉENCODÉ, pas redessiné (sa
+   décision : « le logo doit rester le même, tu peux le rendre plus petit »).
+   Mêmes 1038 × 457, même transparence au pixel près, écart moyen 0,8/255
+   mesuré sur blanc et sur bleu nuit ; 144 Ko → 34 Ko. L'empreinte suit. */
 {
   const EMPREINTES = {
     'brand-logo-officiel.jpeg': '3543f52757a29440', 'brand-logo-white.png': 'bbcdaaccb57a131b',
-    'brand-logo.svg': '72ad55c6e0fdaf20', 'brand-logo.webp': '8ed02e907b782ae5',
+    'brand-logo.svg': '72ad55c6e0fdaf20', 'brand-logo.webp': 'b7431a38d4de21d3',
     'brand-logo-negatif.webp': '99513c72c79b8f00',
     'icon-180.png': '4244c5cb988282a2', 'icon-32.png': 'febfba43bb9da37c', 'icon-512.png': '6822a0401f373c1b',
     'icone-ela-180.png': '4244c5cb988282a2', 'icone-ela-32.png': 'febfba43bb9da37c', 'icone-ela-512.png': '6822a0401f373c1b',

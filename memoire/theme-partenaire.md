@@ -198,3 +198,18 @@ manifestes), FR et EN :**
 Deux phrases d'histoire ont quitté `CLAUDE.md` pour lui faire de la place :
 le moteur « figé » et les identifiants `hotelNom` / `btnNouvelleCourse`
 pris deux fois. Leur récit complet est dans `memoire/mode-hotel.md`.
+
+## 31 octobre 2026 — le noir sur l'orange, appliqué là où il manquait
+
+La clé `texteAction` (#1B1B1B, choix de Barbaros du 21/10 sur maquette)
+n'était lue que par la finition du **comptoir** (`reception-premium`,
+`--v2-sur-action`). La page du client (`?h=`) et la page du QR
+(`sites/easyhotel-client/`) gardaient le blanc : 3,1:1 sur #ff5a0a, sous
+le seuil AA de 4,5, mesuré sur « Réserver mon transfert », « Voir mon prix »,
+« Choisissez une gamme », « Envoyer ma demande » et la pastille « Prix
+fixes ». Fait : ces boutons lisent `var(--h-texteAction, #fff)` — un hôtel
+sans la clé garde le blanc —, et la page du QR passe ses deux seuls textes
+sur orange en #1B1B1B (5,5:1). Même mouvement pour le **texte orange posé
+sur du clair** (ligne « Berline 35,00 € · Van 50,00 € », onglet actif de la
+barre, langue choisie) : il prend `--eh-pale-encre` (`finitionEncre`,
+#9a3500), qui existait pour ça. Le dégradé et le cadre ne bougent pas.

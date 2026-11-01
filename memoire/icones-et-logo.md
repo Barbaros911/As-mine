@@ -98,3 +98,16 @@ générique, ouverte dans Safari.
   réception retape son code une fois dans l'application.
 - `test-cloisonnement-hotel` lit le manifeste comme le navigateur et tombe
   sur l'ancien code (« trouvé : 2 »).
+
+## 31 octobre 2026 — le même logo, quatre fois plus léger
+
+`brand-logo.webp` (la version positive : page du QR, bon, admin) pesait
+144 Ko pour 1038 × 457 px — encodé sans perte, quand la version négative,
+identique en taille, en faisait 36. Sur la page du QR easyHotel, c'était
+63 % du poids de la page. Barbaros : « le logo doit rester le même, tu peux
+le rendre plus petit ». Il n'a pas été réduit ni redessiné : **réencodé** en
+WebP qualité 90 (34 Ko), mêmes dimensions, même canal de transparence au
+pixel près, écart moyen 0,8/255 mesuré composé sur blanc et sur bleu nuit,
+invisible grossi trois fois. L'empreinte de `test-nouveau-bascule` a été
+mise à jour dans la même PR, comme sa note le prévoit. `brand-logo.svg`
+l'enveloppe par son nom : inchangé. La négative n'a pas été touchée.
