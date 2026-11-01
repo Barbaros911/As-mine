@@ -12,23 +12,55 @@ name: Contrôle de l'admin retenu
 # ses motifs, et une exigence « admin » bloquerait alors la fusion pour
 # toujours (« Expected — waiting for status »). Il y avait ici une liste de
 # motifs, plus longue à chaque bloc ; elle tombait de toute façon dès qu'un
-# fichier était oublié. Le prix : 20 à 25 minutes par PR, y compris une PR
-# de documentation. Pour une publication qui engage un prix ferme, c'est le
-# bon prix.
+# fichier était oublié. Pour une publication qui engage un prix ferme, c'est
+# le bon prix — et depuis le 1er novembre 2026 il se paie en ~15 minutes au
+# lieu de 45 (quatre machines, voir plus bas).
+# AUCUN FILTRE « DOCUMENTATION SEULE » NON PLUS : quatre suites navigateur
+# lisent la documentation (test-nouveau-bascule, test-nouveau-exploitant,
+# test-nouveau-whatsapp, test-seo-en). Une PR qui ne touche qu'un .md peut
+# les faire tomber.
 on:
   pull_request:
   workflow_dispatch:
 permissions: {contents: read}
+# UN SEUL PASSAGE PAR PR (1er novembre 2026). Une nouvelle poussée annule le
+# passage du commit précédent, dont le verdict ne compte plus : le 31/10, les
+# passages 205 et 206 de la même PR ont tourné ensemble pendant 11 minutes.
+# Seul le passage du dernier commit compte pour la règle de main.
+concurrency:
+  group: admin-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
-  admin:
+  # QUATRE MACHINES, UNE PAR DOMAINE (1er novembre 2026, audit de la CI).
+  # Mesuré sur les passages 204 et 206 : 45 min 33 dont 45 min 05 de suites
+  # lancées l'une après l'autre sur UNE machine qui attendait presque tout le
+  # temps (installation : 20 s ; construction du site : 2 s). Les suites
+  # tournent maintenant sur quatre machines séparées, chacune avec son
+  # serveur, son dossier site/ et ses ports : jamais deux suites en même
+  # temps sur la même machine — celles qui construisent effacent toutes le
+  # même site/, et onze ports sont partagés entre suites.
+  # Un groupe par DOMAINE, pas un découpage au hasard : la page de la PR dit
+  # tout de suite ce qui est cassé (« suites (public) »), et une suite ne
+  # change pas de machine quand une autre s'ajoute. Durées mesurées le
+  # 31/10 : admin ~12,5 min, réservation ~12,5, public ~11,5, partenaires
+  # ~10,5. Le résumé de chaque passage les redonne : rééquilibrer d'après
+  # lui, jamais au jugé.
+  suites:
+    name: suites (${{ matrix.groupe }})
     runs-on: ubuntu-latest
-    # 75 MINUTES (31/10/2026). Mesuré sur les trois dernières PR : 42 min 14,
-    # 42 min 25, 42 min 58 pour un plafond de 45 — deux minutes de marge, un
-    # GitHub un peu lent et le contrôle exigé tombait sans qu'aucune suite
-    # soit rouge. Les quinze suites ajoutées ce jour-là allongent encore.
+    # 40 MINUTES : trois fois la durée d'un groupe. Avant le découpage, le
+    # contrôle unique durait 42 à 45 min pour un plafond de 45, puis 75 (31/10).
     # Un plafond atteint n'est pas un échec de suite : relire la durée avant
     # de chercher un défaut.
-    timeout-minutes: 75
+    timeout-minutes: 40
+    strategy:
+      # LES QUATRE GROUPES VONT AU BOUT, quoi qu'il arrive aux autres. Par
+      # défaut, GitHub arrête toute la matrice à la première rouge : on ne
+      # saurait plus quelles autres suites sont cassées, et le contrôle
+      # unique, lui, ne s'arrêtait jamais à la première rouge.
+      fail-fast: false
+      matrix:
+        groupe: [admin, public, reservation, partenaires]
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v7
@@ -36,6 +68,8 @@ jobs:
       # La MÊME version que la machine de travail : une autre version de
       # Playwright n'ordonne pas les routes de la même façon, et une suite
       # verte ici est tombée là-bas pour cette seule raison (septembre 2026).
+      # Pas de cache : l'installation dure 20 s, un cache en ferait gagner
+      # une dizaine contre le risque d'un navigateur qui ne suit plus.
       - name: Navigateur
         run: |
           # Avec Playwright, deux tiers qui jugent à notre place, jamais dans
@@ -45,120 +79,166 @@ jobs:
           # retirerait ce que la première a posé hors de package.json.
           npm install --no-save playwright@1.56.1 jsqr@1.4.0 http_ece@1.2.1
           npx playwright install --with-deps chromium
-      - name: Suites de l'admin retenu
+      - name: Suites du groupe « ${{ matrix.groupe }} »
         shell: bash
+        env:
+          GROUPE: ${{ matrix.groupe }}
         run: |
           set -uo pipefail
-          # Quatre suites éprouvent l'espace exploitant dans le DÉPÔT, servi tel
-          # quel sur le port 8099 ; les autres construisent et servent le site
-          # elles-mêmes.
+          # CHAQUE SUITE DU DÉPÔT APPARTIENT À UN GROUPE, ET À UN SEUL — et
+          # TOUTES tournent ici, même les trois que build-mobile-desktop lance
+          # aussi (test-doc, test-unified-facade, test-routage : cinq secondes)
+          # : la règle est « toutes les suites », sans exception à retenir.
+          # LA RÈGLE, PAS LA LISTE : un motif prend d'office la suite qu'on
+          # ajoute à sa famille. Une suite d'une famille nouvelle n'a pas de
+          # groupe : les quatre machines tombent en la nommant. Une suite
+          # oubliée par le découpage ne peut donc pas passer en silence.
+          groupe_de() {
+            case "$1" in
+              # L'ESPACE EXPLOITANT ET LES OUTILS. Toute suite « test-admin-* »,
+              # y compris celles qui construisent aussi Admin v2 (1er novembre
+              # 2026) : elles étaient sautées et ne tournaient que dans
+              # « Contrôle Admin v2 », filtré par chemins sans index.html. Mesuré
+              # en retirant le plafond des euros fixes de commissionDe : seule
+              # test-admin-commission tombe, sur les 17 suites qui parlent de
+              # commission — une commission plus chère que la course passait
+              # donc toute PR qui ne touchait qu'au site. Chacune construit
+              # elle-même la variante qu'elle demande.
+              # Sans navigateur ni réseau : le juge du voyant, qui est aussi
+              # celui du chien de garde ; le comparateur des protections de main
+              # (20/10/2026), qui doit nommer chaque écart, ni plus ni moins ;
+              # /etat et le crochet de début de session (24/10/2026), avec un
+              # faux « gh » ; le texte de l'alerte qui réveille Barbaros, et le
+              # chiffrement des notifications au client DÉCHIFFRÉ PAR UN TIERS
+              # (http_ece, 31/10/2026).
+              test-admin-*.mjs|test-agent-rbac.mjs|test-securite-fonctions.mjs|test-relance-alertes.mjs|test-chien-de-garde.mjs|test-protections.mjs|test-etat.mjs|test-notification.mjs|test-push.mjs|test-doc.mjs|test-unified-facade.mjs|test-routage.mjs)
+                echo admin;;
+              # LE SITE PUBLIC ET CE QUI PART EN LIGNE. Le formulaire et la mise
+              # en page ordinateur se mesurent sur le site construit (Bloc 3,
+              # 7 octobre 2026) : la façade pouvait casser « Voir mon prix » sans
+              # que rien ne tombe. La grille du site public (tranches, forfaits
+              # Paris, accueil, 23 octobre 2026) : un prix affiché qui ne serait
+              # pas le prix facturé est opposable. Les pages /en/ et le voyageur
+              # étranger de bout en bout (15 octobre 2026) — c'est elle qui a
+              # trouvé le bon qui disait « Demande reçue » au-dessus de « n'a pas
+              # pu nous être transmise ». La mesure du trafic, de Google à la
+              # réservation. test-nouveau-bascule éprouve ce qui part EN LIGNE :
+              # aucune page de l'admin ni de la réception ne publie ses notes de
+              # travail (relecture de la PR #306, 4 octobre 2026). Le dictionnaire
+              # des deux langues (textes.js, 31 octobre 2026) : parité fr/en et
+              # clés demandées par la page, sans navigateur.
+              test-public-*.mjs|test-grille-publique.mjs|test-parcours-en.mjs|test-seo-en.mjs|test-mesure.mjs|test-nouveau-bascule.mjs|test-textes.mjs)
+                echo public;;
+              # LES PARTENAIRES : HÔTELS, RÉCEPTION, PROFESSIONNELS. La réception
+              # d'easyHotel (5 octobre 2026) ne tournait qu'à la main alors que
+              # l'hôtel s'en sert dès le 12. test-cloisonnement-hotel prouve que
+              # les quatre espaces restent séparés SUR LE SITE CONSTRUIT (c'est
+              # ainsi que « telValide » est parti en ligne le 29 septembre). La
+              # finition commune (11 octobre 2026) : un second partenaire a la
+              # finition d'easyHotel à ses couleurs, sans une ligne de code de
+              # plus. Les liens des partenaires (15 octobre 2026), l'affiche QR
+              # (décodée par jsQR), l'option pancarte, la démo et la page pro.
+              test-reception-*.mjs|test-pro-*.mjs|test-nouveau-hotel.mjs|test-nouveau-reception.mjs|test-nouveau-affiche.mjs|test-nouveau-option.mjs|test-easyhotel-client.mjs|test-demo-hotel.mjs|test-finition-commune.mjs|test-cloisonnement-hotel.mjs|test-tarifs-serveur.mjs|test-liens-suivi.mjs)
+                echo partenaires;;
+              # LA RÉSERVATION, DU FORMULAIRE AU BON. Les suites qui gardent le
+              # prix et le tunnel (audit du 9 octobre 2026) : le prix est ferme
+              # donc opposable, ce qui le calcule et ce qui le lit sur le
+              # serveur doit tourner avant la fusion. Celles qui ne tournaient
+              # qu'à la main jusqu'au 31 octobre 2026 : la recherche d'adresse,
+              # la carte, « Me localiser », les langues, « Mes réservations »
+              # (un morceau du P0 #399), le paiement par lien, les garde-fous,
+              # la suppression. Et la sonde du monitoring (20 octobre 2026),
+              # qui réserve pour de vrai sur le site en ligne : une sonde qui se
+              # tromperait enregistrerait une fausse course.
+              test-nouveau.mjs|test-nouveau-*.mjs|test-recherche-rapide.mjs|test-monitoring-sonde.mjs)
+                echo reservation;;
+              *) echo AUCUN;;
+            esac
+          }
+          suites=""; orphelines=""
+          for f in test-*.mjs; do
+            g=$(groupe_de "$f")
+            [ "$g" = AUCUN ] && orphelines="$orphelines ${f%.mjs}"
+            [ "$g" = "$GROUPE" ] && suites="$suites ${f%.mjs}"
+          done
+          if [ -n "$orphelines" ]; then
+            echo "::error::Suite(s) sans groupe :$orphelines — l'ajouter à un groupe de groupe_de() dans admin-regression.yml ; ne pas la retirer du dépôt."
+            exit 1
+          fi
+          [ -n "$suites" ] || { echo "::error::Le groupe « $GROUPE » n'a aucune suite : la matrice et groupe_de() ne se correspondent plus."; exit 1; }
+          echo "Groupe « $GROUPE » :$suites"
+          # Quelques suites éprouvent le DÉPÔT, servi tel quel sur le port
+          # 8099 ; les autres construisent et servent le site elles-mêmes.
           npx --yes http-server . -s -p 8099 >/tmp/serveur.log 2>&1 &
           for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8099/ && break; sleep 1; done
-          # LA RÈGLE, PAS LA LISTE : toute suite « test-admin-* » qui ne demande
-          # pas Admin v2 éprouve l'admin retenu. Celles qui posent
-          # ELA_AVEC_ADMIN_V2 tournent dans « Contrôle Admin v2 ».
-          suites=""
-          for f in test-admin-*.mjs; do
-            grep -q ELA_AVEC_ADMIN_V2 "$f" && continue
-            suites="$suites ${f%.mjs}"
-          done
-          # test-nouveau-bascule éprouve ce qui part EN LIGNE : c'est elle qui
-          # vérifie qu'aucune page de l'admin ni de la réception ne publie ses
-          # notes de travail. Hors CI, l'oubli d'une ligne dans construire.sh
-          # passait sans bruit (relecture de la PR #306, 4 octobre 2026).
-          # test-cloisonnement-hotel prouve que les quatre espaces restent
-          # séparés SUR LE SITE CONSTRUIT : aucun code ni écran Admin chez le
-          # Public et le Client, la Réception limitée à son hôtel, les anciens
-          # liens réduits à des redirections. Elle ne tournait qu'à la main —
-          # c'est ainsi que « telValide » est parti en ligne le 29 septembre
-          # (audit du cloisonnement, 4 octobre 2026).
-          # LA RÉCEPTION D'easyHotel (5 octobre 2026) : ses trois suites ne
-          # tournaient qu'à la main, alors que l'hôtel s'en sert dès le 12.
-          # Toute suite « test-reception-* » est prise d'office.
-          for f in test-reception-*.mjs; do suites="$suites ${f%.mjs}"; done
-          # LE SITE PUBLIC (Bloc 3, 7 octobre 2026) : le formulaire et la mise en
-          # page ordinateur se mesurent sur le site construit. Ni l'une ni
-          # l'autre ne tournait ici — la façade pouvait casser « Voir mon prix »
-          # sans que rien ne tombe. Toute suite « test-public-* » est prise.
-          for f in test-public-*.mjs; do suites="$suites ${f%.mjs}"; done
-          suites="$suites test-nouveau-exploitant test-nouveau-serveur test-nouveau-contact test-nouveau-whatsapp test-nouveau-chauffeurs test-nouveau-registre test-nouveau-mdp test-nouveau-bascule test-nouveau-lieux test-nouveau-recherche test-recherche-rapide test-nouveau-sans-blocage test-nouveau-preavis test-securite-fonctions test-relance-alertes test-cloisonnement-hotel test-nouveau-reception test-easyhotel-client"
-          # LES SUITES QUI GARDENT LE PRIX ET LE TUNNEL (audit du 9 octobre 2026) :
-          # elles ne tournaient qu'en local, donc pas du tout le jour où l'on
-          # oublie. Le prix est ferme donc opposable ; ce qui le calcule et ce
-          # qui le lit sur le serveur doit tourner avant la fusion. Toutes
-          # vertes en local le 9/10 avant d'entrer ici.
-          suites="$suites test-nouveau-prix test-nouveau-hotel test-nouveau-confirmation test-nouveau-bon test-nouveau-itineraire test-tarifs-serveur test-demo-hotel test-pro-page test-pro-formulaire"
-          # LA FINITION COMMUNE DES PAGES D'HÔTEL (11 octobre 2026) : un second
-          # partenaire ajouté à HOTELS doit avoir la finition d'easyHotel, à ses
-          # couleurs, sans une ligne de code de plus — et easyHotel ne bouge pas.
-          suites="$suites test-finition-commune"
-          # LES PAGES D'ACQUISITION ET LA GRILLE DU SITE PUBLIC : les pages /en/,
-          # l'origine qui part avec la demande, puis (23 octobre 2026) les
-          # tranches, les forfaits Paris et l'accueil — et plus aucun prix
-          # réglé page par page. Un prix affiché qui ne serait pas le prix
-          # facturé est opposable.
-          suites="$suites test-seo-en test-grille-publique test-nouveau-option"
-          # LES LIENS DES PARTENAIRES (15 octobre 2026) : le code d'un partenaire
-          # suit le visiteur de la page à la demande, l'admin lit ce que chaque
-          # lien amène, et le rappel d'avis compte les clients de la semaine.
-          suites="$suites test-liens-suivi"
-          # LA MESURE DU TRAFIC (15 octobre 2026) : le collecteur sur le site
-          # construit — de Google à la réservation, et une panne de la mesure
-          # qui ne touche pas le dépôt. L'écran de l'admin est pris d'office
-          # (test-admin-trafic), la fonction par test-securite-fonctions.
-          suites="$suites test-mesure"
-          # LE VOYAGEUR ÉTRANGER DE BOUT EN BOUT (15 octobre 2026, audit des
-          # quatre prompts) : page /en/, « Book », moteur en anglais, prix,
-          # récapitulatif, envoi, bon — et les pannes (compteur muet, dépôt
-          # refusé). C'est elle qui a trouvé le bon qui disait « Demande reçue »
-          # au-dessus de « n'a pas pu nous être transmise ».
-          suites="$suites test-parcours-en"
-          # LA SONDE DU MONITORING (20 octobre 2026) : le monitoring réserve pour
-          # de vrai sur le site en ligne ; une sonde qui se tromperait
-          # enregistrerait une fausse course. Éprouvée ici, hors ligne.
-          suites="$suites test-monitoring-sonde"
-          # LES SUITES QUI NE TOURNAIENT QU'À LA MAIN (audit du 31 octobre
-          # 2026) : la recherche d'adresse, la carte, « Me localiser », les
-          # langues, « Mes réservations » (un morceau du P0 #399), le paiement
-          # par lien, les garde-fous, les cartes de services, la suppression,
-          # l'affiche QR (décodée par jsQR), l'icône de l'espace exploitant.
-          # Aucun workflow ne les lançait : la CI restait verte si l'une
-          # tombait. test-doc.mjs refuse désormais toute suite du dépôt
-          # qu'aucun workflow ne lance.
-          suites="$suites test-nouveau test-nouveau-carte test-nouveau-geoloc test-nouveau-langues test-nouveau-courses test-nouveau-paiement test-nouveau-gardes test-nouveau-services test-nouveau-suppression test-nouveau-affiche test-nouveau-icone test-agent-rbac"
+          # UNE SUITE À LA FOIS : plusieurs écoutent sur les mêmes ports, et
+          # toutes celles qui construisent effacent le même dossier site/. Le
+          # groupe ne s'arrête jamais à la première rouge.
+          # LA DURÉE DE CHAQUE SUITE, ET UN PLAFOND PAR SUITE (1er novembre
+          # 2026, audit de la CI). Les durées n'étaient écrites nulle part :
+          # l'audit a dû les reconstituer, et l'outil qui lit les journaux n'en
+          # rend que les 5 000 dernières lignes (les 22 premières suites y
+          # étaient invisibles). Elles vont dans le résumé du passage, les plus
+          # lentes en tête. Le plafond : une suite figée bloquait tout le
+          # contrôle jusqu'à son propre plafond, sans liste des suites tombées ;
+          # elle est arrêtée à 15 min (la plus longue en dure 3), NOMMÉE comme
+          # figée, et les autres continuent.
+          plafond=15m
+          durees="$RUNNER_TEMP/durees.tsv"; : > "$durees"
           echecs=""
-          # Une seule suite à la fois : plusieurs écoutent sur les mêmes ports.
-          # Et le contrôle ne s'arrête jamais à la première rouge.
           for t in $suites; do
+            debut=$(date +%s)
             echo "::group::$t"
-            if node "$t.mjs"; then echo "$t : au vert"; else echo "::error::$t est tombé"; echecs="$echecs $t"; fi
+            if timeout --kill-after=30s "$plafond" node "$t.mjs"; then
+              etat="au vert"
+            else
+              code=$?
+              case $code in
+                124|137) etat="FIGÉE, arrêtée au plafond de $plafond";;
+                *) etat="TOMBÉE (code $code)";;
+              esac
+              echo "::error::$t : $etat"
+              echecs="$echecs $t"
+            fi
+            d=$(( $(date +%s) - debut ))
+            echo "$t : $etat — $d s"
             echo "::endgroup::"
+            printf '%s\t%s\t%s\n' "$d" "$t" "$etat" >> "$durees"
           done
-          # Le juge du voyant est aussi celui du chien de garde : il s'éprouve
-          # sans navigateur, et aucun autre workflow ne le lançait.
-          echo "::group::test-chien-de-garde"
-          if node test-chien-de-garde.mjs; then echo "test-chien-de-garde : au vert"; else echo "::error::test-chien-de-garde est tombé"; echecs="$echecs test-chien-de-garde"; fi
-          echo "::endgroup::"
-          # Le comparateur des protections de main (20/10/2026) : sans
-          # navigateur ni réseau, il doit nommer chaque écart — ni plus, ni moins.
-          echo "::group::test-protections"
-          if node test-protections.mjs; then echo "test-protections : au vert"; else echo "::error::test-protections est tombé"; echecs="$echecs test-protections"; fi
-          echo "::endgroup::"
-          # /etat et le crochet de début de session (24/10/2026) : les
-          # priorités (TEAM_RULES §11) s'y lisent, et un GitHub muet doit
-          # s'écrire en toutes lettres. Faux « gh », ni réseau ni navigateur.
-          echo "::group::test-etat"
-          if node test-etat.mjs; then echo "test-etat : au vert"; else echo "::error::test-etat est tombé"; echecs="$echecs test-etat"; fi
-          echo "::endgroup::"
-          # Le texte de l'alerte qui réveille Barbaros, et le chiffrement des
-          # notifications au client DÉCHIFFRÉ PAR UN TIERS (http_ece) : sans
-          # navigateur ni réseau, et jamais lancés jusqu'ici (31/10/2026).
-          # Le dictionnaire des deux langues (31/10/2026) : parité fr/en et clés
-          # demandées par la page, sans navigateur.
-          for t in test-notification test-push test-textes; do
-            echo "::group::$t"
-            if node "$t.mjs"; then echo "$t : au vert"; else echo "::error::$t est tombé"; echecs="$echecs $t"; fi
-            echo "::endgroup::"
-          done
+          {
+            echo "### Groupe « $GROUPE » : durée de chaque suite"
+            echo ""
+            echo "$(wc -l < "$durees") suites, $(awk -F'\t' '{s+=$1} END {print s}' "$durees") s en tout."
+            echo ""
+            echo "| Suite | Durée | État |"
+            echo "|---|---:|---|"
+            sort -t"$(printf '\t')" -k1,1nr "$durees" | while IFS="$(printf '\t')" read -r d t e; do
+              echo "| \`$t\` | $d s | $e |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
           if [ -n "$echecs" ]; then echo "Suites tombées :$echecs"; exit 1; fi
-          echo "Toutes les suites de l'admin retenu sont au vert."
+          echo "Toutes les suites du groupe « $GROUPE » sont au vert."
+
+  # LE CONTRÔLE QU'EXIGE LA RÈGLE DE MAIN S'APPELLE TOUJOURS « admin » : le
+  # découpage ne change aucune protection (.github/ruleset-main.json). Il
+  # attend les quatre groupes et ne passe que s'ils sont TOUS au vert.
+  # « if: always() » N'EST PAS UN DÉTAIL. Sans lui, un groupe rouge fait
+  # SAUTER ce job, et GitHub compte un contrôle exigé sauté comme RÉUSSI : la
+  # fusion serait permise avec une suite rouge. Avec lui, ce job tourne
+  # toujours et juge lui-même : un groupe tombé, annulé ou figé le rend rouge.
+  admin:
+    needs: suites
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Les quatre groupes sont au vert
+        env:
+          RESULTAT: ${{ needs.suites.result }}
+        run: |
+          echo "Résultat des quatre groupes : $RESULTAT"
+          if [ "$RESULTAT" != "success" ]; then
+            echo "::error::Un groupe au moins n'est pas au vert ($RESULTAT) : ouvrir les lignes « suites (…) » de ce passage."
+            exit 1
+          fi
+          echo "Les quatre groupes de l'admin retenu sont au vert."

@@ -39,6 +39,14 @@ jobs:
           npm run test:unified
           node test-routage.mjs
 
+      # TROIS ENDROITS, UN SEUL PRIX (1er novembre 2026). Le repli du site,
+      # la source serveur et la page du QR des hôtels doivent dire le même
+      # prix. Ce contrôle ne tournait que dans « Contrôle source tarifaire »,
+      # filtré par chemins et non exigé : une PR pouvait être fusionnée avec
+      # lui en rouge. Ici il est exigé, sur toute PR, et dure une seconde.
+      - name: Le même prix partout (site, serveur, page du QR)
+        run: node .github/scripts/verifier-tarif-hotel.mjs site/index.html
+
       - name: Installer Chromium Playwright
         run: npx playwright install --with-deps chromium
 
