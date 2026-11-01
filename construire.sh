@@ -15,10 +15,23 @@ cp icon-180.png site/apple-touch-icon.png
 node .github/scripts/public-booking-gateway.mjs site/index.html
 node .github/scripts/harden-exploitant-auth.mjs site/index.html
 node .github/scripts/agent-role-ui.mjs site/index.html
+# QUEL COMMIT EST DANS LA PAGE (1er novembre 2026, audit). version.json dit ce
+# que l'hébergeur sert ; la page, elle, ne savait pas d'où elle venait : une
+# erreur remontée par « erreur-client » pouvait venir d'une copie gardée en
+# cache depuis trois mises en ligne, sans qu'on puisse le voir. La balise
+# « ela-version » (commit court et cache du service worker) est posée ICI,
+# avant la construction des espaces d'hôtel qui partent de cette page : elle
+# est donc dans le site public, les pages d'hôtel, la réception et l'admin.
+# Les deux valeurs sont celles de version.json, calculées une seule fois.
+commit="${GITHUB_SHA:-${WORKERS_CI_COMMIT_SHA:-${CF_PAGES_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || echo inconnu)}}}"
+cache=$(sed -n 's/^const CACHE = "\([^"]*\)";.*/\1/p' sw.js)
+export ELA_VERSION_PAGE="$(printf '%s' "$commit" | cut -c1-7)·$cache"
 python3 - <<'PY'
 from pathlib import Path
+import os
 page=Path('site/index.html'); html=page.read_text(encoding='utf-8')
 html=html.replace('</head>','<link rel="stylesheet" href="/application-facade.css"><link rel="stylesheet" href="/hotel-engine-polish.css"><script src="/hotel-engine-polish.js" defer></script></head>',1)
+html=html.replace('<meta name="viewport"','<meta name="ela-version" content="'+os.environ['ELA_VERSION_PAGE']+'"><meta name="viewport"',1)
 html=html.replace('<img class="logo-image" src="brand-logo-white.png"','<img class="logo-image" src="brand-logo.webp"',1)
 page.write_text(html,encoding='utf-8')
 admin=Path('site/admin-v2.html'); a=admin.read_text(encoding='utf-8')
@@ -151,8 +164,7 @@ fi
 # contrôle de production (verifier-production.mjs --commit=…) le compare
 # au dernier main. La variable dépend de qui construit : GitHub Actions,
 # Cloudflare Workers Builds, Cloudflare Pages, sinon git lui-même.
-commit="${GITHUB_SHA:-${WORKERS_CI_COMMIT_SHA:-${CF_PAGES_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || echo inconnu)}}}"
-cache=$(sed -n 's/^const CACHE = "\([^"]*\)";.*/\1/p' sw.js)
+# « commit » et « cache » sont calculés plus haut, avec la balise de la page.
 printf '{"commit":"%s","cache":"%s","construit":"%s"}\n' "$commit" "$cache" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > site/version.json
 
 # L'ANCIENNE RÈGLE DE PAIEMENT NE REPART JAMAIS EN LIGNE (14 octobre 2026) :

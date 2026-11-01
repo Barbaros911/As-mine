@@ -1,7 +1,8 @@
 // Parcours réels sur les documents construits ; aucun appel de production.
 // ÉPROUVÉ CONTRE L'ANCIEN CODE : sans le verrou de soumission, 7 contrôles tombent ; sans la reprise
 // après rechargement, les contrôles « rechargé pendant l'envoi » tombent (bon jamais rouvert, référence perdue) ;
-// sur le jugement du bon d'avant le 29/10/2026, un bon jamais accusé rouvert depuis « Mes courses » titre « Demande reçue ».
+// sur le jugement du bon d'avant le 29/10/2026, un bon jamais accusé rouvert depuis « Mes courses » titre « Demande reçue » ;
+// avant le 1er/11/2026, aucun dépôt raté ne laissait de trace à erreur-client (les contrôles « trace » tombent : 0 envoi).
 import { chromium, webkit } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
@@ -16,7 +17,7 @@ const ok=[],ko=[];const check=(name,yes)=>{(yes?ok:ko).push(name);console.log((y
 async function form(space,mode='slow'){
  const ctx=await browser.newContext({viewport:{width:390,height:844},locale:'fr-FR',timezoneId:'Europe/Paris'}), p=await ctx.newPage();
  const errors=[];p.on('pageerror',e=>errors.push(e.message));
- const requests=[], rows=new Map();let release;const gate=new Promise(r=>release=r);let etat='serveur'; // la vérité du faux serveur : connue si écrite
+ const requests=[], rows=new Map(), signaux=[];let release;const gate=new Promise(r=>release=r);let etat='serveur'; // la vérité du faux serveur : connue si écrite
  await p.route('**/*',async r=>{
   const u=r.request().url();if(u.startsWith(base))return r.continue();
   if(u.includes('/functions/v1/deposer-course')){
@@ -42,6 +43,8 @@ async function form(space,mode='slow'){
    if(!rows.has(b.ref))return r.fulfill({status:404,contentType:'application/json',body:'{"inconnue":true}'});
    return r.fulfill({contentType:'application/json',body:JSON.stringify({ref:b.ref,statut:'attente',numero:42,chauffeur:{nom:'',telephone:''},vehicule:'',date:'',heure:''})});
   }
+  // La trace d'un dépôt raté (1er/11/2026) : ce qui part à erreur-client, lu tel quel.
+  if(u.includes('/functions/v1/erreur-client')){signaux.push(JSON.parse(r.request().postData()||'{}'));return r.fulfill({status:204,body:''});}
   if(u.includes('/functions/v1/courses-hotel'))return r.fulfill({contentType:'application/json',body:JSON.stringify({hotel:'easyhotel-aeroville',courses:[],session:'s.sig',expire:Date.now()+864e5})});
   if(u.includes('.supabase.co/'))return r.fulfill({contentType:'application/json',body:'[]'});
   if(u.includes('photon.komoot.io'))return r.fulfill({contentType:'application/json',body:JSON.stringify({features:[{geometry:{coordinates:[2.3376,48.8606]},properties:{name:'Place Vendôme',postcode:'75001',city:'Paris',countrycode:'FR'}}]})});
@@ -62,8 +65,14 @@ async function form(space,mode='slow'){
  if(space==='reception')await p.fill('#noteCourse','Note du client précédent');
  await p.evaluate(()=>{const b=[...document.querySelectorAll('#blocContact [data-contact]')].find(e=>e.offsetParent);if(b)b.click();});
  const submit=()=>p.click(space==='reception'?'#btnVoirPrix':'#btnConfirmer');
- return {p,ctx,requests,rows,release,submit,errors,setMode:m=>{mode=m;},setEtat:e=>{etat=e;}};
+ return {p,ctx,requests,rows,signaux,release,submit,errors,setMode:m=>{mode=m;},setEtat:e=>{etat=e;}};
 }
+// LA TRACE D'UN DÉPÔT RATÉ : ses messages commencent par « dépôt : », portent la référence (dernier tiret en point médian,
+// pour que le masque des téléphones ne la mange pas), jamais le nom ni le téléphone ; la version de la page construite part avec.
+const traces=r=>r.signaux.filter(s=>/^dépôt : /.test(s.message||''));
+const refTrace=r=>(r.requests[r.requests.length-1].ref||'').replace(/-(?=[^-]*$)/,'·');
+const sansIdentite=r=>!/Test Voyageur|06 12 34 56 78|0612345678/.test(JSON.stringify(r.signaux));
+const versionPage=p=>p.evaluate(()=>{const m=document.querySelector('meta[name="ela-version"]');return m?m.content:'';});
 try{
  for(const space of ['public','client','reception']){
   const r=await form(space);await r.submit();await r.p.waitForTimeout(200);
@@ -73,6 +82,7 @@ try{
   await r.p.waitForTimeout(200);check(space+' : cinq soumissions réseau lent, un seul POST',r.requests.length===1);
   r.release();await r.p.waitForTimeout(300);check(space+' : une seule réservation',r.rows.size===1);
   check(space+' : succès après accusé serveur',await r.p.locator('#etatEnvoi').evaluate(e=>e.classList.contains('ok')));
+  check(space+' : un succès direct ne laisse aucune trace « dépôt »',traces(r).length===0);
   await r.p.click('#btnNouvelleCourse');
   if(space==='reception')check('réception : note, identité et véhicule effacés',await r.p.evaluate(()=>['clientNom','clientTel','noteCourse'].every(id=>!document.getElementById(id).value)&&!document.querySelector('#listeVehicules .choisi')));
   check(space+' : aucune exception JS',r.errors.length===0);await r.ctx.close();
@@ -81,15 +91,22 @@ try{
   const r=await form(space,'lost');await r.submit();await r.p.waitForTimeout(600);
   check(space+' : réponse perdue après écriture, reprise même référence',r.requests.length===2&&new Set(r.requests.map(b=>b.ref)).size===1&&r.rows.size===1);
   check(space+' : reprise automatique confirmée',await r.p.locator('#etatEnvoi').evaluate(e=>e.classList.contains('ok')));
+  const tr=traces(r), v=await versionPage(r.p);
+  check(space+' : la reprise laisse UNE trace « reçu après réseau », avec la référence, sans identité',tr.length===1&&new RegExp('^dépôt : reçu après réseau '+refTrace(r).replace(/[.·]/g,'\\$&')+'$').test(tr[0].message)&&sansIdentite(r),JSON.stringify(tr));
+  check(space+' : la trace porte la version de la page construite (commit · cache)',/^[0-9a-f]{7}·elatransfer-v\d+$/.test(v)&&tr[0]&&tr[0].version===v&&tr[0].espace&&tr[0].ecran==='ecran-bon',v+' / '+JSON.stringify(tr[0]&&{version:tr[0].version,ecran:tr[0].ecran}));
   await r.ctx.close();
  }
+ const CAUSES={error:'http 503',invalid:'accusé illisible',empty:'accusé refusé',rejected:'accusé refusé',wrongref:"référence différente dans l'accusé",offline:'réseau','400':'http 400'};
  for(const mode of ['error','invalid','empty','rejected','wrongref','offline','400']){
   const r=await form('public',mode);await r.submit();await r.p.waitForTimeout(600);
   check(mode+' : pas de faux succès',!(await r.p.locator('#etatEnvoi').evaluate(e=>e.classList.contains('ok'))));
+  const tr=traces(r);
+  check(mode+' : une seule trace « échec », sa cause nommée, la référence, sans identité',tr.length===1&&tr[0].message==='dépôt : échec ('+CAUSES[mode]+') '+refTrace(r)&&sansIdentite(r),JSON.stringify(tr.map(x=>x.message)));
   if(mode==='error'){
    r.setMode('success');if(await r.p.locator('#btnReessayerDepot').count())await r.p.click('#btnReessayerDepot');else await r.p.evaluate(()=>document.getElementById('btnConfirmer').click());await r.p.waitForTimeout(300);
    check('nouvel essai : référence inchangée',new Set(r.requests.map(b=>b.ref)).size===1);
    check('nouvel essai : succès et une seule ligne',r.rows.size===1&&await r.p.locator('#etatEnvoi').evaluate(e=>e.classList.contains('ok')));
+   check('nouvel essai : la trace dit « reçu après http 503 », même référence',traces(r).length===2&&traces(r)[1].message==='dépôt : reçu après http 503 '+refTrace(r),JSON.stringify(traces(r).map(x=>x.message)));
   }
   await r.ctx.close();
  }
@@ -119,8 +136,10 @@ try{
   check(space+' : rechargé pendant l’envoi, aucun dépôt ne repart tout seul',r.requests.length===1);
   check(space+' : le bon est rouvert, en vérification, sans faux « reçue »',await ecranActif(r.p)==='ecran-bon'&&!/reçue|recorded|received/i.test(await r.p.locator('#bonEtat').textContent()));
   check(space+' : réception non vérifiée, bouton « Réessayer » proposé',await r.p.locator('#btnReessayerDepot').isVisible()&&!(await accuse(r.p)));
+  check(space+' : rechargé, la trace dit « inconnu du serveur après rechargement »',traces(r).length===1&&traces(r)[0].message==='dépôt : échec (inconnu du serveur après rechargement) '+refTrace(r),JSON.stringify(traces(r).map(x=>x.message)));
   r.setMode('success');await r.p.click('#btnReessayerDepot');await r.p.waitForTimeout(500);
   check(space+' : la reprise rejoue la même référence, une seule ligne, accusé reçu',r.requests.length===2&&new Set(r.requests.map(b=>b.ref)).size===1&&r.rows.size===1&&await accuse(r.p));
+  check(space+' : puis « reçu après inconnu du serveur après rechargement »',traces(r).length===2&&traces(r)[1].message==='dépôt : reçu après inconnu du serveur après rechargement '+refTrace(r),JSON.stringify(traces(r).map(x=>x.message)));
   await r.p.reload();await r.p.waitForTimeout(1000);
   check(space+' : rechargé après l’accusé, plus rien n’est repris ni redéposé',r.requests.length===2&&await ecranActif(r.p)!=='ecran-bon');
   r.release();await r.ctx.close();
@@ -131,6 +150,7 @@ try{
   await r.p.reload();await r.p.waitForTimeout(1000);
   check('réponse perdue + rechargement : le serveur connaît la demande, aucun second dépôt',r.requests.length===1&&r.rows.size===1&&await accuse(r.p));
   check('réponse perdue + rechargement : « Demande reçue » et sa référence',/reçue/i.test(await r.p.locator('#bonEtat').textContent())&&(await r.p.locator('#bonRef').textContent()).includes('42'));
+  check('réponse perdue + rechargement : une trace « reçu après rechargement », et elle seule',traces(r).length===1&&traces(r)[0].message==='dépôt : reçu après rechargement '+refTrace(r),JSON.stringify(traces(r).map(x=>x.message)));
   r.release();await r.ctx.close();
  }
  // SERVEUR MUET À LA VÉRIFICATION : ni « reçue » ni « non enregistrée », et aucun dépôt.
@@ -138,6 +158,7 @@ try{
   const r=await form('public','slow');await r.submit();await r.p.waitForTimeout(300);
   r.setEtat('panne');await r.p.reload();await r.p.waitForTimeout(1000);
   check('vérification en panne : réception non vérifiée, aucun faux succès, aucun dépôt',!(await accuse(r.p))&&await r.p.locator('#btnReessayerDepot').isVisible()&&r.requests.length===1);
+  check('vérification en panne : la trace dit « vérification muette après rechargement »',traces(r).length===1&&traces(r)[0].message==='dépôt : échec (vérification muette après rechargement) '+refTrace(r),JSON.stringify(traces(r).map(x=>x.message)));
   r.release();await r.ctx.close();
  }
  // ISOLATION : la demande d'un comptoir n'est jamais reprise sur le site public (même appareil, même origine).

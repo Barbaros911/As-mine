@@ -806,13 +806,46 @@ if (reglesTexte !== null) {
    par un motif « test-xxx-*.mjs », ou par un « npm run » qui l'appelle.
    Ne comptent pas : un commentaire (une suite nommée dans une explication
    n'est pas lancée) ni un chemin de déclenchement (« paths: », qui dit
-   QUAND un workflow part, pas ce qu'il lance). Une suite Admin v2
-   (ELA_AVEC_ADMIN_V2) n'est jamais prise par un motif — « admin » la saute
-   exprès — : elle doit être nommée là où l'on construit Admin v2. */
+   QUAND un workflow part, pas ce qu'il lance).
+   ET SEUL COMPTE UN WORKFLOW QUI TOURNE SUR TOUTE PULL REQUEST (1er novembre
+   2026, audit de la CI). « Lancée par un workflow » ne suffisait pas :
+   test-admin-commission — la commission de l'admin que Barbaros utilise —
+   n'était lancée que par « Contrôle Admin v2 », filtré par chemins sans
+   index.html, et « admin » la sautait parce qu'elle construit aussi Admin v2.
+   Mesuré : sur les branches du P0 #399 et des preuves commerciales, qui
+   modifiaient index.html, elle n'a tourné AUCUNE fois. Un workflow filtré
+   par « paths », « paths-ignore » ou « types » ne compte donc plus. */
 {
   const dossierWf = ".github/workflows";
   const scripts = JSON.parse(readFileSync("package.json", "utf8")).scripts || {};
-  const lignes = readdirSync(dossierWf).filter(f => /\.ya?ml$/.test(f))
+  /* Le bloc « on: », puis le bloc « pull_request: » qu'il contient : sans
+     paths, paths-ignore ni types, le workflow part sur chaque PR. */
+  const surToutePR = texte => {
+    const l = texte.split("\n"), i = l.findIndex(x => /^on:/.test(x));
+    if(i < 0) return false;
+    const enLigne = l[i].replace(/#.*/, "");
+    if(/\bpull_request\b/.test(enLigne)) return !/paths|types/.test(enLigne);
+    let j = i + 1;
+    const bloc = [];
+    while(j < l.length && (/^\s/.test(l[j]) || l[j].trim() === "")) bloc.push(l[j++]);
+    const k = bloc.findIndex(x => /^\s+pull_request\s*:/.test(x));
+    if(k < 0) return false;
+    if(/paths|types/.test(bloc[k].replace(/#.*/, "").split(":").slice(1).join(":"))) return false;
+    const retrait = bloc[k].match(/^\s*/)[0].length;
+    for(const x of bloc.slice(k + 1)){
+      if(x.trim() === "" || /^\s*#/.test(x)) continue;
+      if(x.match(/^\s*/)[0].length <= retrait) break;
+      if(/^\s+(paths|paths-ignore|types)\s*:/.test(x)) return false;
+    }
+    return true;
+  };
+  const toutePR = readdirSync(dossierWf).filter(f => /\.ya?ml$/.test(f))
+    .filter(f => surToutePR(readFileSync(dossierWf + "/" + f, "utf8")));
+  verifier("le filtre « toute PR » reconnaît le contrôle exigé et écarte un workflow filtré",
+    toutePR.includes("admin-regression.yml") && toutePR.includes("quality-gate.yml")
+      && !toutePR.includes("admin-v2-regression.yml") && !toutePR.includes("tracking-sync.yml"),
+    "workflows retenus : " + toutePR.join(", "));
+  const lignes = toutePR
     .flatMap(f => readFileSync(dossierWf + "/" + f, "utf8").split("\n"))
     .filter(l => !/^\s*#/.test(l) && !/^\s*-\s*['"][^'"]*['"]\s*$/.test(l))
     .map(l => l.replace(/\bnpm run ([\w:.-]+)/g, (m, s) => m + " " + (scripts[s] || "")));
@@ -825,12 +858,20 @@ if (reglesTexte !== null) {
   const oubliees = suites.filter(f => {
     const nom = f.replace(/\.mjs$/, "");
     if(nommees.has(nom)) return false;
-    if(readFileSync(f, "utf8").includes("ELA_AVEC_ADMIN_V2")) return true;
     return !motifs.some(p => nom.startsWith(p));
   });
-  verifier("toute suite test-*.mjs est lancée par la CI", oubliees.length === 0,
-    "jamais lancée(s) par un workflow : " + oubliees.join(", ") +
-    ". L'ajouter à admin-regression.yml (une suite Admin v2 : admin-v2-regression.yml) ; ne pas la retirer du dépôt.");
+  verifier("toute suite test-*.mjs est lancée par un contrôle de chaque PR", oubliees.length === 0,
+    "lancée(s) par aucun workflow qui tourne sur toute PR : " + oubliees.join(", ") +
+    ". L'ajouter à admin-regression.yml ; ne pas la retirer du dépôt.");
+  /* LE SAUT QUI A OUVERT LE TROU : « admin » écartait toute suite qui pose
+     ELA_AVEC_ADMIN_V2, alors que test-admin-commission et test-admin-prix
+     éprouvent aussi l'admin retenu et index.html. Une suite qui construit
+     Admin v2 le fait elle-même : rien ne justifie de la sauter. */
+  const admin = readFileSync(dossierWf + "/admin-regression.yml", "utf8").split("\n")
+    .filter(l => !/^\s*#/.test(l)).join("\n");
+  verifier("le contrôle « admin » ne saute aucune suite Admin v2",
+    !/ELA_AVEC_ADMIN_V2/.test(admin),
+    "admin-regression.yml écarte les suites qui posent ELA_AVEC_ADMIN_V2 : la commission de l'admin retenu ne serait plus éprouvée à chaque PR.");
 }
 
 /* --------------------------------------------------------------- */

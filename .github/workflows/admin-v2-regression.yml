@@ -267,6 +267,8 @@ jobs:
             -f supabase/tests/erreurs-client-avant.sql \
             -f supabase/migrations/20261019000000_journal_erreurs_client.sql \
             -f supabase/migrations/20261019000000_journal_erreurs_client.sql \
+            -f supabase/migrations/20261101000000_erreurs_client_version.sql \
+            -f supabase/migrations/20261101000000_erreurs_client_version.sql \
             -f supabase/tests/erreurs-client-apres.sql
           # Le secret de la relance (19 octobre 2026) : fabriqué dans le coffre,
           # lu par la seule clé de service, envoyé par pg_cron sans jamais être
