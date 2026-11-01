@@ -132,7 +132,7 @@ jobs:
 
       - name: Ouvrir ou clore l'incident
         if: always()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           ETAT: ${{ steps.controle.outputs.etat }}
           ADRESSE: ${{ steps.controle.outputs.adresse }}
