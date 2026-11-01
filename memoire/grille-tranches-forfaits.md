@@ -117,3 +117,14 @@ coûte désormais 60 €.
 - Dans 4 à 6 semaines, au Registre : les courses autour de 12 / 22 / 27 / 32 km,
   la vitesse à laquelle les chauffeurs prennent les courses, la part des
   arrivées confirmées (Orly → Paris 65 €, au-dessus de la file de taxis).
+
+## 31 octobre 2026 — la grille de repli sort du moteur
+
+Deuxième extraction du plan d'architecture : `GAMMES`, `GRILLE_PUBLIQUE`,
+`FORFAITS_PUBLICS`, `ACCUEIL_EUR`, les grandes gares, les aéroports et les
+réglages du tunnel (pas des créneaux, marges de durée, option pancarte,
+rayons, précision, alerte des papiers) vivent dans `config.js`, données
+seules, déplacées à l'identique. `HOTELS` et les clés du serveur restent dans
+le moteur jusqu'à leur propre PR. Retiré de `CLAUDE.md` le même jour, parce
+que c'est une date : les prix par page (`prix_pages`) ont été retirés le
+23 octobre 2026.

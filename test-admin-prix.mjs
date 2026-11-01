@@ -323,6 +323,8 @@ await b.close(); serveur.close();
    ===================================================================== */
 const partage = await readFile('itineraire-partage.js', 'utf8');
 const page    = await readFile('index.html', 'utf8');
+/* La grille de repli vit dans config.js depuis le 31/10/2026 (deuxième extraction). */
+const config  = await readFile('config.js', 'utf8');
 const actions = await readFile('admin-v2-actions.js', 'utf8');
 
 check('la chaîne d’itinéraire vit dans « itineraire-partage.js »',
@@ -350,7 +352,7 @@ check('l’arrondi compare le reste à 5 avec un « > », jamais un « >= »',
 /* LA GRILLE DU FAUX SERVEUR EST CELLE DU DÉPÔT. Si elles se séparaient, le
    contrôle de parité au centime plus haut n'éprouverait plus rien. */
 check('la grille du test est celle du dépôt',
-  /parKm:2\.90[\s\S]{0,60}mini:35/.test(page) && /parKm:4\.70[\s\S]{0,60}mini:50/.test(page));
+  /parKm:2\.90[\s\S]{0,60}mini:35/.test(config) && /parKm:4\.70[\s\S]{0,60}mini:50/.test(config));
 /* LE FICHIER PARTAGÉ EST PUBLIÉ ET INJECTÉ. Oublié dans la recette, il
    marche en local — où le serveur sert le dépôt entier — et reste
    introuvable en ligne. Le contrôle ne lit que les lignes de COMMANDE :
