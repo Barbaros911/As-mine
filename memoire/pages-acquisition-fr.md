@@ -150,3 +150,57 @@ sur `/en/` (`display=swap`), en-tête bleu nuit avec `brand-logo-negatif.webp`
 nuit (8,3:1), focus visible cyan. Mesuré après : Figtree rendue à 390 et
 1280 px, aucun débordement, aucune erreur JavaScript. `CACHE` monté (la
 feuille est gardée « cache d'abord »).
+
+## 1er novembre 2026 — le forfait affiché sur les pages CDG et Orly
+
+Audit produit indépendant (session du 1/11, aucun fichier modifié pendant
+l'audit) : aucune page publique ne montrait un prix avant cinq champs à
+remplir, alors que les forfaits Paris ↔ aéroport existent et que la page du
+flyer d'hôtel, elle, montre déjà les siens. Proposé à Barbaros (« Êtes-vous
+d'accord pour afficher les prix fixes sur les pages CDG et Orly ? ») ;
+réponse : **« Oui »**. La règle du 22/10 « ni prix chiffré : le tarif vit sur
+le serveur » est donc rouverte par sa décision — sur CDG et Orly seulement ;
+la page chauffeur privé et les pages `/en/` restent sans prix.
+
+**Ce qui est affiché** : un bloc « Forfait Paris ↔ Roissy-CDG » (« ↔ Orly »)
+entre l'avis Google et les deux boutons, quatre montants (berline, van ;
+depuis l'aéroport, vers l'aéroport), puis une note : péages compris, même
+prix jour et nuit (CGV art. 4), l'accueil avec pancarte compris au départ
+de l'aéroport, capacités, et « Hors Paris (au-delà des 20 arrondissements) :
+prix selon la distance ». Le mot « forfait » est celui des CGV et de l'écran
+du prix (« Forfait Paris ↔ Roissy-CDG : le même prix partout dans Paris »).
+Jamais « ferme » (test-public-textes).
+
+**Le calcul** est celui de `prixSitePublic` : forfait, puis accueil au
+départ de l'aéroport (`ACCUEIL_EUR`), sans arrondi. Mesuré dans le
+formulaire : CDG T2E → Paris 80 € et 120 €, Paris → CDG 70 € et 110 € ;
+Orly → Paris 65 € et 90 €, Paris → Orly 55 € et 80 €.
+
+**Pourquoi un script, et pas des chiffres écrits seulement** : Barbaros peut
+changer un forfait dans Réglages → Tarifs sans aucun commit ; une page figée
+annoncerait alors un autre prix que le formulaire. La page écrit le repli
+(`config.js`, ce que lisent Google et un navigateur sans JavaScript) et
+`prix-forfaits.js` le remplace par la vue `grille_publique`, passée à la même
+porte que `grilleValide` (une seule valeur fausse : rien n'est pris, comme
+dans le formulaire). Le script est copié et nettoyé par `construire.sh`
+(deux lignes). `CACHE` monté : `seo-pages.css` est gardé « cache d'abord ».
+
+**Mesuré** sur le site construit, 390 × 844 : les deux lignes de prix au
+premier écran, au-dessus de la barre du pouce ; 360 px aussi ; à 320 px,
+la ligne « depuis l'aéroport » seulement, l'autre à un geste. Les deux
+boutons « CDG → Paris / Paris → CDG » passent sous le premier écran sur
+téléphone ; la barre du pouce (« Voir mon prix ») reste. Pour tenir, le bloc
+a été resserré : capacités dans la note, en-têtes sur une ligne.
+
+`test-prix-pages.mjs` (41 contrôles) : montants écrits = `config.js` ;
+mêmes serveur, clé et listes de clés que le moteur ; serveur muet → repli ;
+grille valide → la page ET le formulaire donnent le même montant ; grille
+sans forfait Disneyland → refusée des deux côtés ; prix au départ de
+l'aéroport sous le doigt à 320 et 390 px. Éprouvé : sur l'ancien code, 32
+contrôles tombent en nommant le défaut ; sur un script dont la porte laisse
+passer un forfait manquant, le contrôle « grille sans forfait Disneyland »
+tombe.
+
+**Pas fait, à proposer ensuite** : le prix dans le titre et la description
+Google de ces pages ; les pages `/en/` ; le même bloc sur l'accueil (il
+touche `index.html`, où un autre chantier est en cours).

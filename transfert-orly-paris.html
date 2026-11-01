@@ -40,6 +40,18 @@
         <h1>Transfert Orly ↔ Paris avec chauffeur privé</h1>
         <p class="lead">Votre chauffeur vient vous chercher au terminal de votre vol, suit votre atterrissage et vous dépose à l’adresse de votre choix. Le prix s’affiche avant l’envoi de votre demande, et rien n’est payé tant que votre chauffeur n’est pas confirmé.</p>
         <p class="note-google" data-avis-google="fr" hidden></p>
+        <div class="forfait" data-forfaits="orly">
+          <p class="forfait-titre" id="t-forfait">Forfait Paris ↔ Orly</p>
+          <p class="forfait-sous">Le même prix partout dans Paris.</p>
+          <table aria-labelledby="t-forfait">
+            <thead><tr><th scope="col">Trajet</th><th scope="col">Berline</th><th scope="col">Van</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Orly → Paris</th><td data-gamme="berline" data-accueil>65&nbsp;€</td><td data-gamme="van" data-accueil>90&nbsp;€</td></tr>
+              <tr><th scope="row">Paris → Orly</th><td data-gamme="berline">55&nbsp;€</td><td data-gamme="van">80&nbsp;€</td></tr>
+            </tbody>
+          </table>
+          <p class="forfait-notes">Péages compris, même prix jour et nuit. Au départ de l’aéroport, le prix comprend l’accueil avec une pancarte à votre nom. Berline jusqu’à 4 passagers, van jusqu’à 7. Hors Paris (au-delà des 20 arrondissements) : prix selon la distance, affiché avant l’envoi de votre demande.</p>
+        </div>
         <div class="actions">
           <a class="button" href="/?aeroport=orly&amp;sens=depart&amp;src=fr-orly" data-mesure="reserver">Orly → Paris</a>
           <a class="button secondary" href="/?aeroport=orly&amp;sens=arrivee&amp;src=fr-orly" data-mesure="reserver">Paris → Orly</a>
@@ -115,5 +127,6 @@
     <a class="button secondary" href="https://wa.me/33759312433?text=Bonjour%20Elatransfer%2C%20je%20souhaite%20un%20transfert%20entre%20l%27a%C3%A9roport%20d%27Orly%20et%20Paris." target="_blank" rel="noopener"><svg class="ico-wa" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.44 1.33 4.94L2 22l5.29-1.39a9.9 9.9 0 004.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/></svg><span>WhatsApp</span></a>
   </nav>
   <script src="/mesure.js" defer></script>
+  <script src="/prix-forfaits.js" defer></script>
 </body>
 </html>
