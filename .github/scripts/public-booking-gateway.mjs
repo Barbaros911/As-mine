@@ -37,10 +37,12 @@ const accuseHistorique = `return r.json().then(function(j){
           return true;
         }, function(){ return true; });`;
 if (!html.includes(accuseHistorique)) throw new Error('accusé du dépôt introuvable');
+// Chaque refus nomme sa cause (1er novembre 2026) : « signalerDepot » la remonte à erreur-client.
 html = html.replace(accuseHistorique, `return r.json().then(function(j){
-          if(!j || j.ok !== true || (j.ref && j.ref !== bon.ref)) return false;
+          if(!j || j.ok !== true){ nuage.causeDepot = "accusé refusé"; return false; }
+          if(j.ref && j.ref !== bon.ref){ nuage.causeDepot = "référence différente dans l'accusé"; return false; }
           if(Number(j.numero) > 0) poserNumeroClient(bon, Number(j.numero));
           return true;
-        }, function(){ return false; });`);
+        }, function(){ nuage.causeDepot = "accusé illisible"; return false; });`);
 fs.writeFileSync(fichier, html);
 console.log('Dépôt public routé vers /functions/v1/deposer-course avec contexte partenaire');

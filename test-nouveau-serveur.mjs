@@ -51,13 +51,18 @@ async function reserver(serveurRepond, sansPush, cachee, doubleClic){
     body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
   const depots = [];
   await p.route('**yyhzutnuhuytokarynaw.supabase.co/**', async route => {
+    /* LA TRACE D'UN DÉPÔT RATÉ (1er/11/2026) part à « erreur-client » après
+       le verdict : un POST de plus sur le même serveur, qui n'est PAS un
+       dépôt. Répondu ici, avant tout, et jamais compté — sinon « depots »
+       se décalait et la reprise lisait « 3 dépôts ». */
+    if(route.request().url().includes('/functions/v1/erreur-client')){ await route.fulfill({status:204, body:''}); return; }
     /* Depuis que le tarif se lit au chargement (« chargerTarifsServeur »),
        chaque page émet aussi deux GET vers les vues publiques de tarif —
-       sans rapport avec un dépôt de course. Ne compter ici que les POST :
-       c'est le seul sujet de cette suite (ligne 161, « en POST sur la
-       table des courses »), et les compter tous décalait « depots[0] »
-       du dépôt réel vers le premier GET de tarif. */
-    if(route.request().method()==='POST'){
+       sans rapport avec un dépôt de course. Ne compter ici que les POST
+       SUR LA TABLE DES COURSES : c'est le seul sujet de cette suite
+       (« en POST sur la table des courses »), et compter tout décalait
+       « depots[0] » du dépôt réel vers le premier GET de tarif. */
+    if(route.request().method()==='POST' && route.request().url().includes('/rest/v1/courses')){
       depots.push({ url: route.request().url(), methode: route.request().method(),
                     entetes: route.request().headers(),
                     corps: JSON.parse(route.request().postData()||'{}') });
