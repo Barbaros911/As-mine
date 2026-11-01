@@ -79,6 +79,11 @@ Deno.serve(async (req: Request) => {
   if (!/^\/[A-Za-z0-9/._-]*$/.test(chemin)) return reponse(400, { erreur: "invalide" }, origin);
   if (ecran && !/^[a-z0-9-]{1,40}$/.test(ecran)) return reponse(400, { erreur: "invalide" }, origin);
   const source = masquer(texte(e.source, 160));
+  /* LA VERSION DU SITE (1er novembre 2026) : « commit court · cache du service
+     worker », posée dans la page par construire.sh. Lue telle quelle si elle a
+     la forme attendue, ignorée sinon : une vieille page n'en envoie pas. */
+  const versionBrute = texte(e.version, 40);
+  const version = /^[A-Za-z0-9._\u00b7-]{1,40}$/.test(versionBrute) ? versionBrute : "";
 
   const ip = (req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || "inconnue").split(",")[0].trim();
   const cleQuota = await sha256("erreur|" + ip + "|" + new Date().toISOString().slice(0, 13));
@@ -92,7 +97,8 @@ Deno.serve(async (req: Request) => {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/ela_erreur_client_ecrire`, {
     method: "POST", headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}`, "Content-Type": "application/json" },
     body: JSON.stringify({ p: { espace, chemin, ecran: ecran || null, message, source: source || null,
-      appareil: APPAREILS.has(appareil) ? appareil : null, langue: /^[a-z]{2}$/.test(langue) ? langue : null } }),
+      appareil: APPAREILS.has(appareil) ? appareil : null, langue: /^[a-z]{2}$/.test(langue) ? langue : null,
+      version: version || null } }),
   }).catch(() => null);
   if (!r || !r.ok) return reponse(503, { erreur: "service indisponible" }, origin);
   return reponse(204, {}, origin);

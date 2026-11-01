@@ -57,6 +57,18 @@ begin
   perform public.ela_erreur_client_ecrire('{"espace":"admin","chemin":"/ela-admin/","message":"m2","appareil":"frigo","langue":"xyz"}'::jsonb);
   if (select appareil is not null or langue is not null from public.journal_erreurs_client where message = 'm2') then
     raise exception 'ECHEC 2 : appareil ou langue hors liste gardés'; end if;
+  -- LA VERSION DE LA PAGE (migration 20261101000000) : gardée telle quelle si
+  -- elle a la forme « commit court · cache », NULL sinon (vieille page, ou
+  -- valeur forgée) — jamais un refus.
+  if (select version from public.journal_erreurs_client where message = 'TypeError: x is undefined') is not null then
+    raise exception 'ECHEC 2 : une erreur sans version en porte une'; end if;
+  perform public.ela_erreur_client_ecrire('{"espace":"public","chemin":"/","message":"dépôt : échec (réseau) ELA-26-11-K7QPM","version":"dcbd603·elatransfer-v231"}'::jsonb);
+  if (select version from public.journal_erreurs_client where message like 'dépôt : échec%') is distinct from 'dcbd603·elatransfer-v231' then
+    raise exception 'ECHEC 2 : la version n''est pas gardée'; end if;
+  perform public.ela_erreur_client_ecrire('{"espace":"public","chemin":"/","message":"m-version-forgee","version":"<script>alert(1)</script>"}'::jsonb);
+  if (select version from public.journal_erreurs_client where message = 'm-version-forgee') is not null then
+    raise exception 'ECHEC 2 : une version forgée est gardée'; end if;
+  delete from public.journal_erreurs_client where message in ('dépôt : échec (réseau) ELA-26-11-K7QPM', 'm-version-forgee');
 end $$;
 
 -- 3. LE NAVIGATEUR N'ÉCRIT PAS, MÊME CONNECTÉ.
@@ -98,6 +110,15 @@ begin
     raise exception 'ECHEC 5 : comptes faux : %', j::text; end if;
   if json_array_length(j->'messages') <> 2 then
     raise exception 'ECHEC 5 : % message(s) au lieu de 2', json_array_length(j->'messages'); end if;
+  -- La version la plus récente de chaque message est rendue à l'admin (NULL
+  -- quand aucune page ne l'a donnée), jamais une ligne de plus par version.
+  perform public.ela_erreur_client_ecrire('{"espace":"hotel","chemin":"/application","message":"m3","version":"dcbd603·elatransfer-v231"}'::jsonb);
+  j := public.ela_erreurs_client_recentes();
+  if json_array_length(j->'messages') <> 2 then
+    raise exception 'ECHEC 5 : la version a dédoublé un message (% lignes)', json_array_length(j->'messages'); end if;
+  if not exists (select 1 from json_array_elements(j->'messages') e
+                  where e->>'message' = 'm3' and e->>'version' = 'dcbd603·elatransfer-v231' and (e->>'n')::int = 2) then
+    raise exception 'ECHEC 5 : le résumé ne porte pas la version du message : %', j::text; end if;
   update public.socle_reglages set exploitant = false;
   begin
     perform public.ela_erreurs_client_recentes();

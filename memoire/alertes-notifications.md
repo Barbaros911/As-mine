@@ -374,3 +374,13 @@ GitHub le fait.
   qui l'a vu (« Identifier 'heure' has already been declared »).
   `test-securite-fonctions` charge maintenant `deposer-course` (import
   `jsr:` retiré au chargement) et lit la clé de quota envoyée.
+
+## Rangé le 1er novembre 2026 (hors du mémo, toujours vrai)
+
+- **Pas de serveur loué** : les fonctions Supabase suffisent pour annoncer,
+  relancer et prévenir ; un serveur à tenir serait une panne de plus.
+- `a-coller.ts` est le **secours au téléphone** : quand GitHub Actions ne peut
+  pas déployer, Barbaros colle ce fichier d'un seul tenant dans l'éditeur de
+  Supabase. Le déploiement normal reste `fonctions.yml`.
+- WhatsApp ne sonne pas tout seul parce que l'**API Business** exige une
+  vérification de l'entreprise et un numéro dédié : rien à coder d'ici.

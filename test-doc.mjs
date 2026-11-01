@@ -341,7 +341,7 @@ if(refs){
    du sujet qu'on touche vers memoire/, dans la même PR, et il repasse.
    Il DESCEND à chaque rangement, jamais l'inverse. Il tourne sur chaque
    PR (quality-gate) : c'est là qu'il doit mordre, pas à la publication. */
-const PLAFOND_MEMO = 54908; // octets — ne monte jamais, descend à chaque rangement (319000 → 316200 le 11/10/2026, rangement de l'itinéraire ; → 315950 le 14/10/2026, hébergement ; → 314950 le 14/10/2026, marque et Google ; → 311050 le 14/10/2026, tarif ; → 311045 le 15/10/2026, indexation ; → 309590 le 15/10/2026, avis et liens des partenaires ; → 309415 le 15/10/2026, programme partenaire ; → 308798 le 17/10/2026, branches ; → 303355 le 17/10/2026, sites vitrines et phrases périmées ; → 303086 le 18/10/2026, hébergement et vraie 404 ; → 303029 le 18/10/2026, trafic ; → 300524 le 18/10/2026, positionnement, programme partenaire, documents légaux et note Google ; → 299646 le 19/10/2026, prix à toutes les distances et péages ; → 299511 le 19/10/2026, réconciliation avec main : partenaire au conditionnel, lanceur des suites ; → 296017 le 19/10/2026, cinq services archivés, finition visuelle ; → 296002 le 19/10/2026, trafic : l'entonnoir dit où l'on perd ; → 295141 le 19/10/2026, registre et délai de confirmation ; → 295138 le 19/10/2026, référence : collision au dépôt ; → 294011 le 19/10/2026, voyant archivé, erreurs du site ; → 293603 le 19/10/2026, limite du registre, synchronisation archivée ; → 293588 le 19/10/2026, page client hôtel : le premier dessin est le bon ; → 293535 le 19/10/2026, secret de la relance, mesure du 29/09 archivée ; → 292115 le 20/10/2026, rôle agent archivé, accès agent suspendu ; → 288725 le 20/10/2026, accès de la réception archivé, seul Barbaros supprime ; → 285057 le 21/10/2026, thème du partenaire archivé, réception V2 ; → 285051 le 21/10/2026, la carte de la réception après une réservation ; → 284972 le 21/10/2026, réception 10/10 : rien de vert d'office, bon sans boutons sur PC ; → 284959 le 22/10/2026, marque et Google : pages françaises d'acquisition ; → 55308 le 22/10/2026, rangement général : toute l'histoire dans memoire/, ne restent que les règles vraies aujourd'hui ; → 55304 le 23/10/2026, courses de l'admin au départ de l'hôtel, détails du comptoir archivés ; → 55286 le 23/10/2026, arrivée à l'hôtel et rattachement à la main, quota partenaire archivé ; → 55281 le 23/10/2026, une centrale et un large réseau, textes publics resserrés ; → 55269 le 24/10/2026, double vérification de l'admin, connexion archivée ; → 55139 le 24/10/2026, grille par tranches, forfaits Paris et accueil, prix des pages retiré, fusion avec la double vérification ; → 55138 le 24/10/2026, données métier sur le serveur ; → 55137 le 24/10/2026, easyHotel refuse d'être cité : le co-marquage vit sur la fiche ; → 55134 le 24/10/2026, marche à 27 km, fusion avec les données métier et la fiche easyHotel ; → 55098 le 24/10/2026, messages au client : la trace et le pense-bête, notification resserrée, fusion avec la marche à 27 km ; → 55095 le 24/10/2026, code admin choisi au lieu de l'application de codes ; → 55091 le 24/10/2026, la recherche et « Me localiser » n'attendent plus le plus lent ; → 55080 le 24/10/2026, la liste des lieux : une pastille, le nom, l'adresse dessous ; → 55063 le 24/10/2026, la troisième couleur (l'or doux des pictogrammes), pièges des icônes archivés ; → 55061 le 24/10/2026, une seule famille d'icônes, une couleur par sujet ; → 55060 le 24/10/2026, la règle des priorités, section « Travailler avec Barbaros » resserrée ; → 55047 le 25/10/2026, P0 : une demande non vue ne se tait plus, « Vu » n'arrête que l'alarme ; → 55008 le 25/10/2026, étape 2 : battement de la relance, bandeau des non vues, alerte d'essai, réactivité ; annonce resserrée ; → 55006 le 28/10/2026, alertes des conseillers Supabase qualifiées, webhook et secrets resserrés ; → 54999 le 29/10/2026, preuves commerciales (#426) : lien seul vers les avis Google, phrase « utilisé », avis et réseau resserrés, fusion avec l'audit sécurité ; → 54995 le 30/10/2026, easyHotel nommé sur la seule page du QR, sujets clos resserrés ; → 54918 le 31/10/2026, fusion : le « oui » écrit de Barbaros pour cette PR, histoire dans memoire/branches.md, fusion avec les preuves commerciales ; → 54915 le 31/10/2026, preuve « Déjà utilisé dans l'hôtellerie », jamais au pluriel, fusion avec le « oui » écrit pour cette PR ; → 54908 le 31/10/2026, le dictionnaire des deux langues dans textes.js, langues suivantes et juges de l'heure archivés)
+const PLAFOND_MEMO = 54908; // octets — ne monte jamais, descend à chaque rangement (319000 → 316200 le 11/10/2026, rangement de l'itinéraire ; → 315950 le 14/10/2026, hébergement ; → 314950 le 14/10/2026, marque et Google ; → 311050 le 14/10/2026, tarif ; → 311045 le 15/10/2026, indexation ; → 309590 le 15/10/2026, avis et liens des partenaires ; → 309415 le 15/10/2026, programme partenaire ; → 308798 le 17/10/2026, branches ; → 303355 le 17/10/2026, sites vitrines et phrases périmées ; → 303086 le 18/10/2026, hébergement et vraie 404 ; → 303029 le 18/10/2026, trafic ; → 300524 le 18/10/2026, positionnement, programme partenaire, documents légaux et note Google ; → 299646 le 19/10/2026, prix à toutes les distances et péages ; → 299511 le 19/10/2026, réconciliation avec main : partenaire au conditionnel, lanceur des suites ; → 296017 le 19/10/2026, cinq services archivés, finition visuelle ; → 296002 le 19/10/2026, trafic : l'entonnoir dit où l'on perd ; → 295141 le 19/10/2026, registre et délai de confirmation ; → 295138 le 19/10/2026, référence : collision au dépôt ; → 294011 le 19/10/2026, voyant archivé, erreurs du site ; → 293603 le 19/10/2026, limite du registre, synchronisation archivée ; → 293588 le 19/10/2026, page client hôtel : le premier dessin est le bon ; → 293535 le 19/10/2026, secret de la relance, mesure du 29/09 archivée ; → 292115 le 20/10/2026, rôle agent archivé, accès agent suspendu ; → 288725 le 20/10/2026, accès de la réception archivé, seul Barbaros supprime ; → 285057 le 21/10/2026, thème du partenaire archivé, réception V2 ; → 285051 le 21/10/2026, la carte de la réception après une réservation ; → 284972 le 21/10/2026, réception 10/10 : rien de vert d'office, bon sans boutons sur PC ; → 284959 le 22/10/2026, marque et Google : pages françaises d'acquisition ; → 55308 le 22/10/2026, rangement général : toute l'histoire dans memoire/, ne restent que les règles vraies aujourd'hui ; → 55304 le 23/10/2026, courses de l'admin au départ de l'hôtel, détails du comptoir archivés ; → 55286 le 23/10/2026, arrivée à l'hôtel et rattachement à la main, quota partenaire archivé ; → 55281 le 23/10/2026, une centrale et un large réseau, textes publics resserrés ; → 55269 le 24/10/2026, double vérification de l'admin, connexion archivée ; → 55139 le 24/10/2026, grille par tranches, forfaits Paris et accueil, prix des pages retiré, fusion avec la double vérification ; → 55138 le 24/10/2026, données métier sur le serveur ; → 55137 le 24/10/2026, easyHotel refuse d'être cité : le co-marquage vit sur la fiche ; → 55134 le 24/10/2026, marche à 27 km, fusion avec les données métier et la fiche easyHotel ; → 55098 le 24/10/2026, messages au client : la trace et le pense-bête, notification resserrée, fusion avec la marche à 27 km ; → 55095 le 24/10/2026, code admin choisi au lieu de l'application de codes ; → 55091 le 24/10/2026, la recherche et « Me localiser » n'attendent plus le plus lent ; → 55080 le 24/10/2026, la liste des lieux : une pastille, le nom, l'adresse dessous ; → 55063 le 24/10/2026, la troisième couleur (l'or doux des pictogrammes), pièges des icônes archivés ; → 55061 le 24/10/2026, une seule famille d'icônes, une couleur par sujet ; → 55060 le 24/10/2026, la règle des priorités, section « Travailler avec Barbaros » resserrée ; → 55047 le 25/10/2026, P0 : une demande non vue ne se tait plus, « Vu » n'arrête que l'alarme ; → 55008 le 25/10/2026, étape 2 : battement de la relance, bandeau des non vues, alerte d'essai, réactivité ; annonce resserrée ; → 55006 le 28/10/2026, alertes des conseillers Supabase qualifiées, webhook et secrets resserrés ; → 54999 le 29/10/2026, preuves commerciales (#426) : lien seul vers les avis Google, phrase « utilisé », avis et réseau resserrés, fusion avec l'audit sécurité ; → 54995 le 30/10/2026, easyHotel nommé sur la seule page du QR, sujets clos resserrés ; → 54918 le 31/10/2026, fusion : le « oui » écrit de Barbaros pour cette PR, histoire dans memoire/branches.md, fusion avec les preuves commerciales ; → 54915 le 31/10/2026, preuve « Déjà utilisé dans l'hôtellerie », jamais au pluriel, fusion avec le « oui » écrit pour cette PR ; → 54908 le 31/10/2026, le dictionnaire des deux langues dans textes.js, langues suivantes et juges de l'heure archivés ; → 54908 le 1er/11/2026, dépôts ratés tracés et version de la page, alertes resserrées, fusion avec textes.js)
 {
   const taille = Buffer.byteLength(doc, "utf8");
   verifier("CLAUDE.md tient sous son plafond (" + Math.round(PLAFOND_MEMO / 1000) + " Ko)",
@@ -801,13 +801,46 @@ if (reglesTexte !== null) {
    par un motif « test-xxx-*.mjs », ou par un « npm run » qui l'appelle.
    Ne comptent pas : un commentaire (une suite nommée dans une explication
    n'est pas lancée) ni un chemin de déclenchement (« paths: », qui dit
-   QUAND un workflow part, pas ce qu'il lance). Une suite Admin v2
-   (ELA_AVEC_ADMIN_V2) n'est jamais prise par un motif — « admin » la saute
-   exprès — : elle doit être nommée là où l'on construit Admin v2. */
+   QUAND un workflow part, pas ce qu'il lance).
+   ET SEUL COMPTE UN WORKFLOW QUI TOURNE SUR TOUTE PULL REQUEST (1er novembre
+   2026, audit de la CI). « Lancée par un workflow » ne suffisait pas :
+   test-admin-commission — la commission de l'admin que Barbaros utilise —
+   n'était lancée que par « Contrôle Admin v2 », filtré par chemins sans
+   index.html, et « admin » la sautait parce qu'elle construit aussi Admin v2.
+   Mesuré : sur les branches du P0 #399 et des preuves commerciales, qui
+   modifiaient index.html, elle n'a tourné AUCUNE fois. Un workflow filtré
+   par « paths », « paths-ignore » ou « types » ne compte donc plus. */
 {
   const dossierWf = ".github/workflows";
   const scripts = JSON.parse(readFileSync("package.json", "utf8")).scripts || {};
-  const lignes = readdirSync(dossierWf).filter(f => /\.ya?ml$/.test(f))
+  /* Le bloc « on: », puis le bloc « pull_request: » qu'il contient : sans
+     paths, paths-ignore ni types, le workflow part sur chaque PR. */
+  const surToutePR = texte => {
+    const l = texte.split("\n"), i = l.findIndex(x => /^on:/.test(x));
+    if(i < 0) return false;
+    const enLigne = l[i].replace(/#.*/, "");
+    if(/\bpull_request\b/.test(enLigne)) return !/paths|types/.test(enLigne);
+    let j = i + 1;
+    const bloc = [];
+    while(j < l.length && (/^\s/.test(l[j]) || l[j].trim() === "")) bloc.push(l[j++]);
+    const k = bloc.findIndex(x => /^\s+pull_request\s*:/.test(x));
+    if(k < 0) return false;
+    if(/paths|types/.test(bloc[k].replace(/#.*/, "").split(":").slice(1).join(":"))) return false;
+    const retrait = bloc[k].match(/^\s*/)[0].length;
+    for(const x of bloc.slice(k + 1)){
+      if(x.trim() === "" || /^\s*#/.test(x)) continue;
+      if(x.match(/^\s*/)[0].length <= retrait) break;
+      if(/^\s+(paths|paths-ignore|types)\s*:/.test(x)) return false;
+    }
+    return true;
+  };
+  const toutePR = readdirSync(dossierWf).filter(f => /\.ya?ml$/.test(f))
+    .filter(f => surToutePR(readFileSync(dossierWf + "/" + f, "utf8")));
+  verifier("le filtre « toute PR » reconnaît le contrôle exigé et écarte un workflow filtré",
+    toutePR.includes("admin-regression.yml") && toutePR.includes("quality-gate.yml")
+      && !toutePR.includes("admin-v2-regression.yml") && !toutePR.includes("tracking-sync.yml"),
+    "workflows retenus : " + toutePR.join(", "));
+  const lignes = toutePR
     .flatMap(f => readFileSync(dossierWf + "/" + f, "utf8").split("\n"))
     .filter(l => !/^\s*#/.test(l) && !/^\s*-\s*['"][^'"]*['"]\s*$/.test(l))
     .map(l => l.replace(/\bnpm run ([\w:.-]+)/g, (m, s) => m + " " + (scripts[s] || "")));
@@ -820,12 +853,20 @@ if (reglesTexte !== null) {
   const oubliees = suites.filter(f => {
     const nom = f.replace(/\.mjs$/, "");
     if(nommees.has(nom)) return false;
-    if(readFileSync(f, "utf8").includes("ELA_AVEC_ADMIN_V2")) return true;
     return !motifs.some(p => nom.startsWith(p));
   });
-  verifier("toute suite test-*.mjs est lancée par la CI", oubliees.length === 0,
-    "jamais lancée(s) par un workflow : " + oubliees.join(", ") +
-    ". L'ajouter à admin-regression.yml (une suite Admin v2 : admin-v2-regression.yml) ; ne pas la retirer du dépôt.");
+  verifier("toute suite test-*.mjs est lancée par un contrôle de chaque PR", oubliees.length === 0,
+    "lancée(s) par aucun workflow qui tourne sur toute PR : " + oubliees.join(", ") +
+    ". L'ajouter à admin-regression.yml ; ne pas la retirer du dépôt.");
+  /* LE SAUT QUI A OUVERT LE TROU : « admin » écartait toute suite qui pose
+     ELA_AVEC_ADMIN_V2, alors que test-admin-commission et test-admin-prix
+     éprouvent aussi l'admin retenu et index.html. Une suite qui construit
+     Admin v2 le fait elle-même : rien ne justifie de la sauter. */
+  const admin = readFileSync(dossierWf + "/admin-regression.yml", "utf8").split("\n")
+    .filter(l => !/^\s*#/.test(l)).join("\n");
+  verifier("le contrôle « admin » ne saute aucune suite Admin v2",
+    !/ELA_AVEC_ADMIN_V2/.test(admin),
+    "admin-regression.yml écarte les suites qui posent ELA_AVEC_ADMIN_V2 : la commission de l'admin retenu ne serait plus éprouvée à chaque PR.");
 }
 
 /* --------------------------------------------------------------- */

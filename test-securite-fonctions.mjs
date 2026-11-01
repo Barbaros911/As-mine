@@ -334,6 +334,47 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(b.status===201&&!('numero' in jb),'deposer-course : sans la colonne (migration pas encore appliquée), le dépôt passe sans N° ('+b.status+')');
   globalThis.fetch=fetchAvant;
 }
+/* deposer-course : UN 409 À L'ÉCRITURE EST RELU AVANT D'ÊTRE RENDU (1er
+   novembre 2026, audit). Le téléphone abandonne un premier envoi à 8 s et
+   rejoue ; le serveur a quand même écrit le premier. Le rejeu lit « déjà
+   déposée ? » à vide (ligne pas encore visible), puis son écriture tombe sur
+   la contrainte UNIQUE : la ligne est là, désormais. Même empreinte = notre
+   demande → 200 « rejoué », avec le N° court. Empreinte différente = la
+   référence est à quelqu'un d'autre → 409, journalisé. ÉPROUVÉ CONTRE
+   L'ANCIEN CODE : il rendait 409 dans les deux cas (le site tirait alors une
+   autre référence : deux courses pour une demande). */
+{
+  let ecrit=null, empreinteServie=null, journal=0;
+  const fetchAvant=globalThis.fetch;
+  globalThis.fetch=async(url,init={})=>{
+    url=String(url);
+    if(url.includes('/rpc/consommer_quota_reservation')) return new Response('true');
+    if(url.includes('/rest/v1/partenaires')||url.includes('parametres_commerciaux')) return new Response('[]');
+    if(url.includes('/rest/v1/journal_depots')){journal++;return new Response('',{status:201});}
+    if(url.includes('/rest/v1/courses?ref=eq.')){
+      /* Avant l'écriture : rien. Après le 409 : la ligne concurrente, telle que la relecture la trouve. */
+      if(!ecrit) return new Response('[]');
+      return new Response(JSON.stringify([{bon:{numero:777,securite:{empreinteDepot:empreinteServie??ecrit?.p_bon?.securite?.empreinteDepot}}}]));
+    }
+    if(url.includes('/rpc/ela_deposer_course_serveur')){ecrit=JSON.parse(init.body);return new Response('{"code":"23505","message":"duplicate key"}',{status:409});}
+    return fetchAvant(url,init);
+  };
+  const dc=await charger('deposer-course',{SUPABASE_URL:'http://sb',SUPABASE_SERVICE_ROLE_KEY:'S'});
+  const bon9=ref=>({ref,course:{depart:'10 rue de Rivoli, Paris',arrivee:'Orly',date:'2026-11-12',heure:'06:30',vehicule:'Berline',vehiculeCle:'berline',passagers:'2 passagers',distanceKm:20},
+    client:{nom:'Client',telephone:'0612345678'},prix:{total:60},paiement:'carte'});
+  const depot9=ref=>dc(new Request('http://x',{method:'POST',headers:{origin:'https://elatransfer.com','x-forwarded-for':'10.0.0.8','content-type':'application/json'},body:JSON.stringify({bon:bon9(ref)})}));
+  /* 1. Même empreinte : c'est la nôtre. La relecture rend l'empreinte que la fonction vient d'envoyer. */
+  const r1=await depot9('ELA-26-11-RJ1AA');
+  const j1=await r1.json().catch(()=>({}));
+  ok(r1.status===200&&j1.ok===true&&j1.rejoue===true&&j1.ref==='ELA-26-11-RJ1AA'&&j1.numero===777,'deposer-course : un 409 à l\'écriture sur NOTRE empreinte rend « rejoué » (200) avec le N° court ('+r1.status+' '+JSON.stringify(j1)+')');
+  ok(journal===0,'deposer-course : ce rejeu n\'est pas journalisé comme un refus');
+  /* 2. Empreinte différente : la référence est prise par une autre demande → 409. */
+  ecrit=null; empreinteServie='autre-empreinte';
+  const r2=await depot9('ELA-26-11-RJ2BB');
+  ok(r2.status===409&&journal===1,'deposer-course : un 409 sur une AUTRE empreinte reste un 409, journalisé ('+r2.status+', '+journal+' refus)');
+  globalThis.fetch=fetchAvant;
+}
+
 /* deposer-course : LE LIEU STRUCTURÉ EST GARDÉ, ET LE PRIX AU KILOMÈTRE EST
    CONTRÔLÉ (4 octobre 2026). Avant, le serveur jetait les coordonnées et
    acceptait « Paris → Roissy, 5 € » envoyé depuis la console. Aucune route
@@ -901,8 +942,10 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
    clé, et il répond avec un délai : les deux dépôts identiques passent donc
    tous deux la vérification « déjà déposée ? » avant la première écriture,
    exactement la fenêtre de la course réelle. Ce qu'on prouve : aucune ligne
-   en double, un seul des deux gagne, et le REJEU du perdant est reconnu
-   (200 « rejoue ») — c'est le chemin que prend maintenant le site. */
+   en double, un seul des deux gagne, et le perdant est reconnu « rejoue »
+   (200) — DÈS SON 409 À L'ÉCRITURE depuis le 1er/11/2026 (la ligne est relue
+   avant de refuser), et encore s'il rejoue à l'identique. Avant, il recevait
+   409 et le site tirait une autre référence au second 409. */
 {
   const fetchAvant=globalThis.fetch;
   const table={},compteurs={};let ecrits=0;
@@ -924,7 +967,7 @@ listeHotel[1].bon.modifieLe='2026-09-30T08:00:00Z';
   ok(r5.every(r=>r.status===201)&&Object.keys(table).length===5,'charge : 5 dépôts simultanés depuis la même adresse → 5 lignes, 5 × 201 ('+r5.map(r=>r.status).join(',')+')');
   const [a,b]=await Promise.all([depot('ELA-26-10-DBLE1','10.0.0.2'),depot('ELA-26-10-DBLE1','10.0.0.2')]);
   const codes=[a.status,b.status].sort().join('/');
-  ok(codes==='201/409'&&Object.keys(table).length===6,'charge : deux dépôts IDENTIQUES en même temps → une seule ligne, un 201 et un 409 ('+codes+')');
+  ok(codes==='200/201'&&Object.keys(table).length===6,'charge : deux dépôts IDENTIQUES en même temps → une seule ligne, un 201 et un 200 « rejoue » pour le perdant ('+codes+')');
   const rejeu=await depot('ELA-26-10-DBLE1','10.0.0.2');
   ok(rejeu.status===200&&(await rejeu.json()).rejoue===true&&Object.keys(table).length===6,'charge : le perdant qui REJOUE à l\'identique est reconnu (200 « rejoue »), aucune ligne de plus');
   const autre=await depot('ELA-26-10-DBLE1','10.0.0.3','0699999999');
