@@ -162,3 +162,12 @@ tout, et un visiteur n'avait aucun moyen de vérifier la réputation.
 - `test-public-avis-google` éprouve l'état réel du fichier (note OU lien seul) ;
   sur l'ancien code, 26 de ses contrôles tombent en nommant le défaut. Il ne
   plante plus quand la ligne manque (il le dit).
+
+### 43 avis, la note reste éteinte (31 octobre 2026)
+
+Barbaros : « J'ai 43 avis 5/5 pas 25 » — le fichier portait encore le relevé
+du 18/10. Relevé mis à jour d'après son chiffre (Google est injoignable depuis
+la machine de Claude : rien n'a pu être recompté ici). On lui a proposé
+d'afficher la note maintenant ; **il a choisi de corriger le chiffre seulement**
+(« 1 ») : `afficher` reste à false, rien ne change à l'écran. Le jour où il
+l'allume, le relevé doit avoir moins de 60 jours, sinon la note s'éteint seule.
