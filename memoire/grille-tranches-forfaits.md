@@ -128,3 +128,29 @@ seules, déplacées à l'identique. `HOTELS` et les clés du serveur restent dan
 le moteur jusqu'à leur propre PR. Retiré de `CLAUDE.md` le même jour, parce
 que c'est une date : les prix par page (`prix_pages`) ont été retirés le
 23 octobre 2026.
+
+## 1er novembre 2026 — les règles du prix sortent du moteur
+
+Troisième extraction : `prix.js`. L'arithmétique (tranches, arrondi,
+plancher) était déjà dans `itineraire-partage.js` ; ce qui restait dans le
+moteur, ce sont les règles, déplacées à l'identique : Paris = la commune
+(`estParis`), les zones de forfait (`zoneForfait`, `forfaitEntre`), l'accueil
+au départ (`departAeroport`, `departGrandeGare`, `accueilAuDepart`),
+`prixSitePublic`, la porte de la grille du serveur (`grilleValide`,
+`grilleEnCentimes`), la destination du flyer par le lieu (`destDuPoint`, qui
+reçoit la fiche de l'hôtel en paramètre), et les trois reconnaisseurs de lieu
+dont elles dépendent (`sansAccents`, `estGare`, `terminalDuLibelle`). Le module
+ne tient aucun tarif : le moteur lui passe `{ grille, forfaits, accueil }` en
+vigueur (`tarifsEnVigueur()`), et `appliquerGrille` reste le seul endroit qui
+les change. Chaque appelant de la page garde son nom derrière un alias d'une
+ligne. `test-prix.mjs` (88 contrôles, valeurs à la main) a été écrit AVANT
+le déplacement et tournait vert sur le code de `main` en découpant les
+fonctions dans `index.html` ; il tombe sur un `>=` dans l'arrondi, sur une
+marche déplacée, sur la ville ignorée dans `estParis`.
+
+Archivé de `CLAUDE.md` le même jour, parce que ce sont des dates : la grille
+du site public est la décision du 23 octobre 2026 ; « la grille vaut pour
+toute la France » est celle du 19 octobre (« B2 », `memoire/prix-toutes-distances.md`) ;
+la bascule de `nouveau.html` en `index.html` date du 6 septembre 2026, et
+« il ne garde rien de l'ancien » est sa consigne, donnée deux fois
+(`memoire/ancien-site.md`).
