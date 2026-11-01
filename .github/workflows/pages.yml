@@ -60,7 +60,7 @@ jobs:
         run: node test-unified-facade.mjs
 
       - name: Téléverser le site
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
