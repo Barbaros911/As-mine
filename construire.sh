@@ -12,6 +12,9 @@ cp index.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admi
 # d'une image, et Safari gardait l'icône de septembre. Une COPIE, jamais un
 # second dessin : le logo ne bouge pas (test-nouveau-bascule).
 cp icon-180.png site/apple-touch-icon.png
+# LE FORFAIT DES PAGES CDG ET ORLY (1er novembre 2026) : relu au serveur
+# au chargement ; sans lui, les pages gardent les montants de repli.
+cp prix-forfaits.js site/
 node .github/scripts/public-booking-gateway.mjs site/index.html
 node .github/scripts/harden-exploitant-auth.mjs site/index.html
 node .github/scripts/agent-role-ui.mjs site/index.html
@@ -125,6 +128,7 @@ node .github/scripts/masquer-commentaires.mjs \
   site/demo/hotel/index.html site/demo/hotel/reception/index.html \
   site/demo/demo-simulateur.js site/demo/bon-client.js site/demo/demo.css \
   site/mesure.js site/en/index.html site/en/*/index.html site/404.html site/en/404.html \
+  site/prix-forfaits.js \
   site/*.css site/robots.txt
 
 # LA DÉMO NE DOIT RIEN POUVOIR TOUCHER EN PRODUCTION : la construction

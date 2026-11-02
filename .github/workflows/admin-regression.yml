@@ -130,7 +130,9 @@ jobs:
               # tunnel et la grille de repli (config.js, 31 octobre 2026), sans
               # navigateur eux aussi. Les règles du prix (prix.js, 1er novembre
               # 2026) : tranches, forfaits, accueil, grille du serveur, à la main.
-              test-public-*.mjs|test-grille-publique.mjs|test-parcours-en.mjs|test-seo-en.mjs|test-mesure.mjs|test-nouveau-bascule.mjs|test-textes.mjs|test-config.mjs|test-prix.mjs)
+              # Le forfait des pages CDG et Orly (1er novembre 2026) : le montant
+              # affiché est celui que le formulaire calcule.
+              test-public-*.mjs|test-grille-publique.mjs|test-parcours-en.mjs|test-seo-en.mjs|test-mesure.mjs|test-nouveau-bascule.mjs|test-textes.mjs|test-config.mjs|test-prix.mjs|test-prix-pages.mjs)
                 echo public;;
               # LES PARTENAIRES : HÔTELS, RÉCEPTION, PROFESSIONNELS. La réception
               # d'easyHotel (5 octobre 2026) ne tournait qu'à la main alors que
