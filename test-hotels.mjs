@@ -105,6 +105,14 @@ for (const s of scripts) {
   const t = sansCommentaires(lire(s));
   check(`${s} lit hotels.js, plus jamais la fiche dans la page`, /hotels\.js/.test(t) && !/(?:source|html|page|site)\.indexOf\('var HOTELS = \{'\)/.test(t));
 }
+/* Un workflow qui cherche un forfait du flyer par sa forme le cherche dans
+   hotels.js publié, plus dans la page (tariff-source-regression, 2/11/2026 :
+   son grep sur site/index.html est tombé sur un code juste). */
+for (const w of ["tariff-source-regression.yml"]) {
+  const t = lire(".github/workflows/" + w).split("\n").filter((l) => !/^\s*#/.test(l)).join("\n");
+  const mal = [...t.matchAll(/grep[^\n]*forfait:\{[^\n]*/g)].map((m) => m[0]).filter((l) => !/site\/hotels\.js/.test(l));
+  check(`${w} : un grep de forfait vise site/hotels.js`, mal.length === 0, mal.join(" | "));
+}
 const demo = sansCommentaires(lire(".github/scripts/construire-demo.mjs"));
 check("la démo reçoit sa propre fiche : /demo/hotels.js écrit, et la page y renvoie",
   /writeFileSync\(path\.join\(dossier, 'hotels\.js'\), HOTELS_DEMO\)/.test(demo) && /'<script src="\/demo\/hotels\.js"><\/script>'/.test(demo));
