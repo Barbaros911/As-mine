@@ -204,3 +204,20 @@ tombe.
 **Pas fait, à proposer ensuite** : le prix dans le titre et la description
 Google de ces pages ; les pages `/en/` ; le même bloc sur l'accueil (il
 touche `index.html`, où un autre chantier est en cours).
+
+## 2 novembre 2026 — une seule porte du prix sur les pages CDG et Orly
+
+Relecture après la fusion de #448 : `prix-forfaits.js` recopiait
+`grilleValide` « règle pour règle » (une cinquantaine de lignes) et ses
+listes de gammes et de forfaits, pendant que `prix.js` (#447, sur `main`
+depuis la veille) exposait déjà cette porte. Deux portes qui se ressemblent
+divergent le jour où l'une change, et ce qui divergerait serait un montant
+affiché, donc opposable (`TEAM_RULES.md` §3 : une seule implémentation par
+sujet). Les deux pages chargent désormais `config.js`,
+`itineraire-partage.js` et `prix.js` (en `defer`, dans l'ordre du moteur) et
+le script appelle `ELA_PRIX.grilleValide(valeur, GAMMES, FORFAITS_PUBLICS)`.
+Il ne porte plus aucune règle de prix ; `test-prix-pages.mjs` le refuse s'il
+en reprend une (motifs de la grille, `function grilleValide`). Les clés
+Supabase y restent écrites, comme dans le moteur : la suite exige qu'elles
+soient égales. Poids ajouté sur ces pages : trois scripts déjà gardés par le
+service worker pour qui a ouvert le site de réservation.
