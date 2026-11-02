@@ -52,6 +52,7 @@
              node test-nouveau-paiement.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { routerAuth, entrer, SESSION, marquerAccesVerifie } from './banc-exploitant.mjs';
 const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
@@ -230,13 +231,14 @@ const ctx2 = await b.newContext({viewport:{width:390,height:844},deviceScaleFact
 const p2 = await ctx2.newPage();
 p2.on('pageerror',e=>errs.push(e.message));
 await p2.route('**supabase.co/**', r => r.abort());
+await routerAuth(p2);
+await ctx2.addInitScript(marquerAccesVerifie, SESSION);
 await ctx2.addInitScript(()=>{ window.__liens = []; window.open = (u)=>{ window.__liens.push(u); return null; }; });
 await ctx2.addInitScript((liste)=>{
   if(!sessionStorage.getItem('__pose')){
     localStorage.setItem('ela_bookings', JSON.stringify(liste));
     sessionStorage.setItem('__pose','1');
   }
-  localStorage.setItem('ela_exploitant', '584ec46adb3a2408');
 }, [course("ELA-26-09-0001",{paiement:"carte", paiementNom:"Carte bancaire"}),
     course("ELA-26-09-0002",{}),
     course("ELA-26-10-LIEN1",Object.assign({statut:"confirmee"},LIEN,CH),{date:jourDans(1), heure:"15:00"})]);

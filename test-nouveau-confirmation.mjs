@@ -33,6 +33,7 @@
              node test-nouveau-confirmation.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { routerAuth, entrer, SESSION, marquerAccesVerifie } from './banc-exploitant.mjs';
 const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
@@ -52,9 +53,10 @@ const ctxE = await b.newContext({viewport:{width:390,height:844},deviceScaleFact
 const pe = await ctxE.newPage();
 pe.on('pageerror',e=>errs.push(e.message));
 await pe.route('**supabase.co/**', r => r.fulfill({status:201, body:''}));
+await routerAuth(pe);
+await ctxE.addInitScript(marquerAccesVerifie, SESSION);
 await ctxE.addInitScript(([a,c])=>{
   localStorage.setItem('ela_bookings', JSON.stringify([a,c]));
-  localStorage.setItem('ela_exploitant', '584ec46adb3a2408');
   window.__liens = [];
   window.open = (u)=>{ window.__liens.push(u); return null; };
 }, [course("ELA-26-09-0001"), course("ELA-26-09-0002",{client:{nom:"Sans Numéro", telephone:""}})]);
@@ -127,9 +129,10 @@ await ctxE.close();
   const pn = await ctxN.newPage();
   pn.on('pageerror',e=>errs.push(e.message));
   await pn.route('**supabase.co/**', r => r.fulfill({status:201, body:''}));
+  await routerAuth(pn);
+  await ctxN.addInitScript(marquerAccesVerifie, SESSION);
   await ctxN.addInitScript((a)=>{
     localStorage.setItem('ela_bookings', JSON.stringify([a]));
-    localStorage.setItem('ela_exploitant', '584ec46adb3a2408');
     window.__liens = [];
     window.open = (u)=>{ window.__liens.push(u); return null; };
   }, course("ELA-26-10-K7QPM", { numero:1042 }));

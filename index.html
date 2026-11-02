@@ -4152,18 +4152,62 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
   <section class="ecran" id="ecran-verrou">
     <div class="bloc">
       <h1 class="bloc-titre">Espace exploitant</h1>
-      <p class="bloc-note">Saisissez votre code pour ouvrir votre tableau de bord.</p>
-      <label class="champ" for="codeExploitant">
+      <p class="bloc-note">Connexion sécurisée. Votre compte est vérifié par le serveur avant l'ouverture du tableau de bord.</p>
+      <div id="etapeIdentifiants">
+      <label class="champ" for="exploitantEmail">
         <span class="champ-corps">
-          <span class="champ-titre">Code</span>
-          <input id="codeExploitant" type="password" inputmode="numeric"
-                 autocomplete="off" placeholder="••••••">
+          <span class="champ-titre">Adresse e-mail</span>
+          <input id="exploitantEmail" type="email" autocomplete="username" inputmode="email" placeholder="vous@exemple.com">
         </span>
       </label>
-      <p class="champ-aide" id="codeErreur" hidden>Code refusé.</p>
+      <label class="champ" for="exploitantMdp">
+        <span class="champ-corps">
+          <span class="champ-titre">Mot de passe</span>
+          <input id="exploitantMdp" type="password" autocomplete="current-password" placeholder="••••••••">
+        </span>
+      </label>
+      <!-- ACCÈS SUSPENDU (20 octobre 2026). Quand le serveur refuse un compte
+           dont la ligne « operateurs » est inactive, on dit POURQUOI au lieu
+           de « vérifiez vos identifiants » : l'agent retaperait dix fois un
+           mot de passe juste. Chaque phrase est vraie (CLAUDE.md, « la
+           limite, dite franchement »). Le bloc n'apparaît qu'après un mot de
+           passe accepté : il ne révèle rien à qui ne connaît pas le compte. -->
+      <style>
+        .verrou-suspendu{margin:4px 0 12px;padding:12px 14px;border:1px solid #F0C9A8;border-radius:12px;background:#FFF4EA;color:#7C2D12;font-size:13.5px;line-height:1.45}
+        .verrou-suspendu b{display:block;margin-bottom:4px;font-size:14.5px}
+        .verrou-suspendu p{margin:0}
+        .verrou-suspendu[hidden]{display:none}
+      </style>
+      <div class="verrou-suspendu" id="accesSuspendu" hidden>
+        <b>Espace agent temporairement fermé</b>
+        <p>Le cloisonnement des données clients côté serveur n'est pas encore terminé : un compte agent peut aujourd'hui voir plus que ce qu'il devrait. Par sécurité, l'accès est fermé jusqu'à la fin de cette étape. Rien à faire de votre côté.</p>
+      </div>
       <button class="bouton" type="button" id="btnDeverrouiller">
-        <span>Ouvrir</span>
+        <span>Se connecter</span>
       </button>
+      </div>
+      <!-- LE CODE ADMIN À 6 CHIFFRES (24 octobre 2026). Le serveur refuse un
+           compte qui a choisi son code tant que la session n'a pas été
+           confirmée par ce code (est_exploitant(), 20261024020000) : ces
+           deux étapes ne font que conduire jusque-là. Le code est vérifié
+           par le serveur, jamais dans la page. -->
+      <style>
+        #etapeCode[hidden],#etapeActiver[hidden],#etapeIdentifiants[hidden]{display:none}
+      </style>
+      <div id="etapeCode" hidden>
+        <p class="bloc-note">Tapez votre code admin à 6 chiffres.</p>
+        <label class="champ" for="mfaCodeSaisie">
+          <span class="champ-corps">
+            <span class="champ-titre">Code admin</span>
+            <input id="mfaCodeSaisie" type="password" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]*" placeholder="••••••">
+          </span>
+        </label>
+        <button class="bouton" type="button" id="btnMfaValider"><span>Valider</span></button>
+        <p class="champ-aide">Code oublié ? Il s'efface depuis le tableau de bord Supabase (procédure « code oublié ») ; vous en choisissez un nouveau à la connexion suivante.</p>
+        <button class="bouton-fantome" type="button" id="btnMfaAnnuler">Changer de compte</button>
+      </div>
+      <div id="etapeActiver" hidden></div>
+      <p class="champ-aide" id="codeErreur" hidden>Connexion refusée.</p>
     </div>
   </section>
 
@@ -4880,6 +4924,12 @@ body.exploitant #panneauPapiers{margin:14px 20px 0;}
              réinitialisation par e-mail arrive sur une page qui ne sait pas
              le recevoir : ce bloc est donc le seul chemin qui marche depuis
              un téléphone. -->
+        <div id="blocDoubleVerif" style="grid-column:1/-1;flex-basis:100%;width:100%;margin-top:14px">
+          <h3 class="bloc-titre">Code admin</h3>
+          <p class="bloc-note" id="dvEtat">Lecture de l'état de votre compte…</p>
+          <button class="bouton-fantome" type="button" id="btnDvAjouter" hidden>Choisir mon code</button>
+          <div id="dvPanneau" hidden></div>
+        </div>
         <div id="blocMdp" style="grid-column:1/-1;flex-basis:100%;width:100%;margin-top:14px">
           <h3 class="bloc-titre">Changer mon mot de passe</h3>
           <label class="champ" for="mdpNouveau">
@@ -12421,34 +12471,12 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
    pourrait plus jamais voir son propre site public — l'erreur a déjà été
    faite une fois.
    ===================================================================== */
-  var CODE_EXPLOITANT = "584ec46adb3a2408";
-  /* Seule l'EMPREINTE du code est dans la page. C'est de l'obfuscation, pas
-     de la sécurité : un site statique ne peut pas garder un secret, et la
-     page est publique. C'est une serrure, pas un coffre — ce qui protège
-     réellement les données des clients, c'est la règle posée sur le serveur.
-     Pour changer le code : ouvrir la console sur le site et taper
-     empreinte("NOUVEAUCODE"), puis coller le résultat ici. */
-  function empreinte(code){
-    var h1 = 0x811c9dc5>>>0, h2 = 0x01000193>>>0;
-    var t = "elatransfer:" + code;
-    for(var i=0;i<t.length;i++){
-      var c = t.charCodeAt(i);
-      h1 = (h1^c)>>>0; h1 = Math.imul(h1, 0x01000193)>>>0;
-      h2 = (h2^c)>>>0; h2 = Math.imul(h2, 0x85ebca6b)>>>0;
-    }
-    return (h1>>>0).toString(16).padStart(8,"0") + (h2>>>0).toString(16).padStart(8,"0");
-  }
-  window.empreinte = empreinte;
-
-  var MODE_EXPLOITANT = false, DEVERROUILLE = false;
+  /* La page peut être publique : aucun code secret ne décide plus de l'accès.
+     Le paramètre d'URL choisit seulement l'interface. Le serveur décide des droits. */
+  var MODE_EXPLOITANT = false;
   try{
-    var par = new URLSearchParams(location.search).get("exploitant");
-    if(par === "0"){ localStorage.removeItem("ela_exploitant"); }
-    else if(par === "1"){
-      MODE_EXPLOITANT = true;
-      DEVERROUILLE = localStorage.getItem("ela_exploitant") === CODE_EXPLOITANT;
-    }
-  }catch(e){ /* stockage refusé : on redemandera le code */ }
+    MODE_EXPLOITANT = new URLSearchParams(location.search).get("exploitant") === "1";
+  }catch(e){ MODE_EXPLOITANT = false; }
 
   /* LE REGISTRE DE L'EXPLOITANT est distinct de « mes courses » du client :
      ce ne sont pas les mêmes personnes ni les mêmes données. Il garde 1000
@@ -12625,6 +12653,70 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
   try{ nuage.session = JSON.parse(localStorage.getItem(CLE_SESSION) || "null"); }
   catch(e){ nuage.session = null; }
   nuage.connecte = function(){ return Boolean(this.session && this.session.access_token); };
+  /* Vérification d'autorisation distincte de l'authentification : posséder un
+     compte Supabase ne suffit pas. Le serveur compare l'identité du JWT avec
+     l'exploitant autorisé et ne renvoie qu'un booléen.
+     TROIS RÉPONSES, PLUS DEUX (4 octobre 2026, audit de l'admin, P1-1).
+     « oui » : le serveur l'a dit. « non » : le serveur a refusé — il a
+     répondu faux, ou 401/403, ou il a refusé de renouveler la session (elle
+     est alors déjà effacée). « panne » : tout le reste — pas de réseau,
+     délai dépassé, serveur en erreur. Avant, une panne valait un refus :
+     ouvrir l'admin dans un parking souterrain effaçait la session et
+     l'écran de connexion cachait jusqu'aux courses gardées sur le
+     téléphone. */
+  nuage.verifierExploitant = function(){
+    var moi = this;
+    if(!this.connecte()) return Promise.resolve("non");
+    return this.appel("/rest/v1/rpc/est_exploitant", {
+      method:"POST", body:"{}"
+    }).then(function(ok){ return ok === true ? "oui" : "non"; }).catch(function(e){
+      var m = String((e && e.message) || e);
+      if(!moi.connecte()) return "non";
+      if(/^nuage (401|403)\b/.test(m)) return "non";
+      return "panne";
+    });
+  };
+  nuage.estExploitant = function(){
+    return this.verifierExploitant().then(function(v){ return v === "oui"; });
+  };
+  /* LE MOTIF D'UN REFUS (20 octobre 2026). Chaque compte peut lire SA ligne
+     dans « operateurs » (policy « lire son propre droit »). Si elle existe
+     et dit « actif = false », le compte est suspendu : l'écran le dit.
+     Toute autre réponse — pas de ligne, erreur, pas de session — rend ""
+     et l'écran garde le message ordinaire. Jamais un refus pour autant :
+     c'est est_exploitant() qui tranche, ceci n'explique que. */
+  nuage.motifRefus = function(){
+    if(!this.connecte()) return Promise.resolve("");
+    return this.appel("/rest/v1/operateurs?select=actif&limit=1").then(function(rows){
+      return Array.isArray(rows) && rows.length && rows[0].actif === false ? "suspendu" : "";
+    }).catch(function(){ return ""; });
+  };
+  /* L'ACCÈS DÉJÀ VÉRIFIÉ SUR CET APPAREIL. Sans réseau, on n'ouvre l'espace
+     en lecture locale que pour un compte que le serveur a déjà reconnu ICI :
+     sinon, un compte quelconque connecté pendant une panne verrait les
+     courses gardées sur le téléphone. La marque porte l'identifiant du
+     compte, jamais un secret. */
+  var CLE_ACCES = "ela_acces_verifie";
+  nuage.idSession = function(){
+    var s = this.session;
+    if(!s) return "";
+    if(s.user && s.user.id) return String(s.user.id);
+    try{
+      var p = String(s.access_token).split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+      while(p.length % 4) p += "=";
+      return String(JSON.parse(atob(p)).sub || "");
+    }catch(e){ return ""; }
+  };
+  nuage.retenirAcces = function(){
+    try{ var id = this.idSession(); if(id) localStorage.setItem(CLE_ACCES, id); }catch(e){}
+  };
+  nuage.oublierAcces = function(){
+    try{ localStorage.removeItem(CLE_ACCES); }catch(e){}
+  };
+  nuage.accesDejaVerifie = function(){
+    try{ var id = this.idSession(); return !!id && localStorage.getItem(CLE_ACCES) === id; }
+    catch(e){ return false; }
+  };
 
   /* LE JETON D'ACCÈS EXPIRE AU BOUT D'UNE HEURE, ET C'ÉTAIT UN VRAI TROU.
      Rien ne le renouvelait : passé une heure, le serveur répondait 401 à
@@ -16464,7 +16556,8 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
         return;
       }
       document.getElementById("nuageMdp").value = "";
-      jugerNuage(); synchroniser();
+      jugerNuage();
+      if(MODE_EXPLOITANT) verifierAcces(); else synchroniser();
     });
   });
   document.getElementById("btnNuageSync").addEventListener("click", synchroniser);
@@ -16483,7 +16576,14 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
     });
   })();
   document.getElementById("btnNuageDeco").addEventListener("click", function(){
+    arreterVerificationAcces();
+    deconnecterServeur();
     nuage.deconnexion(); jugerNuage();
+    if(MODE_EXPLOITANT){
+      montrerEtape("identifiants");
+      document.body.classList.remove("espace");
+      ecran("ecran-verrou");
+    }
   });
 
   /* ═══ CHANGER SON MOT DE PASSE DEPUIS L'ESPACE ═══
@@ -19924,17 +20024,271 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
     else ouvrirAlerte();
   }
   document.getElementById("btnDeverrouiller").addEventListener("click", function(){
-    var saisi = document.getElementById("codeExploitant").value;
-    if(empreinte(saisi) !== CODE_EXPLOITANT){
-      document.getElementById("codeErreur").hidden = false;
-      return;
-    }
-    try{ localStorage.setItem("ela_exploitant", CODE_EXPLOITANT); }catch(e){}
-    ouvrirEspace();
+    var bouton = this, lib = bouton.querySelector("span");
+    var email = document.getElementById("exploitantEmail").value.trim();
+    var mdp = document.getElementById("exploitantMdp").value;
+    direVerrou("");
+    if(!email || !mdp){ direVerrou("Saisissez votre e-mail et votre mot de passe."); return; }
+    bouton.disabled = true; lib.textContent = "Vérification…";
+    nuage.connexion(email, mdp).then(function(res){
+      if(!res || !res.ok) return res && res.raison === "reseau" ? "panne" : "non";
+      return nuage.verifierExploitant();
+    }).then(function(v){
+      /* Un refus se lit AVANT d'effacer la session : sans elle, on ne peut
+         plus demander au serveur pourquoi. Le motif dit aussi s'il ne
+         manque que le code à 6 chiffres (« code ») ou son activation
+         (« activer ») : la session est alors GARDÉE, c'est elle que le
+         code va confirmer. */
+      if(v !== "non" || !nuage.connecte()) return v;
+      return motifAcces();
+    }).then(function(v){
+      bouton.disabled = false; lib.textContent = "Se connecter";
+      document.getElementById("exploitantMdp").value = "";
+      if(v === "code"){ demanderCode(false); return; }
+      if(v === "activer"){ demanderActivation(true); return; }
+      if(v !== "oui"){
+        nuage.deconnexion();
+        if(v === "suspendu"){ direVerrou("", true); return; }
+        /* Sans réseau, « vérifiez vos identifiants » faisait chercher un
+           mot de passe juste. On dit ce qui se passe vraiment. */
+        direVerrou(v === "panne"
+          ? "Pas de réseau, ou le serveur ne répond pas : votre accès n'a pas pu être vérifié. Réessayez dans un instant."
+          : "Connexion refusée. Vérifiez vos identifiants.");
+        return;
+      }
+      /* Accepté au mot de passe seul : le compte n'a pas encore de code.
+         On propose de le choisir tout de suite (« Plus tard » reste
+         possible tant que le serveur ne l'exige pas pour tous). */
+      return etatCode().then(function(e){
+        if(e === "aucun") demanderActivation(false);
+        else entrer();
+      });
+    }).catch(function(){
+      bouton.disabled = false; lib.textContent = "Se connecter";
+      nuage.deconnexion();
+      direVerrou("Le serveur n'a pas pu vérifier votre accès. Réessayez.");
+    });
   });
-  document.getElementById("codeExploitant").addEventListener("keydown", function(e){
+  document.getElementById("exploitantMdp").addEventListener("keydown", function(e){
     if(e.key === "Enter") document.getElementById("btnDeverrouiller").click();
   });
+
+  /* ═══ LE CODE ADMIN À 6 CHIFFRES (24 octobre 2026, P1 sécurité) ═══
+     Un mot de passe qui fuit ne doit plus suffire à ouvrir l'admin. Un
+     compte qui a choisi son code n'est reconnu par le serveur que dans une
+     session où ce code a été tapé juste : est_exploitant() et est_admin()
+     le vérifient à CHAQUE requête (20261024020000_code_admin.sql). Le code
+     est vérifié LÀ-BAS (empreinte bcrypt, 5 essais puis 15 minutes de
+     blocage), jamais dans la page. Ce qui suit ne décide de rien : il
+     conduit jusqu'au code, et rien ne s'ouvre sans le « oui » du serveur.
+     (Il remplace l'application de codes, jugée trop compliquée.) */
+  function appelCode(nom, corps){
+    return nuage.appel("/rest/v1/rpc/" + nom, { method: "POST", body: JSON.stringify(corps || {}) });
+  }
+  /* L'état du code de CE compte, dit par le serveur : « aucun »,
+     « a_choisir », « a_saisir », « bloque », « ok », « suspendu », « non ».
+     null = on n'a pas pu savoir (pas de réseau, serveur sans la mise à
+     jour) : alors l'écran se conduit exactement comme avant le code. */
+  function etatCode(){
+    if(!nuage.connecte()) return Promise.resolve(null);
+    return appelCode("ela_code_admin_etat").then(function(e){
+      return typeof e === "string" ? e : null;
+    }, function(){ return null; });
+  }
+  /* POURQUOI LE SERVEUR A DIT NON — « code », « activer », « suspendu »
+     ou « non ». Il ne décide rien : est_exploitant() a déjà tranché ; on
+     choisit seulement l'écran qui permet d'avancer. */
+  function motifAcces(){
+    return etatCode().then(function(e){
+      if(e === "a_saisir" || e === "bloque") return "code";
+      /* Opérateur actif, sans code, et refusé : le serveur exige le code
+         pour tous (20261024020100). Il faut le choisir pour entrer. */
+      if(e === "a_choisir") return "activer";
+      if(e === "suspendu") return "suspendu";
+      if(e !== null) return "non";
+      return nuage.motifRefus().then(function(m){ return m === "suspendu" ? "suspendu" : "non"; });
+    });
+  }
+  function messageServeur(e){
+    var m = String((e && e.message) || e || "");
+    if(/^nuage 404/.test(m)) return "Le serveur n'a pas encore la mise à jour du code admin (20261024020000).";
+    if(/^nuage d/.test(m)) return "Refusé par le serveur (" + m.replace(/^nuage /, "erreur ") + ").";
+    return "Le serveur n'a pas répondu. Vérifiez votre connexion et réessayez.";
+  }
+  var BLOQUE = "5 codes faux de suite : l'accès est bloqué 15 minutes. Réessayez ensuite.";
+  /* LE PANNEAU DU CHOIX DU CODE, le même à la connexion et dans Réglages.
+     Des classes et pas des identifiants : il peut exister aux deux endroits. */
+  function panneauActivation(zone, options){
+    zone.hidden = false;
+    zone.innerHTML = '<p class="bloc-note mfa-intro"></p>'
+      + '<label class="champ"><span class="champ-corps"><span class="champ-titre">Votre code admin (6 chiffres)</span>'
+      + '<input class="mfa-saisie" type="password" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]*" placeholder="••••••"></span></label>'
+      + '<label class="champ"><span class="champ-corps"><span class="champ-titre">Retapez-le</span>'
+      + '<input class="mfa-confirme" type="password" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]*" placeholder="••••••"></span></label>'
+      + '<p class="champ-aide">Choisissez un code que vous retiendrez, différent de votre mot de passe et de votre code de téléphone. Ne le notez pas avec le mot de passe.</p>'
+      + '<p class="champ-aide mfa-erreur" hidden></p>'
+      + '<button class="bouton mfa-activer" type="button"><span>Enregistrer mon code</span></button>'
+      + '<button class="bouton-fantome mfa-plus-tard" type="button" hidden></button>';
+    var q = function(c){ return zone.querySelector(c); };
+    q(".mfa-intro").textContent = options.intro;
+    var plusTard = q(".mfa-plus-tard");
+    if(options.plusTard){ plusTard.hidden = false; plusTard.textContent = options.plusTard; plusTard.addEventListener("click", options.abandon); }
+    function erreur(t){ var e = q(".mfa-erreur"); e.textContent = t || ""; e.hidden = !t; }
+    var activer = q(".mfa-activer");
+    activer.addEventListener("click", function(){
+      var code = (q(".mfa-saisie").value || "").replace(/\D/g, "");
+      var confirme = (q(".mfa-confirme").value || "").replace(/\D/g, "");
+      erreur("");
+      if(code.length !== 6){ erreur("Le code fait 6 chiffres."); return; }
+      if(confirme !== code){ erreur("Les deux codes ne sont pas pareils. Retapez-les."); return; }
+      activer.disabled = true;
+      appelCode("ela_code_admin_choisir", { p_code: code }).then(function(r){
+        activer.disabled = false;
+        if(r === "ok"){ q(".mfa-saisie").value = ""; q(".mfa-confirme").value = ""; options.fini(); return; }
+        if(r === "format"){ erreur("Le code fait 6 chiffres."); return; }
+        if(r === "code_requis"){ erreur("Pour changer votre code, reconnectez-vous d'abord avec l'ancien."); return; }
+        erreur("Refusé par le serveur.");
+      }, function(e){
+        activer.disabled = false;
+        erreur(messageServeur(e));
+      });
+    });
+  }
+  function montrerEtape(nom){
+    document.getElementById("etapeIdentifiants").hidden = nom !== "identifiants";
+    document.getElementById("etapeCode").hidden = nom !== "code";
+    var act = document.getElementById("etapeActiver");
+    act.hidden = nom !== "activer";
+    if(nom !== "activer") act.innerHTML = "";
+  }
+  function entrer(){
+    montrerEtape("identifiants");
+    direVerrou("");
+    nuage.retenirAcces();
+    arreterVerificationAcces();
+    if(document.body.classList.contains("espace")){
+      document.dispatchEvent(new Event("ela:acces"));
+      synchroniser();
+    } else ouvrirEspace();
+  }
+  /* Le code est demandé : la session du mot de passe est GARDÉE, l'espace
+     est fermé tant que le code n'est pas confirmé. */
+  function demanderCode(ouvert){
+    arreterVerificationAcces();
+    document.body.classList.remove("espace");
+    ecran("ecran-verrou");
+    montrerEtape("code");
+    direVerrou(ouvert ? "Pour continuer, tapez votre code admin." : "");
+    var champ = document.getElementById("mfaCodeSaisie");
+    champ.value = "";
+    try{ champ.focus(); }catch(e){}
+  }
+  function demanderActivation(obligatoire){
+    arreterVerificationAcces();
+    document.body.classList.remove("espace");
+    ecran("ecran-verrou");
+    montrerEtape("activer");
+    direVerrou("");
+    panneauActivation(document.getElementById("etapeActiver"), {
+      intro: obligatoire
+        ? "Dernière étape, obligatoire : choisissez un code admin à 6 chiffres. Ensuite, votre mot de passe seul ne suffira plus pour ouvrir l'admin."
+        : "Protégez votre compte : choisissez un code admin à 6 chiffres. Ensuite, votre mot de passe seul ne suffira plus pour ouvrir l'admin : le code sera demandé à chaque nouvelle connexion.",
+      plusTard: obligatoire ? "" : "Plus tard (déconseillé)",
+      abandon: function(){ entrer(); },
+      fini: function(){ apresCode(); }
+    });
+  }
+  /* Après un code confirmé : le serveur seul dit si l'on entre. */
+  function apresCode(){
+    return nuage.verifierExploitant().then(function(v){
+      if(v === "oui"){ entrer(); return; }
+      if(v === "panne"){ direVerrou("Le serveur ne répond pas : réessayez dans un instant."); return; }
+      return motifAcces().then(function(m){
+        if(m === "code"){ demanderCode(false); return; }
+        return fermerAcces(false);
+      });
+    });
+  }
+  document.getElementById("btnMfaValider").addEventListener("click", function(){
+    var b = this, champ = document.getElementById("mfaCodeSaisie");
+    var code = (champ.value || "").replace(/\D/g, "");
+    direVerrou("");
+    if(code.length !== 6){ direVerrou("Tapez les 6 chiffres de votre code."); return; }
+    b.disabled = true;
+    appelCode("ela_code_admin_verifier", { p_code: code }).then(function(r){
+      b.disabled = false; champ.value = "";
+      if(r === "ok" || r === "aucun") return apresCode();
+      if(r === "faux"){ direVerrou("Code incorrect. Après 5 codes faux de suite, l'accès est bloqué 15 minutes."); return; }
+      if(r === "bloque"){ direVerrou(BLOQUE); return; }
+      return fermerAcces(false);
+    }, function(e){
+      b.disabled = false; champ.value = "";
+      direVerrou(messageServeur(e));
+    });
+  });
+  document.getElementById("mfaCodeSaisie").addEventListener("keydown", function(e){
+    if(e.key === "Enter") document.getElementById("btnMfaValider").click();
+  });
+  document.getElementById("btnMfaAnnuler").addEventListener("click", function(){
+    deconnecterServeur();
+    nuage.oublierAcces();
+    nuage.deconnexion();
+    montrerEtape("identifiants");
+    direVerrou("");
+    jugerNuage();
+  });
+  /* SE DÉCONNECTER, C'EST AUSSI POUR LE SERVEUR : effacer la session du
+     téléphone laissait son jeton de renouvellement valable chez Supabase.
+     « scope=local » : seule CETTE session est révoquée, pas les autres
+     appareils. Sans réseau, rien ne part — la session reste effacée ici. */
+  function deconnecterServeur(){
+    if(!nuage.connecte()) return;
+    try{
+      fetch(SUPABASE_URL + "/auth/v1/logout?scope=local", {
+        method: "POST",
+        headers: { apikey: SUPABASE_CLE, Authorization: "Bearer " + nuage.session.access_token }
+      }).catch(function(){});
+    }catch(e){}
+  }
+
+  /* ═══ RÉGLAGES → CODE ADMIN ═══
+     L'état réel du compte (dit par le serveur), le choix du code et son
+     changement. Changer le code n'est possible que dans une session où
+     l'ancien a été tapé (le serveur le vérifie) ; les autres appareils le
+     redemandent. Code oublié : SECURITE-ADMIN-CODE.md. */
+  function dessinerDoubleVerification(){
+    var etat = document.getElementById("dvEtat");
+    var bouton = document.getElementById("btnDvAjouter");
+    if(!etat || !bouton) return;
+    if(!nuage.connecte()){ etat.textContent = "Connectez-vous pour voir l'état de votre compte."; bouton.hidden = true; return; }
+    etatCode().then(function(e){
+      bouton.hidden = false;
+      if(e === null){ etat.textContent = "État inconnu : le serveur n'a pas répondu, ou n'a pas encore la mise à jour du code admin."; bouton.hidden = true; return; }
+      if(e === "aucun" || e === "a_choisir"){
+        etat.textContent = "Pas encore de code : votre mot de passe seul ouvre l'admin. Choisissez un code à 6 chiffres.";
+        bouton.textContent = "Choisir mon code";
+        return;
+      }
+      etat.textContent = "Actif : votre code à 6 chiffres est demandé à chaque nouvelle connexion, en plus du mot de passe.";
+      bouton.textContent = "Changer mon code";
+    });
+  }
+  (function(){
+    var bouton = document.getElementById("btnDvAjouter");
+    if(!bouton) return;
+    bouton.addEventListener("click", function(){
+      var zone = document.getElementById("dvPanneau");
+      bouton.hidden = true;
+      panneauActivation(zone, {
+        intro: "Choisissez votre code admin à 6 chiffres. Les autres appareils le demanderont à leur prochaine ouverture.",
+        plusTard: "Annuler",
+        abandon: function(){ zone.hidden = true; zone.innerHTML = ""; dessinerDoubleVerification(); },
+        fini: function(){ zone.hidden = true; zone.innerHTML = ""; dessinerDoubleVerification(); }
+      });
+    });
+    document.addEventListener("ela:espace", dessinerDoubleVerification);
+    document.addEventListener("ela:acces", dessinerDoubleVerification);
+  })();
   /* Même chemin que « Se déconnecter » de Réglages : un seul geste de
      déconnexion, que la construction complète pour l'espace exploitant. */
   var elDecoNav = document.getElementById("btnDeconnexionNav");
@@ -19949,9 +20303,105 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
     location.href = location.pathname;
   });
 
+  /* ═══ OUVRIR L'ADMIN SANS RÉSEAU (4 octobre 2026, audit, P1-1) ═══
+     Une session mémorisée n'ouvre rien toute seule : le serveur revalide
+     l'identité à chaque chargement. Mais une PANNE n'est pas un REFUS.
+     - « oui » : on ouvre, comme avant.
+     - « non » : le serveur a refusé. On efface la session et on redemande
+       le mot de passe, comme avant.
+     - « panne » (pas de réseau, serveur muet ou en erreur) : la session est
+       GARDÉE. Si ce compte a déjà été reconnu par le serveur sur cet
+       appareil, l'espace s'ouvre sur les courses gardées par le téléphone,
+       avec l'écriteau « Pas de réseau » ; sinon l'écran de connexion reste,
+       et dit qu'il réessaiera seul. Dans les deux cas on revérifie toutes les
+       15 s, au retour du réseau et au retour sur l'onglet — et un refus
+       arrivé plus tard referme l'espace.
+     Ce que ça ne change pas : les données des clients sont protégées par le
+     serveur (RLS). Sans réseau, rien n'est lu ni écrit sur le serveur ; ce
+     qu'on montre est ce que le téléphone avait déjà, et ce qu'on modifie
+     part dans la file d'envoi, qui attend le réseau. */
+  var minuterieAcces = null, verificationEnCours = null;
+  function arreterVerificationAcces(){
+    if(minuterieAcces){ clearInterval(minuterieAcces); minuterieAcces = null; }
+  }
+  function direVerrou(t, suspendu){
+    var e = document.getElementById("codeErreur"), s = document.getElementById("accesSuspendu");
+    if(s) s.hidden = !suspendu;
+    if(!e) return;
+    e.textContent = (!suspendu && t) || "";
+    e.hidden = suspendu || !t;
+  }
+  /* LE SERVEUR A REFUSÉ : on ferme, et on dit pourquoi. Le motif se lit
+     AVANT d'effacer la session — sans elle on ne peut plus le demander. */
+  function fermerAcces(ouvert){
+    return nuage.motifRefus().then(function(m){
+      arreterVerificationAcces();
+      nuage.oublierAcces();
+      deconnecterServeur();
+      nuage.deconnexion();
+      document.body.classList.remove("espace");
+      ecran("ecran-verrou");
+      montrerEtape("identifiants");
+      jugerNuage();
+      if(m === "suspendu") direVerrou("", true);
+      else direVerrou(ouvert ? "Votre session a expiré : reconnectez-vous." : "");
+    });
+  }
+  /* UN REFUS N'EST PAS TOUJOURS UNE PORTE FERMÉE (24 octobre 2026) : s'il
+     ne manque que le code à 6 chiffres — une session ouverte au mot de passe
+     seul, d'avant l'activation du code —, on le demande en GARDANT la
+     session ; s'il faut l'activer, on l'active. Le reste ferme, comme avant. */
+  function traiterRefus(ouvert){
+    return motifAcces().then(function(m){
+      if(m === "code"){ demanderCode(ouvert); return; }
+      if(m === "activer"){ demanderActivation(true); return; }
+      return fermerAcces(ouvert);
+    });
+  }
+  function verifierAcces(){
+    if(verificationEnCours) return verificationEnCours;
+    verificationEnCours = nuage.verifierExploitant().then(function(v){
+      var ouvert = document.body.classList.contains("espace");
+      if(v === "oui"){
+        nuage.retenirAcces();
+        arreterVerificationAcces();
+        direVerrou("");
+        if(!ouvert) ouvrirEspace();
+        else {
+          document.dispatchEvent(new Event("ela:acces"));
+          synchroniser();
+        }
+        return v;
+      }
+      if(v === "non") return traiterRefus(ouvert).then(function(){ return v; });
+      if(!ouvert){
+        if(nuage.accesDejaVerifie()) ouvrirEspace();
+        else direVerrou("Pas de réseau : votre accès sera vérifié dès qu'il revient. Inutile de retaper votre mot de passe.");
+      }
+      if(!minuterieAcces) minuterieAcces = setInterval(verifierAcces, 15000);
+      return v;
+    }).then(function(v){ verificationEnCours = null; return v; },
+            function(e){ verificationEnCours = null; throw e; });
+    return verificationEnCours;
+  }
+  window.addEventListener("online", function(){ if(minuterieAcces) verifierAcces(); });
+  document.addEventListener("visibilitychange", function(){
+    if(document.hidden) return;
+    if(minuterieAcces){ verifierAcces(); return; }
+    /* UN ESPACE OUVERT EST REVÉRIFIÉ AU RETOUR SUR L'ONGLET (20 octobre
+       2026). Une fois « oui » rendu, plus rien ne redemandait au serveur :
+       un compte suspendu entre-temps gardait son écran jusqu'au
+       rechargement — et sur un téléphone on ne recharge pas, on revient
+       sur l'application. Une question d'une ligne par retour ; seul un
+       « non » agit (une panne ne ferme rien, comme partout ici). */
+    if(MODE_EXPLOITANT && nuage.connecte() && document.body.classList.contains("espace"))
+      nuage.verifierExploitant().then(function(v){ if(v === "non") return traiterRefus(true); });
+  });
+
   if(MODE_EXPLOITANT){
     document.body.classList.add("exploitant");
-    if(DEVERROUILLE) ouvrirEspace(); else ecran("ecran-verrou");
+    ecran("ecran-verrou");
+    if(nuage.connecte()) verifierAcces();
   } else {
     /* Le lien de confirmation ne s'ouvre que du côté CLIENT : c'est à lui
        qu'on l'a envoyé. En mode exploitant, il ne doit pas venir recouvrir

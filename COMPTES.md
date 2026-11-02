@@ -44,13 +44,14 @@ les lignes MX et SPF d'IONOS** dans le DNS, ni la ligne
 | **Admin (espace exploitant)** | `elatransfer.com/ela-admin/` | l'e-mail et le mot de passe **du compte exploitant** | dans l'admin : Réglages → « Changer mon mot de passe » |
 | **Réception easyHotel** | `elatransfer.com/reception/easyhotel-aeroville/` | le code de la réception | secret Supabase `HOTEL_EASYHOTEL_AEROVILLE_CODE` |
 
-**IL N'Y A PLUS DE « CODE EXPLOITANT ».** Depuis le 23 septembre 2026, la
-construction du site (`harden-exploitant-auth.mjs`) remplace l'ancien verrou
-par une vraie connexion. Vérifié le 17 octobre 2026 : aucun fichier publié
-ne contient l'ancienne empreinte, et la CI le revérifie à chaque PR
-(`security-regression.yml`, « Vérifier le verrou exploitant publié »).
-*(L'empreinte traîne encore dans le fichier source `index.html`, où elle ne
-sert plus à rien : à retirer dans une PR à part.)*
+**IL N'Y A PLUS DE « CODE EXPLOITANT ».** Depuis le 23 septembre 2026, une
+vraie connexion a remplacé l'ancien verrou ; jusqu'au 2 novembre 2026 c'est
+la construction du site (`harden-exploitant-auth.mjs`) qui la posait, et
+depuis, le source `index.html` la porte lui-même : l'ancienne empreinte n'y
+est plus, et le script ne fait plus que vérifier le document construit.
+Vérifié le 17 octobre 2026 : aucun fichier publié ne contient l'ancienne
+empreinte, et la CI le revérifie à chaque PR (`security-regression.yml`,
+« Vérifier le verrou exploitant publié », et `test-auth-source.mjs`).
 
 Comment l'admin décide qui entre :
 1. **Le compte** : un utilisateur du projet Supabase (Authentication →

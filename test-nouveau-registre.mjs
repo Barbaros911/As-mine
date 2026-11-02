@@ -26,6 +26,7 @@
              node test-nouveau-registre.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { routerAuth, entrer, SESSION, marquerAccesVerifie } from './banc-exploitant.mjs';
 const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
@@ -70,10 +71,11 @@ const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFacto
 const p = await ctx.newPage();
 p.on('pageerror',e=>errs.push(e.message));
 await p.route('**supabase.co/**', r => r.fulfill({status:201, body:''}));
+await routerAuth(p);
 await ctx.addInitScript((j)=>{
   localStorage.setItem('ela_bookings', JSON.stringify(j));
-  localStorage.setItem('ela_exploitant', '584ec46adb3a2408');
 }, jeu);
+await ctx.addInitScript(marquerAccesVerifie, SESSION);
 await p.goto('http://127.0.0.1:8099/?exploitant=1',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(600);
 
