@@ -257,3 +257,33 @@ sur ses captures et sur le site construit :
 - **Vu sur ses captures, pas encore traité** : « Gare » propose d'abord des
   rues nommées « Gare » en banlieue (la BAN) plutôt que les grandes gares de
   Paris ; « Easyhotel » met un hôtel de Malaisie en deuxième.
+
+## 2 novembre 2026 — la reconnaissance et le classement des lieux sortent du moteur
+
+Quatrième extraction du plan d'architecture : `lieux.js`. Ce qui, dans la
+recherche d'adresse, ne touche ni à l'écran ni au réseau est déplacé à
+l'identique : le lieu structuré (`lieuStructure`), la reconnaissance d'un
+hôtel (`estHotel`), les terminaux reconnus dans la saisie et leur libellé
+dans la langue du client (`terminauxPourSaisie`, `libelleTerminal`, qui
+reçoivent la langue en paramètre), la tolérance aux fautes (`distanceEdition`,
+`cleProche`, `motProche`), les variantes sans mots passe-partout
+(`variantes`), la note de chaque réponse et le dégradé de distance (`note`,
+`bonusDistance`, `distanceParis`), le dédoublonnage (`dedoublonner`) et
+l'assemblage de la liste (`assembler`, qui était une fonction fermée dans
+`chercher` et reçoit désormais la saisie, les réponses et les terminaux).
+Restent dans la page : les champs et la liste (`brancher`), les appels aux
+services et le cache (`chercher`), le biais de contexte, « Me localiser ».
+Chaque appelant garde son nom derrière un alias d'une ligne.
+
+`test-lieux.mjs` (72 contrôles, valeurs calculées à la main, règle par règle)
+a été écrit AVANT le déplacement et tournait vert sur le code de `main` en
+découpant les fonctions dans `index.html` ; il tombe sur huit mutations
+volontaires (malus d'un bar retiré, clé d'aéroport à cinq lettres, 200 km
+exclus du palier, dédoublonnage à trois décimales, dix lignes au lieu de huit,
+deux fautes dès cinq lettres, monument sans bonus, terminaux toujours en
+tête). Une valeur attendue a été corrigée pendant l'écriture, à la lecture du
+code : le malus d'un bar non demandé s'applique même sans mot trouvé, et
+« roisi » touche « roissy » par son début (« roiss » à une lettre).
+
+La date « (24/10) » de « La liste n'attend pas le plus lent » est partie de
+`CLAUDE.md` le même jour : elle est au titre de la section précédente.

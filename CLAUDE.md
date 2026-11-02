@@ -319,14 +319,14 @@ Histoire : `memoire/tunnel-client.md`, `memoire/formulaire-public.md`.
 ## La recherche d'adresse et « Me localiser »
 
 - **BAN + Photon, et on les fait évoluer, on ne les remplace pas.** Les deux
-  sont biaisés vers Paris ; le classement (`note()`, `bonusDistance()`)
+  sont biaisés vers Paris ; le classement (`lieux.js`, `test-lieux.mjs`)
   **rapproche, n'exclut jamais**. L'étranger apparaît, pays écrit ; il se
   juge au **choix**.
 - **Mapbox Search Box n'est PAS branché, c'est une décision** : résultats
   « temporaires », carte Mapbox imposée, carte bancaire.
 - **Une panne n'est jamais mise en cache** comme « aucune adresse » ; la liste
   dit « Recherche momentanément indisponible ».
-- **La liste n'attend pas le plus lent** (24/10) : elle s'affiche dès que le
+- **La liste n'attend pas le plus lent** : elle s'affiche dès que le
   service qui fait autorité répond (`partiel`), se complète **sans déplacer
   une ligne visible**, et ne bouge plus une fois touchée.
 - **Une ligne : un carré coloré par type de lieu, le nom, l'adresse dessous**

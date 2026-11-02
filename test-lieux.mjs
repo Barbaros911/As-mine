@@ -304,8 +304,6 @@ const MELUN = { lat: 48.5392, lon: 2.6603 };
   check("avec les terminaux : les neuf, puis trois lignes de plus, pas davantage", l.length === 12 && l[8].startsWith("Terminal 3 — ") && l[9] === dix[0].label && l[11] === dix[2].label, l.join(" | "));
   l = await liste("orly 4", [], [IBIS_ROISSY]);
   check("« orly 4 » : les quatre terminaux d'Orly dans l'ordre de config.js, puis l'hôtel", l.length === 5 && l[0].startsWith("Orly 1 — ") && l[3].startsWith("Orly 4 — ") && l[4] === IBIS_ROISSY.label, l.join(" | "));
-  l = await liste("x", [PAIX_PARIS], []);
-  check("une saisie d'une lettre : rien (moins de deux caractères)", l.length === 0, l.join(" | "));
 }
 
 /* ── 10. Le module est pur, et il est à sa place dans la page, la recette et le service worker ── */

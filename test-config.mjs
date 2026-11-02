@@ -94,12 +94,16 @@ const encoreDeclarees = NOMS.filter(n => new RegExp("\\bvar\\s+" + n + "\\s*=\\s
   || new RegExp(",\\s*" + n + "\\s*=\\s*[0-9\"]").test(corpsPage));
 check("le moteur ne déclare plus ces constantes par un littéral", encoreDeclarees.length === 0, encoreDeclarees.join(", "));
 /* Depuis prix.js (1er novembre 2026), les rayons, Le Bourget et les gares
-   ne sont plus lus que par les règles du prix : chaque constante a un
-   lecteur, dans le moteur ou dans prix.js. */
+   ne sont plus lus que par les règles du prix ; depuis lieux.js (2 novembre
+   2026), le nom anglais des terminaux (TERMINAL_EN) n'est plus lu que par
+   les lieux : chaque constante a un lecteur, dans le moteur, prix.js ou
+   lieux.js. */
 const corpsPrix = sansCommentaires(lire("prix.js"));
+const corpsLieux = sansCommentaires(lire("lieux.js"));
 const lues = NOMS.filter(n => new RegExp("\\b" + n + "\\s*=\\s*window\\.ELA_CONFIG\\." + n + "\\b").test(corpsPage)
-  || new RegExp("\\b" + n + "\\s*=\\s*C\\." + n + "\\b").test(corpsPrix));
-check("le moteur ou prix.js lit chaque constante dans ELA_CONFIG", lues.length === NOMS.length, "manquent : " + NOMS.filter(n => !lues.includes(n)).join(", "));
+  || new RegExp("\\b" + n + "\\s*=\\s*C\\." + n + "\\b").test(corpsPrix)
+  || new RegExp("\\b" + n + "\\s*=\\s*racine\\.ELA_CONFIG\\." + n + "\\b").test(corpsLieux));
+check("le moteur, prix.js ou lieux.js lit chaque constante dans ELA_CONFIG", lues.length === NOMS.length, "manquent : " + NOMS.filter(n => !lues.includes(n)).join(", "));
 const posScript = page.indexOf('<script src="config.js"></script>');
 const posGarde = page.indexOf("if(!window.ELA_CONFIG) throw");
 check("la page charge config.js", posScript > 0);
