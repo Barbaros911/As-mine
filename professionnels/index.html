@@ -224,6 +224,7 @@
        phrase de fin conclut la frise « Comment ça marche », même dessin. */
     .parcours-fin{margin:28px 0 0;padding-top:18px;border-top:1px solid var(--line);color:var(--navy);
       font-size:clamp(18px,2.2vw,21px);font-weight:800;line-height:1.35;}
+    .parcours-horaires{margin:10px 0 0;color:var(--muted);font-size:15.5px;font-weight:600;line-height:1.5;}
     .grille.deux{grid-template-columns:repeat(2,1fr);}
     .direction .carte h3{margin-bottom:10px;}
     .direction .coches{margin:0;}
@@ -392,6 +393,7 @@
       #comment .num{color:var(--navy);background:var(--cyan);box-shadow:none;}
       #comment .etapes li:not(:last-child)::before{background:rgba(255,255,255,.22);}
       #comment .parcours-fin{border-top-color:rgba(255,255,255,.2);}
+      #comment .parcours-horaires{color:#cfe3f2;}
       .faq{display:grid;grid-template-columns:320px minmax(0,1fr);column-gap:56px;align-items:start;}
       /* Le titre court le long de toutes les questions : plus de lignes
          qu'il n'y aura jamais de questions. */
@@ -495,6 +497,15 @@
         <li><span class="num">4</span><div><b data-t="etape4_t">La prise en charge</b><p data-t="etape4">Payé directement par le client avant le départ, le chauffeur vient à l'heure convenue. La course passe à « Effectuée ».</p></div></li>
       </ol>
       <p class="parcours-fin" data-t="parcours_fin">Votre équipe transmet la demande. Elatransfer coordonne le reste.</p>
+      <!-- LA NUIT, DITE AVANT LA DÉMO (2 novembre 2026, audit conversion,
+           Barbaros : « Oui »). La règle de nuit (q10, décidée le matin même)
+           n'arrivait qu'en sixième question, à 87 % de la page ; un hôtel
+           d'aéroport, avec des départs à 5 h, doit la lire ici, là où il
+           apprend comment ça marche. Mêmes faits que r10 et que la ligne du
+           comptoir (« Réservation 24 h/24 · Assistance humaine 7 h–22 h »).
+           Les espaces insécables : une heure ne se coupe jamais en fin de
+           ligne (test-public-horaires). test-pro-page, bloc 9. -->
+      <p class="parcours-horaires" data-t="parcours_horaires">Réservation à toute heure ; confirmation et téléphone de 7&nbsp;h à 22&nbsp;h. Pour un départ avant 8&nbsp;h, réservez la veille, avant 22&nbsp;h.</p>
     </section>
 
     <!-- VOIR L'OUTIL EN VIDÉO (28 octobre 2026, Barbaros : « une vidéo de
@@ -538,8 +549,8 @@
         </article>
         <article class="carte">
           <div class="pastille" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg></div>
-          <h3 data-t="cree3_t">Un interlocuteur unique</h3>
-          <p data-t="cree3">Nous vérifions chaque demande, cherchons dans notre réseau le chauffeur professionnel qui convient, l'attribuons et confirmons au client. Une question, un imprévu : votre équipe appelle un seul numéro.</p>
+          <h3 data-t="cree3_t">Assistance Elatransfer&nbsp;: un interlocuteur unique</h3>
+          <p data-t="cree3">Nous vérifions chaque demande, cherchons dans notre réseau le chauffeur professionnel qui convient, l'attribuons et confirmons au client. Une question, un imprévu : votre équipe appelle l'Assistance Elatransfer, un seul numéro, de 7&nbsp;h à 22&nbsp;h.</p>
         </article>
       </div>
     </section>
@@ -765,7 +776,7 @@
           <h2 id="t-demo" data-t="demo_titre">Testez votre page et votre espace équipe, à votre nom</h2>
           <p data-t="demo_texte">Saisissez le nom de votre établissement : la démonstration s'ouvre aussitôt, à votre nom, sur téléphone, tablette ou ordinateur. Réservez comme un client, puis suivez la demande côté équipe jusqu'à « Effectuée ». Aucune réservation réelle n'est faite.</p>
           <p class="demo-acces" data-t="demo_acces">Accès immédiat, valable 7 jours sur cet appareil.</p>
-          <p class="demo-autres"><span data-t="demo_autres">Vous préférez nous parler ? Assistance humaine de 7&nbsp;h à 22&nbsp;h.</span><br>
+          <p class="demo-autres"><span data-t="demo_autres">Vous préférez nous parler ? L'Assistance Elatransfer répond, en personne, de 7&nbsp;h à 22&nbsp;h.</span><br>
             <a href="tel:+33759312433" data-t="demo_appel">Appeler le +33 7 59 31 24 33</a>
             <a href="https://wa.me/33759312433" target="_blank" rel="noopener" data-t="demo_wa">Écrire sur WhatsApp</a>
             <a href="mailto:contact@elatransfer.com">contact@elatransfer.com</a></p>
@@ -964,7 +975,7 @@
       cree_titre:"A turnkey service",
       cree1_t:"Your booking page", cree1:"A page with your name and colours, with your photo and your logo if you would like to send it to us. Your guests or visitors open it from a link or a QR code and book by themselves from their phone, without taking up your team's time.",
       cree2_t:"Your team space", cree2:"Your team books in a guest's name (or by room number, in a hotel), sees where every request stands and finds the history. At each shift change, the next team picks up without starting from scratch.",
-      cree3_t:"A single point of contact", cree3:"We check every request, find the right professional chauffeur in our network, assign them and confirm with the guest. A question or a last-minute change: your team calls one number.",
+      cree3_t:"Elatransfer Assistance: a single point of contact", cree3:"We check every request, find the right professional chauffeur in our network, assign them and confirm with the guest. A question or a last-minute change: your team calls Elatransfer Assistance, one number, from 7 am to 10 pm (Paris time).",
       apercu_titre:"What your guests and your team see",
       video_titre:"See the tool on video", video_intro:"The real demonstration, with a fictitious hotel and guests. No prices are shown: your rates are agreed with you.",
       aria_videos:"Choose the video", video_client:"The guest books", video_reception:"The front desk books", video_note:"No sound · on-screen captions",
@@ -995,6 +1006,7 @@
       vs_ela3:"The status of every request, in your team space.",
       parcours_titre:"How it works",
       parcours_fin:"Your team passes on the request. Elatransfer coordinates the rest.",
+      parcours_horaires:"Booking at any hour; confirmation and phone from 7 am to 10 pm (Paris time). For a departure before 8 am, book the day before, before 10 pm.",
       etape1_t:"The request", etape1:"The guest scans the QR code, or your team enters the request for them. It reaches Elatransfer.",
       etape2_t:"The search", etape2:"We check the request and look in our network for an available professional chauffeur.",
       etape3_t:"The confirmation", etape3:"Once the chauffeur is assigned, the guest receives the confirmation; your team sees “booking confirmed”.",
@@ -1028,7 +1040,7 @@
       demo_titre:"Try your booking page and team space, under your name",
       demo_texte:"Enter your organisation's name: the demonstration opens straight away, under your name, on a phone, tablet or computer. Book as a guest would, then follow the request on the team side through to “completed”. No real booking is made.",
       demo_acces:"Instant access, valid for 7 days on this device.",
-      demo_autres:"Would you rather talk to us? Live support 7\u00a0am–\u206010\u00a0pm (Paris time).",
+      demo_autres:"Would you rather talk to us? Elatransfer Assistance answers in person, 7\u00a0am–\u206010\u00a0pm (Paris time).",
       demo_appel:"Call +33 7 59 31 24 33", demo_wa:"Message us on WhatsApp",
       reprise_titre:"Your demonstration is open", reprise_ouvrir:"Access my demo",
       reprise_nouvelle:"Make a request for another establishment",

@@ -304,3 +304,36 @@ rejoint la règle de paiement (départ avant 8 h : payé la veille à 22 h,
 `memoire/paiement-lien.md`). **À réécrire le jour où des chauffeurs du noyau
 couvrent les départs de 4 h à 7 h** : ce serait alors un argument, pas une
 limite.
+
+**Même jour, l'après-midi — dite plus tôt** (audit conversion de la page
+Professionnels, Barbaros : « Oui »). Mesuré sur le site construit, à
+390 × 844 : la question « Et la nuit ? » arrivait en sixième position, à
+9 682 px sur 11 123 (87 % de la page) ; plus haut, la carte « Un
+interlocuteur unique » promettait « votre équipe appelle un seul numéro »
+sans dire quand quelqu'un décroche, juste après le défi « Si le chauffeur
+ne vient pas, c'est à vous qu'on le reproche ». Deux phrases, validées
+mot pour mot : sous la frise de « Comment ça marche », « Réservation à
+toute heure ; confirmation et téléphone de 7 h à 22 h. Pour un départ
+avant 8 h, réservez la veille, avant 22 h. » (`parcours_horaires`) ; sur
+la carte, « …un seul numéro, de 7 h à 22 h ». Rien n'est retiré ; la
+question q10 reste. `test-pro-page`, bloc 9 : les heures et la consigne de
+la veille dans « Comment ça marche », mesurée au-dessus de la démo, et
+toute promesse d'« appeler un numéro » accompagnée d'une plage d'heures —
+six contrôles tombaient sur la page du matin. Le reste de l'audit (sans
+code : SIRET, un interlocuteur nommé ; P2 : une page plus courte, un
+sous-titre de 22 mots, une question « plusieurs établissements ») attend
+sa décision.
+
+**Même jour, le soir — l'interlocuteur a un nom.** À la question « voulez-vous
+un interlocuteur nommé ? », Barbaros : « L'interlocuteur c'est assistance
+ela », puis « ton avis expert » sur l'écriture. Retenu : **« Assistance
+Elatransfer »** (EN : « Elatransfer Assistance », le même nom), parce que
+la page n'écrit la marque qu'en un mot et que « ELA » seul n'existe que dans
+le logo — un deuxième nom écrit finit par en contredire un ; « ELA » reste à
+l'oral et en interne. Trois endroits : le titre de la carte (« Assistance
+Elatransfer : un interlocuteur unique »), sa fin (« votre équipe appelle
+l'Assistance Elatransfer, un seul numéro, de 7 h à 22 h ») et le bloc de la
+démo (« L'Assistance Elatransfer répond, en personne, de 7 h à 22 h »).
+`test-pro-page`, bloc 9 : le nom est le même aux trois endroits, dans les
+deux langues ; tombait sur la page sans nom. Jamais une personne nommée sur
+la page : c'est un service, pas un prénom.
