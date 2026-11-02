@@ -27,6 +27,7 @@
              node test-nouveau-chauffeurs.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { routerAuth, entrer, SESSION, marquerAccesVerifie } from './banc-exploitant.mjs';
 const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
@@ -60,11 +61,13 @@ const registre = [
 const ctx = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
 await ctx.addInitScript((r)=>{
   localStorage.setItem('ela_bookings', JSON.stringify(r));
-  localStorage.setItem('ela_exploitant', '584ec46adb3a2408');
 }, registre);
+/* Un appareil déjà connecté : la session mémorisée, que le serveur (le banc) reconnaît. */
+await ctx.addInitScript(marquerAccesVerifie, SESSION);
 const p = await ctx.newPage();
 p.on('pageerror',e=>errs.push(e.message));
 await p.route('**://api.openrouteservice.org/**', r => r.abort());
+await routerAuth(p, r => r.abort());
 await p.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(600);
 check('l\'espace exploitant s\'ouvre', await p.locator('#ecran-bord').isVisible());

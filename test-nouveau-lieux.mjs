@@ -27,6 +27,7 @@
              node test-nouveau-lieux.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { routerAuth, entrer, SESSION, marquerAccesVerifie } from './banc-exploitant.mjs';
 const b = await chromium.launch();
 const ok=[], ko=[];
 const check=(n,c,d='')=> (c?ok:ko).push(n + (d?' — '+d:''));
@@ -229,6 +230,7 @@ await ctx.close();
 ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:1, locale:'fr-FR' });
 p = await ctx.newPage();
 await brancherFaux(p);
+await routerAuth(p);
 /* Une course déposée par le site, que le SERVEUR a signalée : prix sous le
    minimum de la ligne droite. Posée une seule fois (pas à chaque chargement). */
 await p.goto('http://127.0.0.1:8099/index.html', {waitUntil:'domcontentloaded'});
@@ -241,8 +243,7 @@ await p.evaluate(() => localStorage.setItem('ela_bookings', JSON.stringify([{
   securite:{ prixSousLigneDroite:{ minimum:60, ligneDroiteKm:23.2 } } }])));
 await p.goto('http://127.0.0.1:8099/index.html?exploitant=1', {waitUntil:'domcontentloaded'});
 await p.waitForTimeout(400);
-await p.fill('#codeExploitant', '12345678');
-await p.locator('#btnDeverrouiller').click(); await p.waitForTimeout(400);
+await entrer(p); await p.waitForTimeout(400);
 const carteSusp = p.locator('#listeBord .demande', {hasText:'ELA-26-10-SUSP1'}).first();
 if(await carteSusp.count()){ await carteSusp.click(); await p.waitForTimeout(300); }
 const susp = p.locator('#bbPrixSuspect');

@@ -24,6 +24,7 @@
              node test-admin-hotel-depart.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { routerAuth, entrer, SESSION, marquerAccesVerifie } from './banc-exploitant.mjs';
 const b = await chromium.launch();
 const ok=[], ko=[];
 const check=(n,c,d='')=> (c?ok:ko).push(n + (d?' — '+d:''));
@@ -87,6 +88,8 @@ const ancienne = (ref, l, a = null) => ({ ref, statut:'realisee', cree:'2026-10-
 const ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:1, locale:'fr-FR' });
 const p = await ctx.newPage();
 await brancherFaux(p);
+/* L'accès est répondu par le banc partagé ; le reste reste à brancherFaux. */
+await routerAuth(p);
 await p.goto('http://127.0.0.1:8099/index.html', {waitUntil:'domcontentloaded'});
 /* Une demande COLLÉE, réalisée, aux adresses tapées : aucune coordonnée,
    aucun canal. Rien ne peut la reconnaître ; elle se rattache à la main. */
@@ -101,8 +104,7 @@ await p.evaluate((l) => localStorage.setItem('ela_bookings', JSON.stringify(l)),
   collee]);
 await p.goto('http://127.0.0.1:8099/index.html?exploitant=1', {waitUntil:'domcontentloaded'});
 await p.waitForTimeout(400);
-await p.fill('#codeExploitant', '12345678');
-await p.locator('#btnDeverrouiller').click(); await p.waitForTimeout(400);
+await entrer(p); await p.waitForTimeout(400);
 await p.locator('#btnSaisirCourse').click(); await p.waitForTimeout(800);
 
 /* 5. Les courses déjà saisies. */

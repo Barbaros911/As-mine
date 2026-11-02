@@ -21,6 +21,7 @@
              node test-nouveau-suppression.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { routerAuth, entrer } from './banc-exploitant.mjs';
 const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
@@ -39,7 +40,7 @@ const SESSION = { access_token:"jeton-de-test", refresh_token:"refr", expires_in
 /* Chaque scénario part d'un contexte NEUF : le registre est un état
    partagé, et une suppression réussie dans un bloc fausserait le suivant.
    Même leçon que « addInitScript se rejoue à chaque chargement ». */
-async function espace({ session, reponseSuppr }){
+async function espace({ session, reponseSuppr, sessionMorte }){
   const c = await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'fr-FR'});
   await c.addInitScript(([s,liste])=>{
     localStorage.setItem('ela_bookings', JSON.stringify(liste));
@@ -51,6 +52,13 @@ async function espace({ session, reponseSuppr }){
   await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', route => {
     const req = route.request();
     vus.push({ methode:req.method(), url:req.url() });
+    /* LA SESSION MEURT UNE FOIS L'ESPACE OUVERT (depuis le 2 novembre 2026,
+       l'admin ne s'ouvre plus sans session) : la première lecture rend 401,
+       le renouvellement aussi — la page efface alors sa session et reste
+       ouverte sur ce que l'appareil garde. C'est ce que vit Barbaros quand
+       son jeton expire. */
+    if(sessionMorte && (req.url().includes('grant_type=refresh_token') || /\/rest\/v1\/courses/.test(req.url())))
+      return route.fulfill({ status:401, body:'' });
     if(req.method() === 'DELETE'){
       /* Un DELETE qui n'efface RIEN rend « tout va bien » : c'est ce que
          fait PostgREST quand la regle de securite ecarte la ligne. On rend
@@ -73,10 +81,13 @@ async function espace({ session, reponseSuppr }){
     return route.fulfill({ status:200, contentType:'application/json', body:'[]' });
   });
   await pg.route('**://api.openrouteservice.org/**', r => r.abort());
+  /* L'accès est répondu par le banc : avec une session, l'espace s'ouvre
+     seul ; sans session, on entre par e-mail et mot de passe. */
+  await routerAuth(pg, null, { renouvellement:false });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
   await pg.waitForTimeout(400);
-  await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(500);
+  if(await pg.locator('#ecran-verrou').isVisible()) await entrer(pg);
+  await pg.waitForTimeout(500);
   return { c, pg, vus };
 }
 
@@ -126,9 +137,15 @@ const refs = pg => pg.evaluate(()=>
 
 // ═══ 3. SANS SERVEUR, ON NE SUPPRIME PAS — ET ON DIT POURQUOI ═══
 /* Effacer l'appareil seul serait un mensonge à retardement : la course
-   revient à la première connexion, recopiée depuis le serveur. */
+   revient à la première connexion, recopiée depuis le serveur. L'espace a
+   été ouvert avec une session, puis elle a expiré (401, renouvellement
+   refusé) : on est dans l'admin, sans session. */
 {
-  const { c, pg, vus } = await espace({ session:null, reponseSuppr:204 });
+  const { c, pg, vus } = await espace({ session:SESSION, reponseSuppr:204, sessionMorte:true });
+  await pg.waitForTimeout(800);
+  check('la session expirée est effacée, l\'espace reste ouvert sur l\'appareil',
+    !(await pg.evaluate(()=>!!localStorage.getItem('ela_nuage_session')))
+    && await pg.evaluate(()=>document.body.classList.contains('espace')));
   await pg.locator('.demande').first().click(); await pg.waitForTimeout(300);
   await pg.locator('#btnSupprimerCourse').click(); await pg.waitForTimeout(150);
   await pg.locator('#btnSupprimerCourse').click(); await pg.waitForTimeout(500);

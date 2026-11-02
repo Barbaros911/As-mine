@@ -79,7 +79,8 @@ Chaque phrase est vraie ; aucun nom, aucune faute, aucun montant
   `20261020000001_rouvrir_acces_agent.sql` fait l'inverse, à ne lancer que
   sur décision.
 - **La page lit le motif AVEC la session, avant de l'effacer**
-  (`nuage.motifRefus()`, `harden-exploitant-auth.mjs`) : une ligne
+  (`nuage.motifRefus()`, dans `index.html` depuis le 2/11/2026, posé par
+  `harden-exploitant-auth.mjs` avant) : une ligne
   `actif = false` → le bloc `#accesSuspendu` ; toute autre réponse (pas de
   ligne, 403, pas de session) → le message ordinaire « vérifiez vos
   identifiants ». Le motif n'explique que : c'est `est_exploitant()` qui

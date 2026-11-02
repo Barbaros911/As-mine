@@ -24,6 +24,7 @@
              node test-nouveau-contact.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { routerAuth, entrer, SESSION, marquerAccesVerifie, COMPTE } from './banc-exploitant.mjs';
 const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
@@ -213,6 +214,7 @@ for (const largeur of [320, 390]) {
   const p = await ctx.newPage();
   p.on('pageerror',e=>errs.push(e.message));
   await p.route('**://*.supabase.co/**', r => r.abort());
+  await routerAuth(p);
   const sms = [];
   p.on('request', r => { if(r.url().startsWith('sms:')) sms.push(r.url()); });
   const cree = new Date(Date.now()-30*60000).toISOString();
@@ -229,8 +231,7 @@ for (const largeur of [320, 390]) {
       bon('ELA-26-10-WAWAW','Jean Martin','06 12 34 56 78',undefined)]);
   await p.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(400);
-  await p.fill('#codeExploitant','12345678');
-  await p.locator('#btnDeverrouiller').click(); await p.waitForTimeout(700);
+  await entrer(p); await p.waitForTimeout(700);
   const ouvrir = async (nom) => { await p.locator('.demande', { hasText: nom }).first().click(); await p.waitForTimeout(400); };
 
   /* PAS D'APPEL PAR LE RÉSEAU VERS L'ÉTRANGER (4/10/2026, Barbaros). La
@@ -263,8 +264,9 @@ for (const largeur of [320, 390]) {
 
   await p.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(400);
-  await p.fill('#codeExploitant','12345678').catch(()=>{});
-  await p.locator('#btnDeverrouiller').click().catch(()=>{}); await p.waitForTimeout(700);
+  /* La session mémorisée rouvre l'espace sans retaper le mot de passe ; sinon on entre. */
+  if(await p.locator('#ecran-verrou').isVisible()) await entrer(p);
+  await p.waitForTimeout(700);
   await ouvrir('John Doe');
   check('admin : « appel ou SMS » est dit, Appeler et Messages passent en plein',
     (await p.locator('#bbContact').textContent()).includes('appel ou SMS')
@@ -278,8 +280,9 @@ for (const largeur of [320, 390]) {
 
   await p.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(400);
-  await p.fill('#codeExploitant','12345678').catch(()=>{});
-  await p.locator('#btnDeverrouiller').click().catch(()=>{}); await p.waitForTimeout(700);
+  /* La session mémorisée rouvre l'espace sans retaper le mot de passe ; sinon on entre. */
+  if(await p.locator('#ecran-verrou').isVisible()) await entrer(p);
+  await p.waitForTimeout(700);
   await ouvrir('Jean Martin');
   check('fiche, numéro français : « Appeler » reste', await p.locator('#bbAppeler').isVisible());
   check('admin : une course sans canal (ancienne, saisie, collée) ne dit rien de plus',
