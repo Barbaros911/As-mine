@@ -719,3 +719,42 @@ du site au lieu du blanc, « Comment ça marche » sur un bandeau bleu nuit d'un
 bord à l'autre, les questions en deux colonnes, la demande de proposition sur
 du blanc ; 1180 px comme les pages d'hôtel. Téléphone inchangé (mesuré au
 pixel). `test-pro-page`, bloc 8. Vidéos et captures refaites ensuite.
+
+## 2 novembre 2026 — audit conversion, suite P2 (« fais-le comme un expert »)
+
+Après les deux P1 du jour (la nuit dite avant la démo, « Assistance
+Elatransfer » : `memoire/centrale-et-reseau.md`), Barbaros a demandé le
+reste de l'audit. Mesuré le matin sur le site construit, à 390 × 844 : la
+page faisait 13 écrans ; « Plus qu'un numéro de chauffeur » — la réponse à
+l'objection n° 1 d'un directeur, « pourquoi passer par vous plutôt que
+donner le numéro d'un chauffeur ? » — n'arrivait qu'au sixième écran
+(5 096 px), après la vidéo et les captures ; le sous-titre du bandeau
+faisait 36 mots, six lignes ; aucune question ne parlait d'un groupe de
+plusieurs établissements.
+
+- **L'ordre** : « Plus qu'un numéro de chauffeur » remonte juste après
+  « Comment ça marche », avant la vidéo et les captures. Rien n'est retiré :
+  chaque section de la page porte une décision datée, et la règle du 8/10
+  interdit de rouvrir ce qui marche sans motif ; l'ordre, lui, a un motif
+  mesuré.
+- **Le sous-titre** : 29 mots au lieu de 36 (« Votre page de réservation,
+  votre QR code et votre espace équipe, à votre nom. Nous cherchons le
+  chauffeur dans un large réseau de professionnels, confirmons et
+  coordonnons chaque transfert. »). « Large réseau » reste
+  (`test-public-centrale` l'exige dans le bandeau) ; « vos clients,
+  collaborateurs et invités » part, « Pour qui » le dit mieux ; « cherchons »,
+  jamais « trouvons » (CGV art. 8). Anglais : 28 mots, « wide network ».
+- **Une question vraie** : « Et pour plusieurs établissements ? » —
+  « Chaque établissement a sa page, son QR code, son espace équipe et ses
+  tarifs. Un seul interlocuteur pour tous : l'Assistance Elatransfer. » Rien
+  de plus : il n'existe pas de vue groupée, on ne la promet pas.
+- `test-pro-page`, bloc 10 : la comparaison avant la vidéo et les captures
+  (positions mesurées), le sous-titre en 30 mots au plus, la question des
+  groupes avec page, QR code et espace dans sa réponse — six contrôles qui
+  tombaient sur la page du matin.
+- **Écarté, et pourquoi** : fondre la vidéo dans « Comment ça marche » (sur
+  ordinateur, ce bloc est un bandeau bleu nuit : la feuille de la vidéo
+  serait à refaire pour 150 px gagnés) ; retirer « Une offre clé en main »
+  ou « Vos avantages » (ils se recoupent, mais chacun porte un argument que
+  l'autre n'a pas, et ils ont été validés un par un). La page reste longue
+  parce qu'elle est complète ; ce qui change, c'est l'ordre de lecture.
