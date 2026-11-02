@@ -25,7 +25,7 @@
 
   LES SEPT CARTES SONT LA SEULE GRILLE DE LA PAGE. Leurs montants recopient
   la source serveur (supabase/migrations/20260916100000_current_tariff_source.sql)
-  et HOTELS dans index.html : .github/scripts/verifier-tarif-hotel.mjs exige
+  et HOTELS dans hotels.js : .github/scripts/verifier-tarif-hotel.mjs exige
   l'accord des trois à chaque construction. Changer un prix ici seul fait
   tomber la CI — le prix est ferme, donc opposable.
 
@@ -169,7 +169,7 @@ a{color:inherit;text-decoration:none}
   <h2 id="titreDest" data-fr="Où souhaitez-vous aller ?" data-en="Where would you like to go?">Où souhaitez-vous aller ?</h2>
   <p class="cap" data-fr="Prix fixes · Berline jusqu’à 4 passagers · Van jusqu’à 7" data-en="Fixed prices · Sedan up to 4 passengers · Van up to 7">Prix fixes · Berline jusqu’à 4 passagers · Van jusqu’à 7</p>
 
-  <!-- data-dest = la clé de la destination dans HOTELS (index.html) et
+  <!-- data-dest = la clé de la destination dans HOTELS (hotels.js) et
        dans tarifs_partenaires. Le moteur la reçoit par ?dest= et la choisit
        lui-même ; le prix qu'il affiche vient de sa propre grille. -->
   <ul class="grille">

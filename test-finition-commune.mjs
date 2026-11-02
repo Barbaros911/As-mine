@@ -60,14 +60,16 @@ const fiche = `    "${ESSAI.cle}": {
       ]
     },
 `;
-const page = readFileSync(join(tmp, 'index.html'), 'utf8');
+/* La fiche vit dans hotels.js (2/11/2026, quatrième extraction) : c'est là
+   qu'un second partenaire s'ajoute, et nulle part ailleurs. */
+const page = readFileSync(join(tmp, 'hotels.js'), 'utf8');
 /* AUCUNE PHOTO D'HÔTEL N'EST UNE ADRESSE D'UN AUTRE SITE (20/10/2026) : une
    image dont on ne détient pas l'accord écrit, ou un CDN qui tombe, casse la
    page du QR. Une photo se sert depuis le dépôt (« /photos/… »). */
 const photoDistante = page.match(/\bphoto(?:Entete|Comptoir)?\s*:\s*"https?:[^"]*"/);
 check('aucune photo de HOTELS ne vient d\'un autre site', !photoDistante, photoDistante ? photoDistante[0].slice(0, 100) : '');
-if (page.split('var HOTELS = {\n').length !== 2) throw new Error('repère « var HOTELS = { » introuvable ou ambigu');
-writeFileSync(join(tmp, 'index.html'), page.replace('var HOTELS = {\n', 'var HOTELS = {\n' + fiche));
+if (page.split('var HOTELS = {\n').length !== 2) throw new Error('repère « var HOTELS = { » introuvable ou ambigu dans hotels.js');
+writeFileSync(join(tmp, 'hotels.js'), page.replace('var HOTELS = {\n', 'var HOTELS = {\n' + fiche));
 let construit = true;
 try { execSync('sh construire.sh', { cwd: tmp, stdio: 'pipe' }); }
 catch (e) { construit = false; check('le site se construit avec un second partenaire', false, String(e.stdout || '').slice(-300) + String(e.stderr || '').slice(-300)); }

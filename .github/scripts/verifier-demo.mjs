@@ -9,14 +9,17 @@
 // mettrait demain à appeler le serveur serait servi à la démo aussi.
 //
 // Les montants interdits sont RELUS dans la grille des partenaires réels
-// d'index.html, jamais recopiés ici : une grille renégociée demain reste
-// surveillée sans que personne ne pense à ce fichier.
+// (hotels.js, à côté d'index.html depuis le 2/11/2026), jamais recopiés
+// ici : une grille renégociée demain reste surveillée sans que personne ne
+// pense à ce fichier.
 import fs from 'node:fs';
 import path from 'node:path';
 
 const sortie = process.argv[2] || 'site';
 const dossier = path.join(sortie, 'demo');
-const source = fs.readFileSync(process.argv[3] || 'index.html', 'utf8');
+const cheminPage = process.argv[3] || 'index.html';
+const source = fs.readFileSync(cheminPage, 'utf8');
+const fiche = fs.readFileSync(path.join(path.dirname(cheminPage), 'hotels.js'), 'utf8');
 
 const MOTS = [
   '/rest/v1', 'deposer-course', 'courses-hotel', 'etat-course', 'nouvelle-demande',
@@ -30,10 +33,10 @@ MOTS.push(cle[1]);
 /* Les forfaits des partenaires réels : chaque ligne « forfait:{ berline:X, van:Y } »
    de HOTELS. Le marqueur de la démo est la même forme ; un montant réel y
    ressortirait. */
-const debut = source.indexOf('var HOTELS = {');
-const fin = source.indexOf('Object.keys(HOTELS).forEach', debut);
-if (debut < 0 || fin < 0) throw new Error('verifier-demo : grille HOTELS introuvable dans index.html');
-const grille = source.slice(debut, fin);
+const debut = fiche.indexOf('var HOTELS = {');
+const fin = fiche.indexOf('Object.keys(HOTELS).forEach', debut);
+if (debut < 0 || fin < 0) throw new Error('verifier-demo : grille HOTELS introuvable dans hotels.js');
+const grille = fiche.slice(debut, fin);
 const montants = new Set();
 for (const m of grille.matchAll(/forfait\s*:\s*\{([^}]*)\}/g)) {
   for (const n of m[1].matchAll(/\d+(?:\.\d+)?/g)) montants.add(Number(n[0]));

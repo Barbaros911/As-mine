@@ -459,6 +459,9 @@ Histoire : `memoire/confirmation-client.md`.
   flyer (les clients), `?reception=<clé>` le comptoir. Un hôtel non partenaire
   garde l'ancien comportement (son nom va dans le départ). Pages construites :
   `/easyhotel-client/`, `/reception/<clé>/`.
+- **La fiche des hôtels vit dans `hotels.js`** (données seules, `ELA_HOTELS`) :
+  un partenaire s'ajoute là, et nulle part ailleurs ; les scripts de build la
+  lisent là, jamais dans la page ; la démo charge la sienne. `test-hotels.mjs`.
 - **Le forfait du flyer remplace le kilométrage**, un seul `forfait` par gamme
   et par destination. **Trois endroits, un seul prix** : `HOTELS`, la source
   serveur, les cartes de la page du QR — `verifier-tarif-hotel.mjs` exige
@@ -474,15 +477,11 @@ Histoire : `memoire/confirmation-client.md`.
   zone : kilométrage, et on le dit. La destination reconnue part sur la course
   (`destHotelRetenue()`).
 - **« Autre destination » passe `?dest=autre`**, que `hotel-engine-polish.js`
-  traduit en l'option VIDE du moteur : sans cette traduction, le moteur
-  ouvrait sur CDG au forfait (un Versailles à 35 €). Le bloc « Destinations
-  populaires » du moteur est retiré : ne pas le remettre.
+  traduit en l'option VIDE du moteur (sinon il ouvre sur CDG au forfait). Le
+  bloc « Destinations populaires » du moteur est retiré : ne pas le remettre.
 - **Sur la page client d'un hôtel, nom et téléphone se contrôlent à « Voir mon
-  prix »**, avant de quitter la page des champs (l'erreur de « Confirmer »
-  s'affichait sur une page cachée). Les pages d'hôtel suivent la langue du
-  navigateur, l'anglais en repli.
-- **Sujets clos** : le numéro du flyer est le bon ; Le Bourget en berline à
-  35 €, confirmé par lui.
+  prix »**, avant de quitter la page des champs. Les pages d'hôtel suivent la
+  langue du navigateur, l'anglais en repli.
 - Le forfait vaut dans les deux sens (échange réel des champs) ; la chambre ne
   s'ouvre que sur un hôtel au départ ; les terminaux viennent de `AEROPORTS` ;
   les coordonnées de l'hôtel viennent de la BAN, `HOTELS` n'est qu'un secours.
@@ -494,7 +493,7 @@ Histoire : `memoire/confirmation-client.md`.
   fiche (`window.ELA_HOTEL_ACTIF`, événement `ela:hotel`). La page construite
   porte ses classes dès `<body>` (le premier dessin est le bon). **Un
   observateur n'écrit que si le texte diffère** : réécrire un texte identique
-  est une mutation, qui a figé le moteur en ligne.
+  est une mutation.
 - **Les couleurs d'un partenaire vivent sur sa fiche** (`HOTELS[x].marque`) ;
   texte noir sur l'orange ; l'orange ne descend pas dans la liste ;
   « confirmée » reste verte. Photos seulement `/photos/…`, jamais une adresse
