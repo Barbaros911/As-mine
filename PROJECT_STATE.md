@@ -275,7 +275,6 @@ parce qu'une liste les nomme.
 |---|---|---|
 | Pilotage Produit + Opérations (distinct du traitement des courses) — **blocs 1, 2 et 3 FUSIONNÉS et DÉPLOYÉS le 6/10/2026** (PR #327, #329, #330 ; migration `20261006010000_pilotage.sql` appliquée en production, exécution n° 30). **VÉRIFIÉ EN PRODUCTION le 18/10/2026** sur le téléphone de Barbaros : première vraie carte créée, relue après fermeture de l'admin, priorité modifiée, historique lu (deux lignes, heure de Paris). La vue ordinateur n'est éprouvée que sur le site construit, en CI. Un bloc 4 seulement si le besoin se voit (`memoire/pilotage.md`) | Barbaros | #197 (fermée) |
 | Paiement Stripe — **plus prévu** : le modèle retenu le 10/10 est le lien de paiement du chauffeur. Le code d'empreinte TEST reste dans le dépôt, sans appelant, Live éteint (voir « Paiement Stripe — ce qui existe vraiment »). À rouvrir seulement sur décision de Barbaros, après le SIRET | Barbaros | #173 |
-| Avis Google : vérifier sur son téléphone que « Voir nos avis sur Google » ouvre bien SA fiche (la recherche `query=Elatransfer` posée aujourd'hui n'a pas pu être essayée d'ici : Google est injoignable) ; sinon, coller le lien « Partager » de la fiche dans `avis-google.json`, une ligne. La note chiffrée reste éteinte jusqu'à ~50 avis (#426) | Barbaros, puis Claude | `memoire/avis.md` |
 | Alerte avant expiration du jeton Supabase `github-production` (1er octobre 2027, posé le 4/10/2026) | Claude | à ouvrir |
 
 ## Ce qui bloque, et par qui

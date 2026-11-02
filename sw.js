@@ -26,7 +26,7 @@ function siteVoisin(url) {
 }
 
 /* v84 : le lien du manifeste ne porte plus d adresse en dur. */
-const CACHE = "elatransfer-v235";
+const CACHE = "elatransfer-v236";
 const SHELL = ["./", "./index.html", "./application.html",
                "./ela-admin/", "./manifest-exploitant.webmanifest",
                /* Le lecteur des demandes collées : sans lui dans le SHELL,
@@ -51,6 +51,9 @@ const SHELL = ["./", "./index.html", "./application.html",
                   première ligne hors ligne : ce n'est pas le prix qu'on
                   perdrait, c'est la page entière. */
                "./itineraire-partage.js",
+               /* Les règles du prix (1/11/2026) : même garde, la page entière
+                  refuse de démarrer sans lui. */
+               "./prix.js",
                /* Le juge du voyant des alertes, chargé par l'admin seul. */
                "./admin-sante.js",
                /* La mesure du trafic : le collecteur des pages publiques et

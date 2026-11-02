@@ -193,17 +193,16 @@ groupe WhatsApp de plus de 800 chauffeurs. Ne plus lui redemander.
 
 # LE SITE — `index.html`
 
-**LA BASCULE EST FAITE** (6 septembre 2026) : `nouveau.html` est devenu
+**LA BASCULE EST FAITE** : `nouveau.html` est devenu
 `index.html`, c'est lui que voient les clients. **Il n'y a pas de page de
 secours, et c'est voulu** : une ancienne page encore servie annoncerait une
 grille périmée, et le prix est opposable. Le retour en arrière passe par
-`git revert`. **Il ne garde rien de l'ancien** (sa consigne, deux fois) : ne
+`git revert`. **Il ne garde rien de l'ancien** : ne
 recopier aucune règle de l'ancien site sans qu'il la redemande.
 
 ## La grille
 
-**Le site public** (23/10/2026, sa décision) : forfait Paris, sinon tranche,
-puis accueil. Les pages des hôtels gardent le kilométrage.
+**Le site public** : forfait Paris, sinon tranche, puis accueil. Les pages des hôtels gardent le kilométrage.
 
 | Site public | Berline | Van |
 |---|---|---|
@@ -218,10 +217,10 @@ puis accueil. Les pages des hôtels gardent le kilométrage.
 | Van (7 places) | 4,70 € | 50 € |
 
 - **Le serveur est la vérité** : `chargerTarifsServeur()` lit `grille_publique`,
-  `tarif_public` (hôtels) et `forfaits_partenaires_publics` ; `GRILLE_PUBLIQUE`,
-  `FORFAITS_PUBLICS`, `ACCUEIL_EUR`, `GAMMES` (dans `config.js`) et `HOTELS`
-  ne sont que le **repli**, qui suit la production. Réglages → « Tarifs ». Une grille
-  serveur refusée par `grilleValide` n'est pas appliquée, en entier.
+  `tarif_public` (hôtels) et `forfaits_partenaires_publics` ; `config.js` et
+  `HOTELS` ne sont que le **repli**, qui suit la production. Réglages →
+  « Tarifs ». Une grille serveur refusée par `grilleValide` n'est pas
+  appliquée, en entier.
   « Voir mon prix » attend la lecture (`tarifsLus`, 4 s). `test-doc.mjs`
   compare ces tableaux au code.
 - **La tranche se juge sur la distance affichée** (au dixième : 12,04 km =
@@ -239,7 +238,9 @@ puis accueil. Les pages des hôtels gardent le kilométrage.
 - **TOUCHER AU PRIX VEUT DIRE TOUCHER AUX CGV**, dans les deux langues, **sans
   y écrire un chiffre**, et leur date change avec elles.
 - **Plus de prix par page** (`prix_pages`) : une page ne change pas le prix.
-- `prixSitePublic()` sert le client ET « Saisir par téléphone » ; l'étiquette
+- **Les règles du prix vivent dans `prix.js`**, sans état : le moteur lui
+  passe les tarifs en vigueur ; `test-prix.mjs` les éprouve sans navigateur.
+  `prixSitePublic()` sert le client ET « Saisir par téléphone » ; l'étiquette
   de « Nouvelle course » vient de la grille (`ecrireGrille()`).
 - `deposer-course` ne contrôle que par le bas (tranche de la ligne droite ;
   km pour un hôtel) et **signale** (`prixSousLigneDroite`), sans refuser.
@@ -250,7 +251,7 @@ Histoire : `memoire/grille-tranches-forfaits.md`, `memoire/grille-et-majoration.
 
 ## Le prix à toutes les distances, et les péages
 
-- **La grille vaut pour toute la France** (19/10/2026, « B2 »). **Tarif à
+- **La grille vaut pour toute la France**. **Tarif à
   confirmer, sans aucun montant** : l'étranger (`lieuEtranger()`), plus de
   7 passagers, une adresse tapée sans être reconnue. L'admin refuse
   « Confirmer » tant que le prix n'est pas fixé (« Modifier la course »).

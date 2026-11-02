@@ -171,3 +171,10 @@ la machine de Claude : rien n'a pu être recompté ici). On lui a proposé
 d'afficher la note maintenant ; **il a choisi de corriger le chiffre seulement**
 (« 1 ») : `afficher` reste à false, rien ne change à l'écran. Le jour où il
 l'allume, le relevé doit avoir moins de 60 jours, sinon la note s'éteint seule.
+
+### Le lien vérifié sur son téléphone (1er novembre 2026)
+
+Barbaros : « Elle s'ouvre oui dans Google Maps » — « Voir nos avis sur
+Google » ouvre bien sa fiche. Le lien de recherche `query=Elatransfer` reste
+donc tel quel ; #426 close (fusionné, déployé, vérifié en production). La
+ligne « à vérifier sur son téléphone » quitte `PROJECT_STATE.md`.
