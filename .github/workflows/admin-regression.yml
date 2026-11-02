@@ -141,7 +141,7 @@ jobs:
               # finition d'easyHotel à ses couleurs, sans une ligne de code de
               # plus. Les liens des partenaires (15 octobre 2026), l'affiche QR
               # (décodée par jsQR), l'option pancarte, la démo et la page pro.
-              test-reception-*.mjs|test-pro-*.mjs|test-nouveau-hotel.mjs|test-nouveau-reception.mjs|test-nouveau-affiche.mjs|test-nouveau-option.mjs|test-easyhotel-client.mjs|test-demo-hotel.mjs|test-finition-commune.mjs|test-cloisonnement-hotel.mjs|test-tarifs-serveur.mjs|test-liens-suivi.mjs)
+              test-reception-*.mjs|test-pro-*.mjs|test-nouveau-hotel.mjs|test-nouveau-reception.mjs|test-nouveau-affiche.mjs|test-nouveau-option.mjs|test-easyhotel-client.mjs|test-demo-hotel.mjs|test-finition-commune.mjs|test-cloisonnement-hotel.mjs|test-tarifs-serveur.mjs|test-liens-suivi.mjs|test-hotels.mjs)
                 echo partenaires;;
               # LA RÉSERVATION, DU FORMULAIRE AU BON. Les suites qui gardent le
               # prix et le tunnel (audit du 9 octobre 2026) : le prix est ferme

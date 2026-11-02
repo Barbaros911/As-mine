@@ -15,9 +15,10 @@
 //   - le stockage du navigateur est préfixé (ELA_DEMO_STOCKAGE) : les
 //     courses fictives ne se mélangent jamais à celles d'un vrai client ;
 //   - l'hôtel partenaire réel (sa grille, son nom, ses couleurs, sa photo)
-//     est REMPLACÉ par un hôtel fictif à tarifs d'exemple. Le dépôt
-//     (index.html) n'est jamais touché : la configuration fictive n'existe
-//     que dans la sortie démo.
+//     est REMPLACÉ par un hôtel fictif à tarifs d'exemple : la démo charge
+//     SA fiche, /demo/hotels.js, à la place de hotels.js (2/11/2026). Le
+//     dépôt n'est jamais touché : la configuration fictive n'existe que
+//     dans la sortie démo.
 // Le contrôle final (verifier-demo.mjs) tourne APRÈS masquer-commentaires et
 // fait échouer la construction si une seule trace revient.
 import fs from 'node:fs';
@@ -49,7 +50,10 @@ export const CSP_DEMO = [
    prospect qui fixe les siens dans « Personnaliser ma page » — ce sont ceux
    de son flyer. Sans prix, le moteur calcule au kilomètre. verifier-demo.mjs
    refuse en plus tout montant de la grille d'un vrai partenaire. */
-const HOTELS_DEMO = `var HOTELS = {
+const HOTELS_DEMO = `/* La fiche de l'hôtel fictif de la démo, à la place de hotels.js. */
+(function(racine){
+  "use strict";
+  var HOTELS = {
     "demo-hotel": {
       nom:"Hôtel Démo · Roissy",
       court:"Hôtel Démo",
@@ -83,8 +87,10 @@ const HOTELS_DEMO = `var HOTELS = {
       ]
     }
   };
-
-  `;
+  Object.keys(HOTELS).forEach(function(k){ HOTELS[k].cle = k; });
+  racine.ELA_HOTELS = HOTELS;
+})(typeof window !== "undefined" ? window : globalThis);
+`;
 
 const NUAGE_DEMO = `var SUPABASE_URL = "";
   var SUPABASE_CLE = "";
@@ -247,7 +253,7 @@ function arriveeDepuisPageQr(source) {
      ses forfaits sont en plus refusés par verifier-demo.mjs.) */
   const tout = corps + modeles + css;
   if (tout.includes('../')) throw new Error('construire-demo : un lien relatif de la page du QR est resté');
-  const grille = source.slice(source.indexOf('var HOTELS = {'), source.indexOf('Object.keys(HOTELS).forEach'));
+  const grille = lireSortie('hotels.js');
   /* Le nom et l'adresse de chaque partenaire (au niveau de sa fiche, pas de
      ses destinations), jusqu'à la première virgule. */
   for (const m of grille.matchAll(/^ {6}(?:nom|court|adresse)\s*:\s*"([^",]{6,})/gm))
@@ -577,9 +583,9 @@ function demoiser(html, vue, arrivee) {
   // 3. Le logo ramène à la page des professionnels, pas au site public.
   html = html.replace(/<a class="logo" href="\/"/g, '<a class="logo" href="/professionnels/"');
 
-  // 4. L'hôtel fictif à la place de tout partenaire réel.
-  html = remplacerEntre(html, 'var HOTELS = {', 'Object.keys(HOTELS).forEach(function(k){ HOTELS[k].cle = k; });',
-    HOTELS_DEMO, 'HOTELS');
+  // 4. L'hôtel fictif à la place de tout partenaire réel : la page charge
+  //    SA fiche (/demo/hotels.js, écrite plus bas), jamais hotels.js du site.
+  html = remplacerUne(html, '<script src="hotels.js"></script>', '<script src="/demo/hotels.js"></script>', 'hotels.js');
 
   // 5. La couche serveur remplacée par le simulateur.
   html = remplacerEntre(html, 'var SUPABASE_URL = "', 'window.ELA_NUAGE = nuage;', NUAGE_DEMO, 'nuage', false);
@@ -634,6 +640,7 @@ fs.mkdirSync(path.join(dossier, 'hotel', 'reception'), { recursive: true });
 fs.writeFileSync(path.join(dossier, 'hotel', 'index.html'), client);
 fs.writeFileSync(path.join(dossier, 'hotel', 'reception', 'index.html'), reception);
 fs.writeFileSync(path.join(dossier, 'bon-client.js'), bon);
+fs.writeFileSync(path.join(dossier, 'hotels.js'), HOTELS_DEMO);
 fs.copyFileSync('demo-simulateur.js', path.join(dossier, 'demo-simulateur.js'));
 fs.copyFileSync('demo.css', path.join(dossier, 'demo.css'));
 console.log(`Démo construite : client ${client.length} octets · réception ${reception.length} octets.`);

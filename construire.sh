@@ -2,7 +2,7 @@
 set -e
 rm -rf site
 mkdir -p site
-cp index.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-responsive.css admin-v2-maquette.js textes.js config.js telephone.js bon-client.js intake-demande.js qr-affiche.js itineraire-partage.js prix.js admin-sante.js pilotage.js pilotage-ecran.js pilotage.css prospects.js prospects.css trafic.js trafic.css mesure.js manifest.webmanifest sw.js \
+cp index.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-responsive.css admin-v2-maquette.js textes.js config.js hotels.js telephone.js bon-client.js intake-demande.js qr-affiche.js itineraire-partage.js prix.js admin-sante.js pilotage.js pilotage-ecran.js pilotage.css prospects.js prospects.css trafic.js trafic.css mesure.js manifest.webmanifest sw.js \
    icon.svg icon-maskable.svg icon-32.png icon-180.png icon-512.png icone-ela-32.png icone-ela-180.png icone-ela-512.png favicon.ico brand-logo.svg brand-logo.webp brand-logo-negatif.webp brand-logo-white.png robots.txt sitemap.xml \
    seo-pages.css landing.css application-facade.css hotel-engine-polish.css hotel-engine-polish.js chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html 404.html site/
 # LES DEUX ADRESSES QUE NAVIGATEURS ET MOTEURS DEMANDENT D'OFFICE (15/10/2026).
@@ -63,7 +63,7 @@ cp _redirects site/
 [ -d photos ] && cp -r photos site/photos || true
 touch site/.nojekyll
 if [ -d sites ]; then
-  reserves="index.html application.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-responsive.css admin-v2-maquette.js textes.js config.js telephone.js bon-client.js intake-demande.js qr-affiche.js itineraire-partage.js prix.js admin-sante.js pilotage.js pilotage-ecran.js pilotage.css prospects.js prospects.css trafic.js trafic.css styles.css seo-pages.css landing.css mesure.js application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png icone-ela-32.png icone-ela-180.png icone-ela-512.png favicon.ico apple-touch-icon.png brand-logo.svg brand-logo.webp brand-logo-negatif.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html 404.html _redirects demos _headers carte icones exploitant reception professionnels demo en"
+  reserves="index.html application.html admin.html admin-v2.html admin-v2-actions.js admin-v2-push.js admin-v2-finance.js admin-v2-registre.js admin-v2-factures.js admin-v2-gestes.js admin-v2-affiche.js admin-v2-responsive.css admin-v2-maquette.js textes.js config.js hotels.js telephone.js bon-client.js intake-demande.js qr-affiche.js itineraire-partage.js prix.js admin-sante.js pilotage.js pilotage-ecran.js pilotage.css prospects.js prospects.css trafic.js trafic.css styles.css seo-pages.css landing.css mesure.js application-facade.css hotel-engine-polish.css hotel-engine-polish.js photos CNAME manifest.webmanifest sw.js icon.svg icon-maskable.svg icon-180.png icon-512.png icone-ela-32.png icone-ela-180.png icone-ela-512.png favicon.ico apple-touch-icon.png brand-logo.svg brand-logo.webp brand-logo-negatif.webp brand-logo-white.png robots.txt sitemap.xml chauffeur-prive-paris.html transfert-cdg-paris.html transfert-orly-paris.html 404.html _redirects demos _headers carte icones exploitant reception professionnels demo en"
   for dossier in sites/*/; do
     [ -d "$dossier" ] || continue
     nom=$(basename "$dossier")
@@ -114,7 +114,7 @@ node .github/scripts/chiffres.mjs site
 # éprouver d'ici garde son défaut.
 node .github/scripts/masquer-commentaires.mjs \
   site/index.html site/application.html site/admin.html site/admin-v2.html \
-  site/textes.js site/config.js site/telephone.js site/bon-client.js site/intake-demande.js site/qr-affiche.js site/itineraire-partage.js site/prix.js site/admin-sante.js site/pilotage.js site/pilotage-ecran.js site/prospects.js site/trafic.js site/mesure.js \
+  site/textes.js site/config.js site/hotels.js site/telephone.js site/bon-client.js site/intake-demande.js site/qr-affiche.js site/itineraire-partage.js site/prix.js site/admin-sante.js site/pilotage.js site/pilotage-ecran.js site/prospects.js site/trafic.js site/mesure.js \
   site/hotel-engine-polish.js site/sw.js \
   site/admin-v2-actions.js site/admin-v2-push.js site/admin-v2-finance.js \
   site/admin-v2-registre.js site/admin-v2-factures.js site/admin-v2-gestes.js \
@@ -123,7 +123,7 @@ node .github/scripts/masquer-commentaires.mjs \
   site/easyhotel-reception/index.html site/reception/*/index.html \
   site/easyhotel-client/index.html site/professionnels/index.html \
   site/demo/hotel/index.html site/demo/hotel/reception/index.html \
-  site/demo/demo-simulateur.js site/demo/bon-client.js site/demo/demo.css \
+  site/demo/demo-simulateur.js site/demo/bon-client.js site/demo/demo.css site/demo/hotels.js \
   site/mesure.js site/en/index.html site/en/*/index.html site/404.html site/en/404.html \
   site/*.css site/robots.txt
 

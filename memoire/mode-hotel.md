@@ -298,3 +298,29 @@ Reste hors du site : **le dépôt GitHub est public** et Google indexe GitHub ;
 le nom de l'hôtel y figure (code, documentation). Le rendre privé est une
 décision de Barbaros, qui a des conséquences (protections de `main`, minutes de
 CI) à vérifier avant.
+
+## 2 novembre 2026 — la fiche des hôtels sort du moteur
+
+Quatrième extraction du plan d'architecture : `HOTELS` (grille du flyer,
+couleurs, photos, adresse, alias d'easyHotel Aéroville) devient `hotels.js`,
+données seules, déplacé à l'identique ; le fichier pose `window.ELA_HOTELS`
+et recopie la clé de chaque hôtel sur sa fiche, comme le moteur le faisait.
+Le moteur lit `var HOTELS = window.ELA_HOTELS` et refuse de démarrer sans le
+fichier. Les quatre lecteurs qui découpaient la fiche dans `index.html` par
+recherche de chaîne lisent `hotels.js` : `construire-espaces-hotel.mjs`
+l'évalue dans un bac à sable (`ELA_HOTELS`), `verifier-demo.mjs` et
+`verifier-tarif-hotel.mjs` y lisent les forfaits et les clés réels,
+`construire-demo.mjs` écrit la fiche fictive dans `/demo/hotels.js` et fait
+pointer les deux pages de la démo dessus (la démo ne charge jamais
+`hotels.js` du site). `test-finition-commune.mjs` injecte son hôtel d'essai
+dans `hotels.js`. `test-hotels.mjs` (Node, sans navigateur) verrouille la
+forme de la fiche et le branchement.
+
+Archivé de `CLAUDE.md` le même jour : les sujets clos (le numéro du flyer
+est le bon ; Le Bourget en berline à 35 €, confirmé par Barbaros) et
+l'exemple historique de « Autre destination » (sans la traduction en option
+vide, le moteur ouvrait sur CDG au forfait : un Versailles à 35 €) ; le
+pourquoi du contrôle de nom et téléphone à « Voir mon prix » (l'erreur de
+« Confirmer » s'affichait sur une page cachée) ; et la conséquence vue d'un
+observateur qui réécrivait un texte identique (il a figé le moteur en ligne,
+`memoire/finition-commune.md`).

@@ -6,16 +6,19 @@ const sourcePath = process.argv[2] || 'site/index.html';
 const sortie = process.argv[3] || 'site';
 const source = fs.readFileSync(sourcePath, 'utf8');
 
-/* ═══ LES HÔTELS PARTENAIRES SONT LUS DANS LA PAGE, JAMAIS RECOPIÉS ═══
+/* ═══ LES HÔTELS PARTENAIRES SONT LUS DANS hotels.js, JAMAIS RECOPIÉS ═══
    11/10/2026. Cette recette ne fabriquait que la réception d'easyHotel,
    son nom écrit en dur : un second partenaire ajouté à HOTELS n'aurait pas
-   eu de page de comptoir. On évalue la fiche telle que la page la porte
+   eu de page de comptoir. Depuis le 2/11/2026 la fiche vit dans hotels.js,
+   à côté de la page (quatrième extraction) : on l'évalue telle quelle
    (un objet JavaScript, commentaires compris), à l'écart du reste. */
-function lireHotels(html) {
-  const debut = html.indexOf('var HOTELS = {');
-  const fin = html.indexOf('Object.keys(HOTELS).forEach', debut);
-  if (debut < 0 || fin < 0) throw new Error('fiche HOTELS introuvable dans la page');
-  const hotels = vm.runInNewContext(html.slice(debut, fin) + '\nHOTELS;', {});
+function lireHotels(cheminPage) {
+  const fichier = path.join(path.dirname(cheminPage), 'hotels.js');
+  if (!fs.existsSync(fichier)) throw new Error(`fiche HOTELS introuvable : ${fichier}`);
+  const racine = {};
+  vm.runInNewContext(fs.readFileSync(fichier, 'utf8'), { window: racine, globalThis: racine });
+  const hotels = racine.ELA_HOTELS;
+  if (!hotels || typeof hotels !== 'object') throw new Error('hotels.js ne pose pas ELA_HOTELS');
   const cles = Object.keys(hotels);
   if (!cles.length) throw new Error('aucun hôtel partenaire dans HOTELS');
   for (const cle of cles) {
@@ -24,7 +27,7 @@ function lireHotels(html) {
   }
   return hotels;
 }
-const HOTELS = lireHotels(source);
+const HOTELS = lireHotels(sourcePath);
 /* La même mise à plat que hotelDuParametre() dans la page : « easyHotel
    Aéroville », « easyhotel-aeroville » et un alias mènent au même hôtel. */
 const aPlat = (s) => String(s || '').toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae')

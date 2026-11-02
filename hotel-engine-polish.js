@@ -15,7 +15,7 @@
      adresse de page et sa photo y étaient en dur. Un second partenaire
      aurait eu le moteur nu, et la démo ne pouvait pas la charger (elle
      nommait un partenaire réel). Désormais RIEN ici ne nomme un hôtel :
-     tout vient de la fiche de l'hôtel ouvert (HOTELS, dans la page), que le
+     tout vient de la fiche de l'hôtel ouvert (HOTELS, dans hotels.js), que le
      moteur expose par window.ELA_HOTEL_ACTIF. verifier-demo.mjs refuserait
      la construction si un nom de partenaire revenait dans ce fichier. */
   var racine=document.documentElement;
