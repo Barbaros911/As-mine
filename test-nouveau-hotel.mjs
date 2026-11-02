@@ -44,6 +44,7 @@
              node test-nouveau-hotel.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { routerAuth, entrer, SESSION, marquerAccesVerifie } from './banc-exploitant.mjs';
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport:{width:390,height:844}, deviceScaleFactor:2, locale:'fr-FR' });
 const p = await ctx.newPage();
@@ -97,6 +98,8 @@ await ctx.route('**://router.project-osrm.org/**', r => {
     body:JSON.stringify({routes:[{distance:24300,duration:2040}]})});
 });
 await ctx.route('**://api.openrouteservice.org/**', r => r.abort());
+/* L'admin (plus bas) entre par le banc partagé ; Supabase est coupé pour le reste. */
+await routerAuth(ctx, r => r.abort());
 
 /* Deux dates fixes et lointaines : le préavis de 15 minutes ne doit
    jamais décider à la place du test. */
@@ -504,8 +507,7 @@ check('la course garde AUSSI la chambre, à part du libellé de départ',
    50 € au lieu de 100, et Barbaros recrée la course au prix du péage. */
 await p.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
 await p.waitForTimeout(700);
-await p.fill('#codeExploitant','12345678');
-await p.locator('#btnDeverrouiller').click();
+await entrer(p);
 await p.waitForTimeout(700);
 await p.locator('#btnCollerDemande').click();
 await p.waitForTimeout(1500);
@@ -620,8 +622,7 @@ await p.waitForTimeout(700);
    trente secondes avant d'échouer. On regarde l'écran plutôt que de
    supposer. */
 if(await p.locator('#ecran-verrou').isVisible()){
-  await p.fill('#codeExploitant','12345678');
-  await p.locator('#btnDeverrouiller').click();
+  await entrer(p);
   await p.waitForTimeout(900);
 }
 

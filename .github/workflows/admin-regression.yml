@@ -111,7 +111,7 @@ jobs:
               # faux « gh » ; le texte de l'alerte qui réveille Barbaros, et le
               # chiffrement des notifications au client DÉCHIFFRÉ PAR UN TIERS
               # (http_ece, 31/10/2026).
-              test-admin-*.mjs|test-agent-rbac.mjs|test-securite-fonctions.mjs|test-relance-alertes.mjs|test-chien-de-garde.mjs|test-protections.mjs|test-etat.mjs|test-notification.mjs|test-push.mjs|test-doc.mjs|test-unified-facade.mjs|test-routage.mjs)
+              test-admin-*.mjs|test-agent-rbac.mjs|test-securite-fonctions.mjs|test-relance-alertes.mjs|test-chien-de-garde.mjs|test-protections.mjs|test-etat.mjs|test-notification.mjs|test-push.mjs|test-doc.mjs|test-unified-facade.mjs|test-routage.mjs|test-auth-source.mjs)
                 echo admin;;
               # LE SITE PUBLIC ET CE QUI PART EN LIGNE. Le formulaire et la mise
               # en page ordinateur se mesurent sur le site construit (Bloc 3,

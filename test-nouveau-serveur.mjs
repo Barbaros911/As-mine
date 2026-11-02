@@ -37,6 +37,7 @@
              node test-nouveau-serveur.mjs
    ===================================================================== */
 import { chromium } from 'playwright';
+import { routerAuth, ouvrir, SESSION, repondreAuth } from './banc-exploitant.mjs';
 const b = await chromium.launch();
 const ok=[],ko=[]; const check=(n,c,d='')=>(c?ok:ko).push(n+(d?' — '+d:''));
 const errs=[];
@@ -472,18 +473,20 @@ async function espace(session){
   return { c, pg };
 }
 
-// ---- Sans session : on le DIT, on ne laisse pas croire que tout arrive ----
+// ---- Sans session : l'espace ne s'ouvre pas ----
+/* Depuis que le source porte la connexion de la production (2 novembre
+   2026), un admin « sans session » n'existe plus : rien ne s'ouvre tant que
+   le serveur n'a pas dit « oui ». L'écriteau « vous ne recevez pas les
+   demandes » vit désormais dans l'espace OUVERT dont la session a expiré :
+   voir « jeton mort » plus bas. */
 {
   const { c, pg } = await espace(null);
+  await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', r => r.abort());
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
-  await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(500);
-  check('sans session, on dit que les demandes des clients n\'arrivent pas ici',
-    await pg.locator('#bordHorsLigne').isVisible());
-  check('et la pastille de la colonne le dit aussi',
-    (await pg.locator('#adminEtatTexte').textContent()).includes('appareil'),
-    await pg.locator('#adminEtatTexte').textContent());
+  await pg.waitForTimeout(500);
+  check('sans session, l\'écran de connexion, et rien du tableau de bord',
+    await pg.locator('#ecran-verrou').isVisible() && await pg.locator('#ecran-bord').isHidden()
+    && !(await pg.evaluate(()=>document.body.classList.contains('espace'))));
   await c.close();
 }
 
@@ -515,16 +518,27 @@ for(const cas of [
     attendu:'Providers' },
   { nom:'serveur muet', statut:0, corps:null, attendu:'pas répondu' }
 ]){
-  const { c, pg } = await espace(null);
-  await pg.route('**yyhzutnuhuytokarynaw.supabase.co/auth/v1/token**', async route => {
-    if(cas.statut === 0) return route.abort();
-    await route.fulfill({ status:cas.statut, contentType:'application/json',
-                          body: JSON.stringify(cas.corps) });
-  });
+  /* L'espace s'ouvre sur une session reconnue, puis elle EXPIRE (lecture
+     401, renouvellement refusé) : c'est là que Barbaros se reconnecte depuis
+     Réglages, et c'est là que les quatre messages se lisent. Le banc répond
+     à l'accès ; la connexion par mot de passe et le renouvellement sont à
+     cette suite. */
+  const { c, pg } = await espace(SESSION);
+  await routerAuth(pg, async route => {
+    const u = route.request().url();
+    if(u.includes('grant_type=password')){
+      if(cas.statut === 0) return route.abort();
+      return route.fulfill({ status:cas.statut, contentType:'application/json',
+                             body: JSON.stringify(cas.corps) });
+    }
+    if(u.includes('grant_type=refresh_token') || /\/rest\/v1\/courses/.test(u)) return route.fulfill({ status:401, body:'' });
+    return route.fulfill({ status:201, body:'' });
+  }, { motDePasse:false, renouvellement:false });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
-  await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(400);
+  await ouvrir(pg); await pg.waitForTimeout(900);
+  check(cas.nom + ' : la session expirée est effacée, l\'espace reste ouvert',
+    !(await pg.evaluate(()=>!!localStorage.getItem('ela_nuage_session')))
+    && await pg.evaluate(()=>document.body.classList.contains('espace')));
   await pg.locator('[data-admin-vers="blocNuage"]').click(); await pg.waitForTimeout(300);
   await pg.fill('#nuageEmail','barbaros@elatransfer.com');
   await pg.fill('#nuageMdp','un-mot-de-passe');
@@ -555,10 +569,9 @@ for(const cas of [
         body: JSON.stringify(liste.map(x=>({bon:x})))});
     else await route.fulfill({status:201, body:''});
   });
+  await routerAuth(pg, null, { renouvellement:false });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
-  await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(900);
+  await ouvrir(pg); await pg.waitForTimeout(900);
   check('avec une session, l\'écriteau « vous ne recevez pas » disparaît',
     await pg.locator('#bordHorsLigne').isHidden());
   check('la course déjà sur le serveur est là',
@@ -640,10 +653,9 @@ for(const cas of [
     }
     await route.fulfill({status:201, body:''});
   });
+  await routerAuth(pg, null, { renouvellement:false });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
-  await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(1200);
+  await ouvrir(pg); await pg.waitForTimeout(1200);
   check('un jeton périmé est renouvelé tout seul',
     vus.includes('refresh'), vus.join(' | '));
   check('le renouvellement ne porte PAS le jeton périmé',
@@ -666,10 +678,11 @@ for(const cas of [
   await pg.route('**yyhzutnuhuytokarynaw.supabase.co/**', async route => {
     await route.fulfill({status:401, body:''});
   });
+  /* Le serveur a reconnu la session à l'ouverture ; ensuite tout rend 401,
+     renouvellement compris : la session meurt dans l'espace ouvert. */
+  await routerAuth(pg, null, { renouvellement:false });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
-  await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(1500);
+  await ouvrir(pg); await pg.waitForTimeout(1500);
   check('un renouvellement refusé efface la session au lieu de garder une pastille verte',
     !(await pg.evaluate(()=>!!localStorage.getItem('ela_nuage_session'))));
   check('et l\'écriteau DIT que la session a expiré',
@@ -699,10 +712,11 @@ for(const cas of [
     localStorage.setItem('ela_bookings', JSON.stringify([b]));
     window.__liens = []; window.open = (u)=>{ window.__liens.push(u); return null; };
   }, bon);
+  /* On entre par le formulaire ; le serveur n'a rien d'autre à dire. */
+  await routerAuth(pg, r => r.request().method() === 'GET'
+    ? r.fulfill({contentType:'application/json', body:'[]'}) : r.fulfill({status:201, body:''}));
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
-  await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(700);
+  await ouvrir(pg); await pg.waitForTimeout(700);
   await pg.locator('.demande').first().click(); await pg.waitForTimeout(400);
   check('une demande en attente porte « Accuser réception »',
     await pg.locator('#btnAccuserReception').isVisible());
@@ -807,10 +821,9 @@ for(const cas of [
     }
     await route.fulfill({status:201, body:''});
   });
+  await routerAuth(pg, null, { renouvellement:false });
   await pg.goto('http://127.0.0.1:8099/index.html?exploitant=1',{waitUntil:'domcontentloaded'});
-  await pg.waitForTimeout(400);
-  await pg.fill('#codeExploitant','12345678');
-  await pg.locator('#btnDeverrouiller').click(); await pg.waitForTimeout(700);
+  await ouvrir(pg); await pg.waitForTimeout(700);
   await pg.locator('.demande').first().click(); await pg.waitForTimeout(400);
   await pg.fill('#bbChauffeurNom','Mehmet');
   await pg.fill('#bbChauffeurTel','06 98 76 54 32');
