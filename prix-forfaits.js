@@ -12,12 +12,20 @@
       Google et un navigateur sans JavaScript. test-prix-pages.mjs refuse
       un montant écrit qui différerait de config.js.
    2. LE SERVEUR REMPLACE. Au chargement, la même vue que le formulaire
-      (« grille_publique ») ; si la grille passe la MÊME porte que
-      « grilleValide » d'index.html — une seule valeur qui cloche et rien
-      n'est pris, jamais une grille à moitié lue —, les montants deviennent
-      ceux du serveur. Le visiteur lit donc ici ce que le formulaire lui
-      calculera : test-prix-pages.mjs le vérifie de bout en bout, la page
-      et le formulaire nourris par la même grille.
+      (« grille_publique »), passée à LA MÊME PORTE que le formulaire :
+      « grilleValide » de prix.js, appelée avec les gammes et les forfaits
+      de config.js — une seule valeur qui cloche et rien n'est pris, jamais
+      une grille à moitié lue. Les montants deviennent alors ceux du
+      serveur. Le visiteur lit donc ici ce que le formulaire lui calculera :
+      test-prix-pages.mjs le vérifie de bout en bout, la page et le
+      formulaire nourris par la même grille.
+
+   UNE SEULE PORTE, PAS UNE COPIE (2 novembre 2026). La première version
+   recopiait « grilleValide » règle pour règle : deux portes qui se
+   ressemblent finissent par diverger le jour où l'une change, et ce qui
+   divergerait serait un prix affiché (opposable). La page charge donc
+   config.js, itineraire-partage.js et prix.js, comme le moteur, et appelle
+   ELA_PRIX.grilleValide. Ce script ne contient aucune règle de prix.
 
    LE CALCUL est celui de « prixSitePublic » : le forfait, puis l'accueil
    AU DÉPART de l'aéroport seulement (cellule [data-accueil]). Pas
@@ -29,58 +37,18 @@
    ===================================================================== */
 (function(){
   var bloc = document.querySelector("[data-forfaits]");
-  if(!bloc || !window.fetch) return;
+  if(!bloc || !window.fetch || !window.ELA_PRIX || !window.ELA_CONFIG) return;
   var cle = bloc.getAttribute("data-forfaits");
+  var C = window.ELA_CONFIG;
 
   /* Les mêmes que dans le moteur (index.html) ; test-prix-pages.mjs les
      compare, pour qu'une clé changée là-bas ne laisse pas celle-ci seule. */
   var SUPABASE_URL = "https://yyhzutnuhuytokarynaw.supabase.co";
   var SUPABASE_CLE = "sb_publishable_hNYqURatjlXc8tYC30XKpA_2VG91UAj";
-  /* Les clés de config.js (GAMMES, FORFAITS_PUBLICS) : la porte exige
-     chaque gamme et chaque forfait, comme celle du moteur. */
-  var GAMMES = ["berline", "van"];
-  var FORFAITS = ["orly", "cdg", "disney"];
 
-  function centimes(n, max){
-    return (typeof n === "number" && isFinite(n) && n > 0 && n <= max && Math.round(n) === n) ? n / 100 : null;
-  }
-  /* La porte de « grilleValide » (index.html), règle pour règle. */
-  function grilleValide(v){
-    if(!v || typeof v !== "object" || Array.isArray(v)) return null;
-    var lim = v.tranches_km;
-    if(!Array.isArray(lim) || lim.length < 1 || lim.length > 8) return null;
-    for(var i = 0; i < lim.length; i++)
-      if(!(typeof lim[i] === "number" && lim[i] > 0 && lim[i] <= 500 && (i === 0 || lim[i] > lim[i-1]))) return null;
-    var ok = GAMMES.every(function(g){
-      var o = v[g];
-      if(!o || !Array.isArray(o.tranches_centimes) || o.tranches_centimes.length !== lim.length) return false;
-      var avant = 0;
-      for(var j = 0; j < lim.length; j++){
-        var p = centimes(o.tranches_centimes[j], 1000000);
-        if(p === null || p < avant) return false;
-        avant = p;
-      }
-      return centimes(o.au_dela_km_centimes, 2000) !== null;
-    });
-    if(!ok) return null;
-    var f = v.forfaits || {}, forfaits = {};
-    ok = FORFAITS.every(function(z){
-      var o = f[z];
-      if(!o) return false;
-      forfaits[z] = {};
-      return GAMMES.every(function(g){
-        var p = centimes(o[g], 1000000);
-        if(p === null) return false;
-        forfaits[z][g] = p;
-        return true;
-      });
-    });
-    if(!ok) return null;
-    var acc = v.accueil_centimes;
-    if(!(typeof acc === "number" && acc >= 0 && acc <= 10000 && Math.round(acc) === acc)) return null;
-    return { forfaits:forfaits, accueil:acc / 100 };
-  }
-  /* « 80 € », « 82,50 € » : l'espace insécable de la page. */
+  /* « 80 € », « 82,50 € » : l'ESPACE INSÉCABLE de la page (&nbsp;), écrite
+     en clair pour qu'une relecture ne la remplace pas par une espace
+     ordinaire — le texte différerait et serait réécrit à chaque fois. */
   function euros(n){
     var c = Math.round(n * 100);
     return (c % 100 ? (c / 100).toFixed(2).replace(".", ",") : String(c / 100)) + " €";
@@ -92,7 +60,8 @@
         { signal: ctrl ? ctrl.signal : undefined, headers:{ apikey:SUPABASE_CLE } })
     .then(function(r){ clearTimeout(minuterie); return r.ok ? r.json() : null; })
     .then(function(lignes){
-      var s = grilleValide(Array.isArray(lignes) && lignes[0] ? lignes[0].valeur : null);
+      var valeur = Array.isArray(lignes) && lignes[0] ? lignes[0].valeur : null;
+      var s = window.ELA_PRIX.grilleValide(valeur, C.GAMMES, C.FORFAITS_PUBLICS);
       if(!s || !s.forfaits[cle]) return;
       var cases = bloc.querySelectorAll("[data-gamme]");
       for(var i = 0; i < cases.length; i++){

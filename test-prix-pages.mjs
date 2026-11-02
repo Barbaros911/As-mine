@@ -73,9 +73,22 @@ const moteur = fs.readFileSync('index.html', 'utf8');
 const valeur = (src, nom) => (src.match(new RegExp(`var ${nom} = "([^"]+)"`)) || [])[1];
 check('prix-forfaits.js : même adresse du serveur que le moteur', !!valeur(script, 'SUPABASE_URL') && valeur(script, 'SUPABASE_URL') === valeur(moteur, 'SUPABASE_URL'));
 check('prix-forfaits.js : même clé publique que le moteur', !!valeur(script, 'SUPABASE_CLE') && valeur(script, 'SUPABASE_CLE') === valeur(moteur, 'SUPABASE_CLE'));
-const liste = nom => JSON.parse((script.match(new RegExp(`var ${nom} = (\\[[^\\]]*\\]);`)) || [, 'null'])[1]);
-check('prix-forfaits.js : les gammes de config.js', JSON.stringify((liste('GAMMES') || []).slice().sort()) === JSON.stringify(GAMMES.slice().sort()), JSON.stringify(liste('GAMMES')));
-check('prix-forfaits.js : les forfaits de config.js', JSON.stringify((liste('FORFAITS') || []).slice().sort()) === JSON.stringify(FORFAITS.map(f => f.cle).sort()), JSON.stringify(liste('FORFAITS')));
+/* UNE SEULE PORTE DU PRIX (2 novembre 2026) : le script appelle grilleValide de
+   prix.js avec les gammes et les forfaits de config.js ; il n'en recopie
+   aucune règle. Les pages chargent les trois modules avant lui, dans l'ordre
+   du moteur, tous en « defer » (l'ordre est alors garanti). */
+const corpsScript = script.replace(/\/\*[\s\S]*?\*\//g, '');
+check('prix-forfaits.js appelle ELA_PRIX.grilleValide avec GAMMES et FORFAITS_PUBLICS de config.js',
+  /window\.ELA_PRIX\.grilleValide\(\s*valeur,\s*C\.GAMMES,\s*C\.FORFAITS_PUBLICS\s*\)/.test(corpsScript) && /C = window\.ELA_CONFIG/.test(corpsScript));
+check('prix-forfaits.js ne recopie aucune règle de prix (ni grilleValide, ni centimes, ni tranches)',
+  !/function\s+(grilleValide|centimes)\b|tranches_km|tranches_centimes|au_dela_km_centimes|accueil_centimes/.test(corpsScript));
+for (const [page] of PAGES) {
+  const html = fs.readFileSync(page, 'utf8');
+  const ordre = ['/config.js', '/itineraire-partage.js', '/prix.js', '/prix-forfaits.js']
+    .map(s => html.indexOf(`<script src="${s}" defer></script>`));
+  check(`${page} : charge config.js, itineraire-partage.js et prix.js (defer) avant prix-forfaits.js`,
+    ordre.every(i => i > 0) && ordre.every((v, i) => i === 0 || v > ordre[i - 1]), ordre.join(','));
+}
 check('prix-forfaits.js lit la vue du moteur (grille_publique)', /\/rest\/v1\/grille_publique\?select=valeur/.test(script) && /\/rest\/v1\/grille_publique\?select=valeur/.test(moteur));
 const recette = fs.readFileSync('construire.sh', 'utf8').split('\n').filter(l => !/^\s*#/.test(l)).join('\n');
 check('construire.sh copie prix-forfaits.js', /^cp [^\n]*\bprix-forfaits\.js\b[^\n]* site\/?$/m.test(recette));
