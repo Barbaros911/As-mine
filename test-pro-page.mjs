@@ -450,10 +450,19 @@ for (const langue of ['fr', 'en']) {
   check(`${L} : et cette section est au-dessus de la démo`, r.dessus);
   // Une promesse, c'est « appeler un numéro » ; « Un numéro, et ses propres
   // disponibilités » (la colonne du chauffeur en direct) n'en est pas une.
-  const promesse = langue === 'fr' ? /appel(?:le|lez|er) (?:un|le|notre) (?:seul )?numéro/i : /calls? (?:one|a single|the|our) number/i;
+  const promesse = langue === 'fr' ? /\bappel(?:le|lez|er)\b[^.]{0,40}\bnuméro\b/i : /\bcalls?\b[^.]{0,40}\bnumber\b/i;
   const heures = langue === 'fr' ? /\b\d{1,2} ?h\b.{0,14}\b\d{1,2} ?h\b/ : /\b\d{1,2} ?[ap]m\b.{0,16}\b\d{1,2} ?[ap]m\b/;
   const sansHeures = r.phrases.map(plat).filter(t => promesse.test(t) && !heures.test(t));
   check(`${L} : toute promesse d'un numéro à appeler dit à quelles heures on décroche`, sansHeures.length === 0, sansHeures.join(' | '));
+  // L'INTERLOCUTEUR A UN NOM (2/11/2026, Barbaros : « L'interlocuteur c'est
+  // assistance », puis « ton avis expert » : la marque en un mot, pas « ELA »
+  // seul, qui n'existe que dans le logo). « Un interlocuteur unique » sans nom,
+  // le directeur ne sait pas qui répond. Le nom est le MÊME partout où la page
+  // promet qu'on répond : le titre et le texte de la carte, le bloc de la démo.
+  const nom = langue === 'fr' ? /Assistance Elatransfer/ : /Elatransfer Assistance/;
+  const endroits = await p.$$eval('[data-t="cree3_t"],[data-t="cree3"],[data-t="demo_autres"]', l => l.map(e => e.innerText));
+  check(`${L} : l'interlocuteur unique porte un nom, le même sur la carte et au bloc de la démo`,
+    endroits.length === 3 && endroits.every(t => nom.test(t)), endroits.map(t => t.slice(0, 48)).join(' | '));
   await p.context().close();
 }
 

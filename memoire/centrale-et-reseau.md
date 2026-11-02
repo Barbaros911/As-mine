@@ -323,3 +323,17 @@ six contrôles tombaient sur la page du matin. Le reste de l'audit (sans
 code : SIRET, un interlocuteur nommé ; P2 : une page plus courte, un
 sous-titre de 22 mots, une question « plusieurs établissements ») attend
 sa décision.
+
+**Même jour, le soir — l'interlocuteur a un nom.** À la question « voulez-vous
+un interlocuteur nommé ? », Barbaros : « L'interlocuteur c'est assistance
+ela », puis « ton avis expert » sur l'écriture. Retenu : **« Assistance
+Elatransfer »** (EN : « Elatransfer Assistance », le même nom), parce que
+la page n'écrit la marque qu'en un mot et que « ELA » seul n'existe que dans
+le logo — un deuxième nom écrit finit par en contredire un ; « ELA » reste à
+l'oral et en interne. Trois endroits : le titre de la carte (« Assistance
+Elatransfer : un interlocuteur unique »), sa fin (« votre équipe appelle
+l'Assistance Elatransfer, un seul numéro, de 7 h à 22 h ») et le bloc de la
+démo (« L'Assistance Elatransfer répond, en personne, de 7 h à 22 h »).
+`test-pro-page`, bloc 9 : le nom est le même aux trois endroits, dans les
+deux langues ; tombait sur la page sans nom. Jamais une personne nommée sur
+la page : c'est un service, pas un prénom.
