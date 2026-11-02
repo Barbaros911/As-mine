@@ -466,6 +466,37 @@ for (const langue of ['fr', 'en']) {
   await p.context().close();
 }
 
+// 10. L'ORDRE DE LECTURE, LE POIDS DU BANDEAU, LES GROUPES (2/11/2026, audit
+//     conversion, suite P2, Barbaros : « fais-le comme un expert »). Mesuré le
+//     matin, à 390 px : « Plus qu'un numéro de chauffeur » — la réponse à
+//     l'objection n° 1, « pourquoi pas le numéro d'un chauffeur ? » — n'arrivait
+//     qu'au sixième écran, après la vidéo et les captures ; le sous-titre du
+//     bandeau faisait 36 mots, six lignes sur téléphone ; aucune question ne
+//     répondait à un groupe de plusieurs établissements. Trois règles, dans les
+//     deux langues : la comparaison se lit juste après « Comment ça marche »,
+//     avant toute preuve visuelle ; le sous-titre tient en 30 mots au plus ;
+//     une question traite plusieurs établissements et dit qu'à chacun sa page,
+//     son QR code et son espace. Les six contrôles tombaient sur la page du matin.
+for (const langue of ['fr', 'en']) {
+  const p = await ouvrir(390, 844, langue);
+  const r = await p.evaluate(() => {
+    const y = sel => { const e = document.querySelector(sel); return e ? Math.round(e.getBoundingClientRect().top + scrollY) : null; };
+    return { comment: y('#comment'), versus: y('.versus'), video: y('#videoDemo'), apercu: y('.apercu'),
+      lead: (document.querySelector('.hero .lead') || {}).textContent || '',
+      questions: [...document.querySelectorAll('#questions details')].map(d => ({ q: d.querySelector('summary').textContent, r: d.querySelector('p').textContent })) };
+  });
+  const L = langue.toUpperCase();
+  check(`${L} : la comparaison « chauffeur en direct / Elatransfer » se lit juste après « Comment ça marche », avant la vidéo et les captures`,
+    r.comment !== null && r.versus !== null && r.video !== null && r.apercu !== null && r.comment < r.versus && r.versus < r.video && r.versus < r.apercu,
+    JSON.stringify([r.comment, r.versus, r.video, r.apercu]));
+  const mots = r.lead.trim().split(/\s+/).length;
+  check(`${L} : le sous-titre du bandeau tient en 30 mots au plus`, mots > 0 && mots <= 30, `${mots} mots`);
+  const multi = r.questions.find(x => (langue === 'fr' ? /plusieurs établissements/i : /several properties|multiple properties/i).test(x.q));
+  check(`${L} : une question répond à un groupe de plusieurs établissements — à chacun sa page, son QR code et son espace`,
+    !!multi && /page/i.test(multi.r) && /QR/.test(multi.r) && (langue === 'fr' ? /espace/i : /space/i).test(multi.r), multi ? multi.r : 'absente');
+  await p.context().close();
+}
+
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS (' + ok.length + ') ==='); ok.forEach(t => console.log('  ✔ ' + t));
