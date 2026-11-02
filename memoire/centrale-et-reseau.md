@@ -304,3 +304,22 @@ rejoint la règle de paiement (départ avant 8 h : payé la veille à 22 h,
 `memoire/paiement-lien.md`). **À réécrire le jour où des chauffeurs du noyau
 couvrent les départs de 4 h à 7 h** : ce serait alors un argument, pas une
 limite.
+
+**Même jour, l'après-midi — dite plus tôt** (audit conversion de la page
+Professionnels, Barbaros : « Oui »). Mesuré sur le site construit, à
+390 × 844 : la question « Et la nuit ? » arrivait en sixième position, à
+9 682 px sur 11 123 (87 % de la page) ; plus haut, la carte « Un
+interlocuteur unique » promettait « votre équipe appelle un seul numéro »
+sans dire quand quelqu'un décroche, juste après le défi « Si le chauffeur
+ne vient pas, c'est à vous qu'on le reproche ». Deux phrases, validées
+mot pour mot : sous la frise de « Comment ça marche », « Réservation à
+toute heure ; confirmation et téléphone de 7 h à 22 h. Pour un départ
+avant 8 h, réservez la veille, avant 22 h. » (`parcours_horaires`) ; sur
+la carte, « …un seul numéro, de 7 h à 22 h ». Rien n'est retiré ; la
+question q10 reste. `test-pro-page`, bloc 9 : les heures et la consigne de
+la veille dans « Comment ça marche », mesurée au-dessus de la démo, et
+toute promesse d'« appeler un numéro » accompagnée d'une plage d'heures —
+six contrôles tombaient sur la page du matin. Le reste de l'audit (sans
+code : SIRET, un interlocuteur nommé ; P2 : une page plus courte, un
+sous-titre de 22 mots, une question « plusieurs établissements ») attend
+sa décision.

@@ -421,6 +421,42 @@ for (const [w, h] of [[1440, 900], [1100, 800], [390, 844]]) {
   await ctx.close();
 }
 
+// 9. LA NUIT SE DIT AVANT LA DÉMO (2/11/2026, audit conversion, Barbaros :
+//    « Oui »). La règle de nuit (« entre 22 h et 7 h, personne ne confirme »,
+//    décidée le matin même) n'arrivait qu'en sixième question, à 87 % de la
+//    page, et la carte « Un interlocuteur unique » promettait un numéro à
+//    appeler sans dire quand quelqu'un décroche. Un hôtel d'aéroport, avec des
+//    départs à 5 h, doit le lire là où il apprend comment ça marche. Deux
+//    règles, en français et en anglais : les horaires de confirmation et la
+//    consigne du départ avant 8 h sont écrits dans « Comment ça marche »,
+//    qui est AU-DESSUS de la démo (mesuré) ; et toute phrase qui promet un
+//    numéro à appeler porte une plage d'heures. Sur la page du 2/11 au matin,
+//    les quatre contrôles tombent.
+for (const langue of ['fr', 'en']) {
+  const p = await ouvrir(390, 844, langue);
+  const plat = t => (t || '').replace(/⁠/g, '').replace(/\s+/g, ' ');
+  const r = await p.evaluate(() => {
+    const c = document.getElementById('comment'), d = document.getElementById('demo');
+    const phrases = [...document.querySelectorAll('main p, main li, main summary')]
+      .filter(e => e.offsetParent !== null).map(e => e.innerText);
+    return { comment: c ? c.innerText : '', dessus: !!c && !!d && c.getBoundingClientRect().bottom < d.getBoundingClientRect().top, phrases };
+  });
+  const L = langue.toUpperCase();
+  const plage = langue === 'fr' ? /\b7 ?h\b.{0,40}\b22 ?h\b/ : /\b7 ?am\b.{0,40}\b10 ?pm\b/;
+  const veille = langue === 'fr' ? /avant 8 ?h\b.{0,40}la veille/ : /before 8 ?am\b.{0,40}the day before/;
+  const comment = plat(r.comment);
+  check(`${L} : « Comment ça marche » dit les heures de confirmation (7 h–22 h)`, plage.test(comment), comment.slice(-160));
+  check(`${L} : « Comment ça marche » dit quoi faire pour un départ avant 8 h`, veille.test(comment), comment.slice(-160));
+  check(`${L} : et cette section est au-dessus de la démo`, r.dessus);
+  // Une promesse, c'est « appeler un numéro » ; « Un numéro, et ses propres
+  // disponibilités » (la colonne du chauffeur en direct) n'en est pas une.
+  const promesse = langue === 'fr' ? /appel(?:le|lez|er) (?:un|le|notre) (?:seul )?numéro/i : /calls? (?:one|a single|the|our) number/i;
+  const heures = langue === 'fr' ? /\b\d{1,2} ?h\b.{0,14}\b\d{1,2} ?h\b/ : /\b\d{1,2} ?[ap]m\b.{0,16}\b\d{1,2} ?[ap]m\b/;
+  const sansHeures = r.phrases.map(plat).filter(t => promesse.test(t) && !heures.test(t));
+  check(`${L} : toute promesse d'un numéro à appeler dit à quelles heures on décroche`, sansHeures.length === 0, sansHeures.join(' | '));
+  await p.context().close();
+}
+
 await b.close();
 await new Promise(r => serveur.close(r));
 console.log('\n=== RÉUSSIS (' + ok.length + ') ==='); ok.forEach(t => console.log('  ✔ ' + t));
