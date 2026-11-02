@@ -193,3 +193,12 @@ bas, le bloc qui pose la question.
 ### LE CLIENT PAIE SON CHAUFFEUR PAR LIEN, AVANT LE DÉPART
 10–11/10/2026 (Barbaros) : plus de carte ni d'espèces à bord ; Elatransfer envoie le lien du chauffeur avec la confirmation, le client paie, le chauffeur part. AUCUN délai ni écriteau « paiement attendu » : ne pas les remettre. Annulation client non remboursée ; course ratée de notre fait remboursée (CGV 5, 7).
 Plus AUCUN règlement à bord, comptoir compris (CGV 11/10). Confirmation : Appel/SMS, WhatsApp ou Telegram (FR), WhatsApp ou Telegram (étranger, plus d'iMessage). Les anciens boutons et textes sont RETIRÉS de la page, pas masqués (14/10). Histoire : `memoire/paiement-lien.md`.
+
+## 2 novembre 2026 — « Pas de remboursement », redit
+
+L'audit produit du 1/11 a reposé la question : le marché rembourse jusqu'à
+24 h avant (de 1 h à 48 h selon les acteurs relevés), et « non remboursé une
+fois payé » freine surtout le voyageur étranger qui réserve d'avance.
+Réponse de Barbaros : **« Pas de remboursement »**. La règle des CGV (art. 7)
+reste telle quelle ; ne pas la reproposer sans motif nouveau (une plainte,
+une opposition bancaire, un partenaire qui l'exige).

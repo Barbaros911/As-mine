@@ -289,3 +289,18 @@ the Paris region. ».
   tombe sur « Déjà utilisé par des professionnels ». **À rouvrir le jour où un
   deuxième établissement, une agence ou une entreprise l'utilise vraiment** :
   « des hôtels » ou « des professionnels » sera alors vrai, et plus fort.
+
+## La nuit, dite aux professionnels (2 novembre 2026)
+
+Audit produit du 1/11 : la page Professionnels ne disait pas ce que devient
+une demande de nuit, alors qu'un hôtel d'aéroport a des départs à 5 h.
+Question à Barbaros : une réception appelle à 23 h pour un départ à 5 h ?
+Réponse : **« Personne ne décroche »** — personne ne confirme ni ne répond
+entre 22 h et 7 h. D'où la question « Et la nuit ? » / « What about at
+night? » (`q10`, `r10`), validée mot pour mot (« pour le texte oui ») :
+« Entre 22 h et 7 h, personne ne confirme les demandes ni ne répond au
+téléphone. Pour un départ avant 8 h, réservez la veille, avant 22 h. » Elle
+rejoint la règle de paiement (départ avant 8 h : payé la veille à 22 h,
+`memoire/paiement-lien.md`). **À réécrire le jour où des chauffeurs du noyau
+couvrent les départs de 4 h à 7 h** : ce serait alors un argument, pas une
+limite.
