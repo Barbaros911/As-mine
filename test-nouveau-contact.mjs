@@ -44,8 +44,13 @@ async function tunnel(options){
     body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
   const depots = [];
   await p.route('**supabase.co/**', r => {
-    if(r.request().method() === 'POST' && r.request().url().includes('/courses')){
-      try{ depots.push(JSON.parse(r.request().postData())); }catch(e){}
+    /* Le dépôt est celui de la production (2 novembre 2026) : deposer-course
+       rend un accusé JSON { ok, ref } que la page juge ; un corps vide
+       serait « accusé illisible », donc un échec. */
+    if(r.request().method() === 'POST' && r.request().url().includes('/functions/v1/deposer-course')){
+      let corps = {};
+      try{ corps = JSON.parse(r.request().postData()); depots.push(corps); }catch(e){}
+      return r.fulfill({status:201, contentType:'application/json', body:JSON.stringify({ok:true, ref:(corps.bon||{}).ref})});
     }
     return r.fulfill({status:201, body:''});
   });
