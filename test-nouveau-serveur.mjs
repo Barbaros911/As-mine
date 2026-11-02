@@ -25,6 +25,14 @@
    clé publique, et le nouveau n'est pas un JWT : présenté en Bearer, il
    est rejeté.
 
+   LE DÉPÔT EST CELUI DE LA PRODUCTION (2 novembre 2026) : un POST sur
+   /functions/v1/deposer-course, corps { bon, sessionReception }, et un
+   accusé JSON { ok, ref, numero } que la page JUGE — un corps vide n'est
+   plus un succès. Le faux serveur répond donc comme la vraie fonction :
+   201 et l'accusé, 200 « rejoue » sur un rejeu reconnu, 409 sur une
+   référence prise. Avant, la suite simulait la REST historique, morte en
+   production depuis que construire.sh routait le dépôt.
+
    Lancer :  npx http-server -p 8099 -s .
              node test-nouveau-serveur.mjs
    ===================================================================== */
@@ -59,20 +67,29 @@ async function reserver(serveurRepond, sansPush, cachee, doubleClic){
     /* Depuis que le tarif se lit au chargement (« chargerTarifsServeur »),
        chaque page émet aussi deux GET vers les vues publiques de tarif —
        sans rapport avec un dépôt de course. Ne compter ici que les POST
-       SUR LA TABLE DES COURSES : c'est le seul sujet de cette suite
-       (« en POST sur la table des courses »), et compter tout décalait
+       SUR DEPOSER-COURSE : c'est le seul sujet de cette suite
+       (« en POST sur deposer-course »), et compter tout décalait
        « depots[0] » du dépôt réel vers le premier GET de tarif. */
-    if(route.request().method()==='POST' && route.request().url().includes('/rest/v1/courses')){
+    if(route.request().method()==='POST' && route.request().url().includes('/functions/v1/deposer-course')){
       depots.push({ url: route.request().url(), methode: route.request().method(),
                     entetes: route.request().headers(),
                     corps: JSON.parse(route.request().postData()||'{}') });
     }
+    /* L'ACCUSÉ DE LA VRAIE FONCTION : « ok » vrai, la référence déposée, le
+       N° court. C'est lui que la page juge ; un corps vide serait « accusé
+       illisible », donc un échec. Le N° rendu est le rang du dépôt accusé :
+       il dit lequel la page a pris. */
+    const accuse = (statut, extra) => {
+      const c = depots[depots.length-1] ? depots[depots.length-1].corps : {};
+      return route.fulfill({status:statut||201, contentType:'application/json',
+        body: JSON.stringify(Object.assign({ok:true, ref:(c.bon||{}).ref, numero:depots.length}, extra||{}))});
+    };
     /* MODE « reprise » : le PREMIER dépôt échoue — c'est ce qui se passe
        quand iOS gèle la page pendant que WhatsApp prend l'écran — et les
        suivants passent. C'est exactement le cas que Barbaros a rencontré. */
     if(serveurRepond === 'reprise'){
       if(depots.length === 1) await route.abort();
-      else await route.fulfill({status:201, body:''});
+      else await accuse();
     }
     /* MODE « course » : le PREMIER dépôt rend 409 — la ligne vient d'être
        écrite par un envoi « keepalive » abandonné à 8 s qui a fini par
@@ -83,14 +100,14 @@ async function reserver(serveurRepond, sansPush, cachee, doubleClic){
     else if(route.request().method()!=='POST') await route.fulfill({status:201, body:''});
     else if(serveurRepond === 'course'){
       if(depots.length === 1) await route.fulfill({status:409, contentType:'application/json', body:'{"erreur":"référence déjà utilisée"}'});
-      else await route.fulfill({status:201, body:''});
+      else await accuse(200, {rejoue:true});
     }
     else if(serveurRepond === 'collision'){
-      const ref = depots[depots.length-1].corps.ref;
-      if(ref === depots[0].corps.ref) await route.fulfill({status:409, contentType:'application/json', body:'{"erreur":"référence déjà utilisée"}'});
-      else await route.fulfill({status:201, body:''});
+      const ref = depots[depots.length-1].corps.bon.ref;
+      if(ref === depots[0].corps.bon.ref) await route.fulfill({status:409, contentType:'application/json', body:'{"erreur":"référence déjà utilisée"}'});
+      else await accuse();
     }
-    else if(serveurRepond) await route.fulfill({status:201, body:''});
+    else if(serveurRepond) await accuse();
     else await route.abort();
   });
   await ctx.addInitScript(()=>{
@@ -101,7 +118,7 @@ async function reserver(serveurRepond, sansPush, cachee, doubleClic){
       window.__ordre.push('whatsapp'); return null;};
     const vraiFetch = window.fetch.bind(window);
     window.fetch = function(u, o){
-      if(String(u).indexOf('/rest/v1/courses') > 0) window.__ordre.push('depot');
+      if(String(u).indexOf('/functions/v1/deposer-course') > 0) window.__ordre.push('depot');
       return vraiFetch(u, o);
     };
     /* ON COMPTE LES DEMANDES D'AUTORISATION, on ne lit pas l'état final :
@@ -194,7 +211,16 @@ check('le dépôt part, et aucune application ne prend l\'écran au clic',
 check('et il est marqué « keepalive » pour survivre au passage en arrière-plan',
   /keepalive:\s*true/.test(await (await fetch('http://127.0.0.1:8099/index.html')).text()));
 const d0 = depots[0];
-check('en POST sur la table des courses', d0.methode==='POST' && d0.url.includes('/rest/v1/courses'));
+/* Sans dépôt capturé, rien à lire plus bas : on tombe ici, en toutes lettres,
+   plutôt que sur une exception (le cas d'un source revenu à la REST). */
+if(!d0){ console.log('=== ÉCHECS (1) ===\n  ✘ aucun dépôt capturé sur /functions/v1/deposer-course : la suite ne peut rien lire'); await b.close(); process.exit(1); }
+check('en POST sur deposer-course, jamais sur la table des courses', d0.methode==='POST' && d0.url.includes('/functions/v1/deposer-course'));
+/* Le corps est { bon, sessionReception } : la fonction tire la référence et
+   le statut du bon ; le code du comptoir est vide pour un client du site. */
+check('le corps est { bon, sessionReception }, et sessionReception est vide hors comptoir',
+  Object.keys(d0.corps).sort().join(',')==='bon,sessionReception' && d0.corps.sessionReception==='', Object.keys(d0.corps).join(','));
+check('l\'accusé est pris : le N° court de la réponse est posé sur la course de l\'appareil',
+  await p.evaluate(()=>JSON.parse(localStorage.getItem('ela_courses')||'[]').some(c=>c.numero===1)));
 check('la clé publique ne va que dans « apikey », jamais en Bearer',
   !!d0.entetes['apikey'] && !d0.entetes['authorization'],
   Object.keys(d0.entetes).filter(k=>/apikey|authorization/.test(k)).join(','));
@@ -218,7 +244,7 @@ check('les anciens champs texte restent (le tableau de bord et WhatsApp les lise
 check('la course dit QUEL calculateur a donné la distance (ici OSRM, ORS étant coupé)',
   bon.course.itineraireSource === 'osrm', String(bon.course.itineraireSource));
 check('la course entre en « attente », jamais confirmée d\'office',
-  d0.corps.statut==='attente' && bon.statut==='attente', d0.corps.statut);
+  bon.statut==='attente', bon.statut);
 check('le bon porte prix.total, que le tableau de bord affiche',
   typeof bon.prix.total === 'number' && Math.abs(bon.prix.total-60)<0.01, String(bon.prix.total));
 /* 60 € TTC → HT 54,55 et TVA 5,45, la TVA étant INCLUSE : le total arrondi
@@ -865,18 +891,18 @@ for(const cas of [
 {
   const r = await reserver('course');
   await r.p.waitForTimeout(4000);
-  check('course de course (409 puis 201) : le même bon est redéposé une fois, à l\'identique',
-    r.depots.length===2 && r.depots[0].corps.ref===r.depots[1].corps.ref, r.depots.map(d=>d.corps.ref).join(' / '));
+  check('course de course (409 puis « rejoué ») : le même bon est redéposé une fois, à l\'identique',
+    r.depots.length===2 && r.depots[0].corps.bon.ref===r.depots[1].corps.bon.ref, r.depots.map(d=>d.corps.bon.ref).join(' / '));
   check('course de course : le bon dit que la demande est arrivée', await r.p.locator('#etatEnvoi.ok').isVisible());
   const refs = await r.p.evaluate(()=>JSON.parse(localStorage.getItem('ela_courses')||'[]').map(c=>c.ref));
-  check('course de course : une seule course sur l\'appareil, la même référence', refs.length===1 && refs[0]===r.depots[0].corps.ref, refs.join(','));
+  check('course de course : une seule course sur l\'appareil, la même référence', refs.length===1 && refs[0]===r.depots[0].corps.bon.ref, refs.join(','));
   await r.ctx.close();
 }
 {
   const r = await reserver('collision');
   /* Deux rejeux à 1,5 s d'écart avant le retirage : on laisse le temps. */
   await r.p.waitForTimeout(7000);
-  const refs = r.depots.map(d=>d.corps.ref);
+  const refs = r.depots.map(d=>d.corps.bon.ref);
   const neuve = refs[3];
   check('collision : TROIS essais à l\'identique (pause entre chacun), puis UNE référence neuve', r.depots.length===4 && refs[0]===refs[1] && refs[1]===refs[2] && neuve!==refs[0], refs.join(' / '));
   check('collision : la référence neuve a la forme d\'une référence du site', /^ELA-\d\d-\d\d-[23456789A-HJKMNP-Z]{5}$/.test(neuve||''), neuve);
@@ -885,7 +911,9 @@ for(const cas of [
   check('collision : le bon dit que la demande est arrivée', await r.p.locator('#etatEnvoi.ok').isVisible());
   const local = await r.p.evaluate(()=>JSON.parse(localStorage.getItem('ela_courses')||'[]').map(c=>c.ref));
   check('collision : l\'appareil garde UNE course, sous la référence neuve', local.length===1 && local[0]===neuve, local.join(','));
-  check('collision : le bon affiche la référence neuve', (await r.p.locator('#bonRef').textContent()).trim()===neuve, await r.p.locator('#bonRef').textContent());
+  /* Le bon montre le N° court dès que l'accusé le porte : celui du QUATRIÈME
+     dépôt, le seul accusé — la référence neuve, et aucune des trois refusées. */
+  check('collision : le bon affiche le N° de l\'accusé du dépôt sous la référence neuve', (await r.p.locator('#bonRef').textContent()).trim()==='N° 4', await r.p.locator('#bonRef').textContent());
   /* Le repli WhatsApp parle de la course telle qu'elle est enregistrée. */
   await r.p.locator('#btnRenvoyer').click();
   const lien = await r.p.evaluate(()=>window.__liens[window.__liens.length-1]||'');

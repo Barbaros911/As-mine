@@ -134,7 +134,10 @@ jobs:
               # affiché est celui que le formulaire calcule.
               # La reconnaissance et le classement des lieux (lieux.js, 2 novembre
               # 2026) : terminaux, fautes, note, dédoublonnage, ordre de la liste.
-              test-public-*.mjs|test-grille-publique.mjs|test-parcours-en.mjs|test-seo-en.mjs|test-mesure.mjs|test-nouveau-bascule.mjs|test-textes.mjs|test-config.mjs|test-prix.mjs|test-prix-pages.mjs|test-lieux.mjs)
+              # Le dépôt public dans le SOURCE (2 novembre 2026) : index.html
+              # appelle lui-même deposer-course, et le garde du build tombe sur
+              # chaque régression connue (retour à la REST, keepalive, accusé).
+              test-public-*.mjs|test-grille-publique.mjs|test-parcours-en.mjs|test-seo-en.mjs|test-mesure.mjs|test-nouveau-bascule.mjs|test-textes.mjs|test-config.mjs|test-prix.mjs|test-prix-pages.mjs|test-lieux.mjs|test-depot-source.mjs)
                 echo public;;
               # LES PARTENAIRES : HÔTELS, RÉCEPTION, PROFESSIONNELS. La réception
               # d'easyHotel (5 octobre 2026) ne tournait qu'à la main alors que

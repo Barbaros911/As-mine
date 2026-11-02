@@ -9999,9 +9999,17 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
 
   var nuage = {
     actif: function(){ return Boolean(SUPABASE_URL && SUPABASE_CLE); },
-    /* Le bon part ENTIER dans une colonne JSON : le jour où il gagne un
-       champ, la base n'a pas à changer. Seules « ref » et « statut »
-       sortent à part, parce qu'elles servent de clé et de filtre.
+    /* Le bon part ENTIER, dans « bon » : deposer-course en tire la
+       référence et le statut, recroise le prix, compte le quota et écrit
+       la ligne. Le jour où le bon gagne un champ, rien d'autre ne change.
+       Avec lui, « sessionReception » : le code du comptoir quand une
+       réception dépose (c'est lui qui ouvre son quota), vide partout
+       ailleurs. Et dans le bon, « destinationCle » : la destination choisie
+       dans la grille hôtel, que le serveur recroise avec le partenaire et
+       le véhicule — elle ne suffit jamais à accorder un tarif.
+       CE COMPORTEMENT EST CELUI DU SITE PUBLIÉ, ET LE SOURCE LE PORTE
+       LUI-MÊME (2 novembre 2026) : public-booking-gateway.mjs ne le réécrit
+       plus au build, il le vérifie.
        Huit secondes d'attente au plus : au-delà, le réseau du client ne
        suivra pas — un hall d'aéroport, un parking souterrain — et mieux
        vaut lui rendre la main que le laisser devant un écran figé. */
@@ -10020,7 +10028,7 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
          Supabase distribue deux formats de clé publique — l'ancien JWT
          « eyJ… » et le nouveau « sb_publishable_… » — et le nouveau n'est
          pas un JWT : présenté en Bearer, il est rejeté. */
-      return fetch(SUPABASE_URL + "/rest/v1/courses", {
+      return fetch(SUPABASE_URL + "/functions/v1/deposer-course", {
         method: "POST",
         signal: ctrl.signal,
         /* « keepalive » EST CE QUI FAIT SURVIVRE LA DEMANDE À WHATSAPP.
@@ -10031,13 +10039,14 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
            par la spécification. La limite est de 64 Ko de corps ; un bon en
            fait moins de deux. */
         keepalive: true,
-        headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json",
-                   Prefer: "return=minimal" },
-        body: JSON.stringify({ ref: bon.ref, statut: bon.statut || "attente", bon: bon })
+        headers: { apikey: SUPABASE_CLE, "Content-Type": "application/json" },
+        body: JSON.stringify({ bon: bon,
+          sessionReception: recHotel ? codeRetenu(recHotel.cle) : "" })
       })
-      /* La réponse porte le N° court que la base vient d'attribuer. Une
-         réponse vide ou illisible n'est PAS un échec : la demande est
-         arrivée, seul le N° manque. */
+      /* L'accusé de deposer-course est du JSON : « ok » vrai, la référence
+         déposée, le N° court que la base vient d'attribuer. Une page de
+         proxy, un objet vide ou une autre référence ne prouvent aucun
+         dépôt : c'est un échec, et sa cause est nommée. */
       .then(function(r){
         /* 409 : LA RÉFÉRENCE EST DÉJÀ PRISE SUR LE SERVEUR (19 octobre 2026,
            audit). Deux causes, une seule réponse : une course de course (le
@@ -10052,9 +10061,11 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
         if(r.status === 409) return "reference";
         if(!r.ok){ nuage.causeDepot = "http " + r.status; return false; }
         return r.json().then(function(j){
-          if(j && Number(j.numero) > 0) poserNumeroClient(bon, Number(j.numero));
+          if(!j || j.ok !== true){ nuage.causeDepot = "accusé refusé"; return false; }
+          if(j.ref && j.ref !== bon.ref){ nuage.causeDepot = "référence différente dans l'accusé"; return false; }
+          if(Number(j.numero) > 0) poserNumeroClient(bon, Number(j.numero));
           return true;
-        }, function(){ return true; });
+        }, function(){ nuage.causeDepot = "accusé illisible"; return false; });
       })
       .catch(function(e){
         nuage.causeDepot = (e && e.name === "AbortError") ? "délai de 8 s dépassé" : "réseau";
@@ -11367,6 +11378,7 @@ if(!window.ELA_CONFIG) throw new Error("config.js n'est pas chargé");
            raté s'y voit deux fois. */
         passagers: paxLisible(),
         distanceKm: Math.round(course.km * 10) / 10,
+        destinationCle: (function(d){ return d ? d.cle : null; })(destHotelRetenue()),
         estimee: course.estime,
         /* Quel calculateur a donné la distance : « mapbox », « ors »,
            « osrm » ou « vol ». C'est la surveillance des pannes, lue dans

@@ -195,9 +195,13 @@ et l'écran **nomme** la destination reconnue (« Tarif du flyer (Orly) : … »
   `AEROPORTS` — ; Le Bourget 2,5 km, Villepinte 1,5 km, Disney 3 km, Paris
   7 km (`rayonKm` sur chaque destination de `HOTELS`). « Orly » dans un
   libellé peut être la rue d'Orly à Montreuil.
-- **La destination reconnue part sur la course** (`destHotelRetenue()`, lue
-  par `public-booking-gateway.mjs` pour `destinationCle`) : le serveur la
-  recroise avec sa grille comme pour un choix du menu.
+- **La destination reconnue part sur la course** (`destHotelRetenue()`,
+  recopiée dans `destinationCle` du bon) : le serveur la recroise avec sa
+  grille comme pour un choix du menu. Jusqu'au 2/11/2026, c'est
+  `public-booking-gateway.mjs` qui l'ajoutait au build, avec le routage du
+  dépôt vers `deposer-course` ; depuis, `index.html` porte lui-même le dépôt
+  de la production et le script ne fait plus que le vérifier
+  (`test-depot-source.mjs` éprouve ce garde contre chaque régression).
 - Hors de toutes les zones (Versailles), rien ne change : kilométrage hôtel,
   et on le dit. `test-nouveau-hotel` éprouve les deux côtés.
 
