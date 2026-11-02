@@ -59,7 +59,15 @@ await p.route('**://router.project-osrm.org/**', r => r.fulfill({contentType:'ap
   body:JSON.stringify({routes:[{distance:24300,duration:2040}]})}));
 // Le serveur RÉPOND : c'est le chemin nominal. Le WhatsApp doit partir quand
 // même — c'est lui qui prévient Barbaros sur son téléphone.
-await p.route('**supabase.co/**', r => r.fulfill({status:201, body:''}));
+/* Le dépôt est celui de la production (2 novembre 2026) : deposer-course rend
+   un accusé JSON { ok, ref } que la page juge ; un corps vide serait un échec. */
+await p.route('**supabase.co/**', r => {
+  if(r.request().method() === 'POST' && r.request().url().includes('/functions/v1/deposer-course')){
+    let corps = {}; try{ corps = JSON.parse(r.request().postData()); }catch(e){}
+    return r.fulfill({status:201, contentType:'application/json', body:JSON.stringify({ok:true, ref:(corps.bon||{}).ref})});
+  }
+  return r.fulfill({status:201, body:''});
+});
 // On note l'ordre des évènements : le dépôt doit être LANCÉ avant que
 // WhatsApp prenne l'écran, sans qu'aucune attente ne s'intercale.
 await ctx.addInitScript(()=>{

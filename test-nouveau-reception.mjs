@@ -895,8 +895,20 @@ check('et rien n\'est parti sur WhatsApp tout seul',
    ON LE FAIT VRAIMENT APPARAÎTRE POUR L'ÉPROUVER : sans dépôt réussi il
    est caché de toute façon, et le contrôle serait passé au vert sans rien
    vérifier. */
-await ctx.route('**/rest/v1/courses*', r =>
-  r.fulfill({status:201, contentType:'application/json', body:'[]'}));
+/* LE DÉPÔT EST CELUI DE LA PRODUCTION (2 novembre 2026) : deposer-course,
+   qui rend un accusé { ok, ref } que la page juge. Le comptoir y joint sa
+   session (« sessionReception ») : c'est elle qui ouvre son quota. */
+let depotsComptoir = [];
+await ctx.route('**/functions/v1/deposer-course', r => {
+  const c = JSON.parse(r.request().postData() || '{}');
+  depotsComptoir.push(c);
+  return r.fulfill({status:201, contentType:'application/json', body:JSON.stringify({ok:true, ref:(c.bon||{}).ref})});
+});
+/* Le comptoir a une session VALIDE (les 12 h de plus haut l'ont fait
+   oublier) : posée comme le ferait « Entrer », avec une fin dans le futur. */
+const sessionValide = b64({ v:1, hotel:'easyhotel-aeroville', exp: Date.now() + 3600e3 }) + '.sig';
+await p.evaluate(j => localStorage.setItem('ela_session_reception',
+  JSON.stringify({ 'easyhotel-aeroville': j })), sessionValide);
 await p.goto('http://127.0.0.1:8099/index.html?reception=easyhotel-aeroville',
              {waitUntil:'domcontentloaded'});
 await p.waitForTimeout(1100);
@@ -912,6 +924,10 @@ await p.waitForTimeout(1200);
 check('le dépôt aboutit et le bon le dit',
   await p.locator('#etatEnvoi.ok').isVisible(),
   await p.locator('#etatEnvoi').textContent());
+check('le dépôt du comptoir porte la session de la réception, et le bon dit la provenance',
+  depotsComptoir.length === 1 && depotsComptoir[0].sessionReception === sessionValide
+  && depotsComptoir[0].bon && depotsComptoir[0].bon.provenanceCle === 'easyhotel-aeroville',
+  JSON.stringify({ n:depotsComptoir.length, session:(depotsComptoir[0]||{}).sessionReception, prov:((depotsComptoir[0]||{}).bon||{}).provenanceCle }));
 check('et MÊME LÀ, « Être prévenu » ne s\'affiche pas au comptoir',
   await p.locator('#blocNotif').isHidden());
 /* ═══ APRÈS UNE RÉSERVATION, L'ÉCRAN PARLE À LA RÉCEPTION (21/10/2026) ═══
@@ -971,7 +987,7 @@ await p.waitForTimeout(700);
 check('côté client, le bouton de renvoi est toujours dans la page',
   (await p.locator('#btnRenvoyer').count()) === 1
   && !(await p.evaluate(()=>document.getElementById('btnRenvoyer').hasAttribute('hidden'))));
-await ctx.unroute('**/rest/v1/courses*');
+await ctx.unroute('**/functions/v1/deposer-course');
 
 /* ═══ ET LE TUNNEL DU CLIENT N'A PAS BOUGÉ D'UN POUCE ═══
    Les deux adresses qui ne sont PAS le comptoir : le site public, et le QR

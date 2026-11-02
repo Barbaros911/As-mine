@@ -25,9 +25,14 @@ import { readFileSync, existsSync } from "node:fs";
 /* Ce que le service worker garde sur le téléphone du client. Un
    changement ici sans nouveau numéro de CACHE ne se voit pas chez lui.
    sw.js n'y est PAS : c'est le fichier qui PORTE le numéro, exiger un
-   incrément à chaque virgule qu'on y corrige serait du bruit. */
+   incrément à chaque virgule qu'on y corrige serait du bruit.
+   index.html n'y est PLUS (2 novembre 2026, décision de Barbaros) : sw.js
+   sert le document HTML « réseau d'abord », donc un index.html seul arrive
+   sur le téléphone sans nouveau numéro — et la CI (verifier-cache-sw.mjs)
+   ne l'exige pas non plus. Ce qui change l'HTML ET un fichier gardé reste
+   attrapé par les lignes ci-dessous ; un changement VISIBLE du site garde
+   la règle de CLAUDE.md : incrémenter CACHE. */
 const SERVIS = [
-  /^index\.html$/,
   /^manifest(-exploitant)?\.webmanifest$/,
   /^icon(-maskable)?\.svg$/,
   /^icon-180\.png$/,
