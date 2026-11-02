@@ -221,3 +221,20 @@ en reprend une (motifs de la grille, `function grilleValide`). Les clés
 Supabase y restent écrites, comme dans le moteur : la suite exige qu'elles
 soient égales. Poids ajouté sur ces pages : trois scripts déjà gardés par le
 service worker pour qui a ouvert le site de réservation.
+
+## 2 novembre 2026 — pas de prix dans Google, ni sur les pages anglaises
+
+Proposé à Barbaros après la mise en ligne du tableau (#448) : le prix dans
+le titre et la description que Google affiche (« Transfert Roissy-CDG ↔
+Paris dès 70 € », « Paris CDG Airport Transfer from €70 ») et le même
+tableau sur les pages anglaises CDG et Orly. Fait, testé, montré en
+captures ; réponse : **« Pour le prix non »**. Rien n'est parti. Le travail
+n'est pas dans le dépôt ; ne pas le reproposer sans motif nouveau.
+
+Deux leçons gardées pour qui y reviendrait :
+- **Jamais d'attribut sur `<title>`** : `verifier-production.mjs` et
+  `test-seo-en` lisent « `<title>…</title> » tel quel ; une balise habillée
+  passe pour une page sans titre, donc une fausse alerte de production.
+- **Sur les pages anglaises, le tableau irait SOUS les boutons** :
+  `test-seo-en` exige Book, Call et WhatsApp au-dessus de la barre à
+  390 × 844 et 1366 × 768, et il ne reste que 139 px sur ordinateur.
