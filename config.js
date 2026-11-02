@@ -12,11 +12,11 @@
    compare ces valeurs aux tableaux de CLAUDE.md, verifier-tarif-hotel.mjs
    à la source tarifaire du serveur, test-grille-publique.mjs les fait
    calculer par le site.
-   CE QUI N'EST PAS ICI, ET POURQUOI : la fiche des hôtels (HOTELS) et les
-   clés du serveur (SUPABASE_URL, SUPABASE_CLE, CLE_VAPID) restent dans le
-   moteur, parce que la démo des professionnels et deux scripts de build
-   les réécrivent par chaîne de caractères. Elles sortiront chacune dans
-   leur propre PR, avec ces scripts.
+   CE QUI N'EST PAS ICI, ET POURQUOI : la fiche des hôtels (HOTELS) vit
+   dans hotels.js (2/11/2026) ; les clés du serveur (SUPABASE_URL,
+   SUPABASE_CLE, CLE_VAPID) restent dans le moteur, parce que la démo des
+   professionnels les réécrit par chaîne de caractères. Elles sortiront
+   dans leur propre PR, avec ce script.
    CE FICHIER NE CONTIENT QUE DES DONNÉES : ni fonction, ni DOM, ni réseau,
    ni stockage (test-config.mjs). Chargé après textes.js et avant le
    moteur ; gardé par le service worker (SHELL de sw.js) ; les pages

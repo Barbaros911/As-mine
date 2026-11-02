@@ -6,9 +6,9 @@
    constantes de configuration du moteur (gammes, grille publique de repli,
    forfaits, accueil, grandes gares, aéroports, pas des créneaux, marges de
    durée, option pancarte, rayons, précision, alerte des papiers) vivent
-   dans config.js, données seules. HOTELS et les clés Supabase n'y sont
-   PAS : la démo et le build les réécrivent par chaîne, ils partiront dans
-   leur propre PR.
+   dans config.js, données seules. HOTELS n'y est PAS (hotels.js, 2/11/2026,
+   test-hotels.mjs) ; les clés Supabase non plus : la démo les réécrit par
+   chaîne, elles partiront dans leur propre PR.
    Ce que cette suite verrouille :
    — config.js existe, ne contient QUE des données (aucune fonction hors
      l'enveloppe, ni DOM, ni réseau, ni stockage) et pose un seul nom ;

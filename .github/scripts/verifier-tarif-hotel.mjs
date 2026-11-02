@@ -21,8 +21,10 @@
 import { readFileSync, readdirSync } from 'node:fs';
 
 const site = readFileSync(process.argv[2] || 'site/index.html', 'utf8');
-/* GAMMES vit dans config.js, à côté de la page (31/10/2026, deuxième extraction). */
+/* GAMMES vit dans config.js, à côté de la page (31/10/2026, deuxième extraction) ;
+   la fiche HOTELS dans hotels.js (2/11/2026, quatrième). */
 const config = readFileSync((process.argv[2] || 'site/index.html').replace(/[^/]*$/, 'config.js'), 'utf8');
+const hotels = readFileSync((process.argv[2] || 'site/index.html').replace(/[^/]*$/, 'hotels.js'), 'utf8');
 
 /* ON REJOUE LES MIGRATIONS DANS L'ORDRE, PAS UNE SEULE. Le tarif général
    a été SEMÉ dans « 20260916100000_current_tariff_source.sql » (INSERT)
@@ -90,7 +92,7 @@ for (const gamme of ['berline', 'van']) {
 }
 /* LES FORFAITS easyHotel — TROIS ENDROITS, UN SEUL PRIX (22/09/2026).
    La source serveur fait foi : deposer-course REMPLACE le prix du client par
-   le sien. Le moteur (HOTELS dans le site publié) l'affiche avant la
+   le sien. Le moteur (HOTELS, dans hotels.js publié) l'affiche avant la
    réservation, et la page du QR (sites/easyhotel-client/) l'annonce sur ses
    cartes. Trois copies d'un prix ferme : un écart est un prix annoncé qu'on
    ne facture pas. On NE FIGE AUCUN MONTANT — on exige l'accord, et le
@@ -100,7 +102,7 @@ for (const r of src.matchAll(/\('(\w+)','[^']*','(berline|van)',(\d+)\)/g)) {
   (forfaitsServeur[r[1]] ||= {})[r[2]] = Number(r[3]) / 100;
 }
 const forfaitsSite = {};
-for (const r of site.matchAll(/cle:"(\w+)"[^{}]*?(?:\{[^{}]*\}[^{}]*?)*?forfait:\{\s*berline:(\d+),\s*van:(\d+)\s*\}/g)) {
+for (const r of hotels.matchAll(/cle:"(\w+)"[^{}]*?(?:\{[^{}]*\}[^{}]*?)*?forfait:\{\s*berline:(\d+),\s*van:(\d+)\s*\}/g)) {
   forfaitsSite[r[1]] = { berline: Number(r[2]), van: Number(r[3]) };
 }
 const landing = readFileSync('sites/easyhotel-client/index.html', 'utf8');

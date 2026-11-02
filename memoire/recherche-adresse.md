@@ -260,7 +260,8 @@ sur ses captures et sur le site construit :
 
 ## 2 novembre 2026 — la reconnaissance et le classement des lieux sortent du moteur
 
-Quatrième extraction du plan d'architecture : `lieux.js`. Ce qui, dans la
+Cinquième extraction du plan d'architecture : `lieux.js`, le même jour que
+`hotels.js` (#449), fusionnée avant elle. Ce qui, dans la
 recherche d'adresse, ne touche ni à l'écran ni au réseau est déplacé à
 l'identique : le lieu structuré (`lieuStructure`), la reconnaissance d'un
 hôtel (`estHotel`), les terminaux reconnus dans la saisie et leur libellé

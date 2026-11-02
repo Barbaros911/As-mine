@@ -1,8 +1,8 @@
 /* =====================================================================
    LIEUX.JS — RECONNAÎTRE UN LIEU DANS LA SAISIE, CLASSER LES RÉPONSES
    ---------------------------------------------------------------------
-   Quatrième extraction du plan d'architecture (2 novembre 2026), après
-   textes.js, config.js et prix.js. La recherche d'adresse du moteur
+   Cinquième extraction du plan d'architecture (2 novembre 2026), après
+   textes.js, config.js, prix.js et hotels.js. La recherche d'adresse du moteur
    d'index.html mêlait deux choses : parler aux services (la Base Adresse
    Nationale, Photon) et dessiner la liste sous le champ — ça reste dans
    la page — et DÉCIDER : quel lieu structuré on garde d'un choix, quels

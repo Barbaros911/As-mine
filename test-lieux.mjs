@@ -2,8 +2,8 @@
    TEST-LIEUX.MJS — reconnaître un lieu dans la saisie et classer les
    réponses, sans navigateur, valeurs écrites à la main
    ---------------------------------------------------------------------
-   Quatrième extraction du plan d'architecture (2 novembre 2026), après
-   textes.js, config.js et prix.js : ce qui, dans la recherche d'adresse du
+   Cinquième extraction du plan d'architecture (2 novembre 2026), après
+   textes.js, config.js, prix.js et hotels.js : ce qui, dans la recherche d'adresse du
    moteur d'index.html, ne touche ni à l'écran ni au réseau — le lieu
    structuré, les terminaux reconnus dans ce que le client tape, la
    tolérance aux fautes, la note de chaque réponse, le dédoublonnage et

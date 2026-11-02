@@ -130,9 +130,11 @@ jobs:
               # tunnel et la grille de repli (config.js, 31 octobre 2026), sans
               # navigateur eux aussi. Les règles du prix (prix.js, 1er novembre
               # 2026) : tranches, forfaits, accueil, grille du serveur, à la main.
+              # Le forfait des pages CDG et Orly (1er novembre 2026) : le montant
+              # affiché est celui que le formulaire calcule.
               # La reconnaissance et le classement des lieux (lieux.js, 2 novembre
               # 2026) : terminaux, fautes, note, dédoublonnage, ordre de la liste.
-              test-public-*.mjs|test-grille-publique.mjs|test-parcours-en.mjs|test-seo-en.mjs|test-mesure.mjs|test-nouveau-bascule.mjs|test-textes.mjs|test-config.mjs|test-prix.mjs|test-lieux.mjs)
+              test-public-*.mjs|test-grille-publique.mjs|test-parcours-en.mjs|test-seo-en.mjs|test-mesure.mjs|test-nouveau-bascule.mjs|test-textes.mjs|test-config.mjs|test-prix.mjs|test-prix-pages.mjs|test-lieux.mjs)
                 echo public;;
               # LES PARTENAIRES : HÔTELS, RÉCEPTION, PROFESSIONNELS. La réception
               # d'easyHotel (5 octobre 2026) ne tournait qu'à la main alors que
@@ -143,7 +145,7 @@ jobs:
               # finition d'easyHotel à ses couleurs, sans une ligne de code de
               # plus. Les liens des partenaires (15 octobre 2026), l'affiche QR
               # (décodée par jsQR), l'option pancarte, la démo et la page pro.
-              test-reception-*.mjs|test-pro-*.mjs|test-nouveau-hotel.mjs|test-nouveau-reception.mjs|test-nouveau-affiche.mjs|test-nouveau-option.mjs|test-easyhotel-client.mjs|test-demo-hotel.mjs|test-finition-commune.mjs|test-cloisonnement-hotel.mjs|test-tarifs-serveur.mjs|test-liens-suivi.mjs)
+              test-reception-*.mjs|test-pro-*.mjs|test-nouveau-hotel.mjs|test-nouveau-reception.mjs|test-nouveau-affiche.mjs|test-nouveau-option.mjs|test-easyhotel-client.mjs|test-demo-hotel.mjs|test-finition-commune.mjs|test-cloisonnement-hotel.mjs|test-tarifs-serveur.mjs|test-liens-suivi.mjs|test-hotels.mjs)
                 echo partenaires;;
               # LA RÉSERVATION, DU FORMULAIRE AU BON. Les suites qui gardent le
               # prix et le tunnel (audit du 9 octobre 2026) : le prix est ferme
