@@ -13,7 +13,7 @@
 # ON RÉESSAIE UNE FOIS AVANT DE CRIER. Un coup de réseau du coureur
 # GitHub n'est pas une panne du site, et une fausse alerte à chaque
 # passage est la meilleure façon de faire ignorer l'alerte suivante.
-# Deux échecs d'affilée, c'est réel.
+# Deux rapports complets en échec confirment un incident mesuré par la sonde.
 #
 # L'INCIDENT EST UNE ISSUE UNIQUE, PAS UNE PAR PASSAGE. Elle se met à
 # jour tant que ça dure, et elle se FERME toute seule au retour à la
@@ -46,7 +46,7 @@ concurrency:
 jobs:
   controler:
     name: le site en ligne répond-il
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     # Après une publication : seulement si elle a réussi. Contrôler
     # derrière une publication ratée mesurerait la version d'avant.
@@ -72,61 +72,42 @@ jobs:
       - name: Contrôler le site en ligne
         id: controle
         shell: bash
+        env:
+          ADRESSE: ${{ github.event.inputs.adresse || 'https://elatransfer.com/' }}
         run: |
-          set +e
-          adresse="${{ github.event.inputs.adresse || 'https://elatransfer.com/' }}"
-          echo "adresse=$adresse" >> "$GITHUB_OUTPUT"
-
-          # LE COMMIT ATTENDU EST LE DERNIER MAIN (14 octobre 2026), relu au
-          # moment du contrôle : après une fusion, c'est lui que l'hébergeur
-          # doit servir. Quinze minutes lui sont laissées pour construire ;
-          # au-delà, une production restée sur un ancien commit est une panne.
-          # Une adresse saisie à la main (un aperçu, une autre branche) n'est
-          # pas tenue au dernier main : on y lit le commit sans l'exiger.
+          # Une erreur avant le verdict laisse l'état absent : jamais une panne.
+          echo "adresse=$ADRESSE" >> "$GITHUB_OUTPUT"
           attendu=""
-          if [ "$adresse" = "https://elatransfer.com/" ]; then
-            git fetch --quiet --depth=1 origin main && attendu=$(git rev-parse FETCH_HEAD)
+          if [ "$ADRESSE" = "https://elatransfer.com/" ]; then
+            git fetch --quiet --depth=1 origin main
+            attendu=$(git rev-parse FETCH_HEAD)
           fi
           echo "Commit attendu : ${attendu:-(non exigé)}"
+          node .github/scripts/monitoring-production.mjs "$ADRESSE" "$attendu"
 
-          node .github/scripts/verifier-production.mjs "$adresse" \
-            ${attendu:+--commit=$attendu --attendre=900} \
-            --rapport="$RUNNER_TEMP/rapport.json" > "$RUNNER_TEMP/sortie.txt" 2>&1
-          premier=$?
-          cat "$RUNNER_TEMP/sortie.txt"
-
-          if [ "$premier" -ne 0 ]; then
-            echo "::warning::Premier passage en échec — on réessaie une fois dans 60 s avant de déclarer un incident."
-            sleep 60
-            node .github/scripts/verifier-production.mjs "$adresse" \
-              ${attendu:+--commit=$attendu} \
-              --rapport="$RUNNER_TEMP/rapport.json" > "$RUNNER_TEMP/sortie.txt" 2>&1
-            second=$?
-            cat "$RUNNER_TEMP/sortie.txt"
-            if [ "$second" -ne 0 ]; then
-              echo "etat=panne" >> "$GITHUB_OUTPUT"
-            else
-              echo "etat=ok" >> "$GITHUB_OUTPUT"
-              echo "::notice::Le premier passage avait échoué, le second est vert — pas d'incident."
-            fi
-          else
-            echo "etat=ok" >> "$GITHUB_OUTPUT"
-          fi
-
+      - name: Résumer le résultat du monitoring
+        if: always()
+        env:
+          ETAT: ${{ steps.controle.outputs.etat }}
+        shell: bash
+        run: |
+          etat="${ETAT:-technique}"
           {
-            echo "## Contrôle de production"
-            echo ""
-            echo '```'
-            cat "$RUNNER_TEMP/sortie.txt"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+            echo "## Monitoring production : $etat"
+            if [ "$etat" = "technique" ]; then
+              echo "Impossible de vérifier le site. Consulter l'étape en erreur (installation, runner ou contrôleur). Aucune panne du site n'est confirmée ; aucun incident de production ne sera ouvert ou fermé."
+            fi
+          } | tee -a "$GITHUB_STEP_SUMMARY" > "$RUNNER_TEMP/monitoring-resume.txt"
 
       - name: Conserver le rapport
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: monitoring-production-${{ github.run_id }}
-          path: ${{ runner.temp }}/rapport.json
+          path: |
+            ${{ runner.temp }}/rapport*.json
+            ${{ runner.temp }}/sortie*.txt
+            ${{ runner.temp }}/monitoring-resume.txt
           if-no-files-found: warn
           retention-days: 14
 
@@ -138,101 +119,4 @@ jobs:
           ADRESSE: ${{ steps.controle.outputs.adresse }}
         with:
           script: |
-            const fs = require("fs");
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const marqueur = "<!-- ela-monitoring-production -->";
-            const titre = "[MONITORING] Le site en ligne ne répond plus correctement";
-            const etat = process.env.ETAT || "panne";
-            const adresse = process.env.ADRESSE || "https://elatransfer.com/";
-
-            let sortie = "";
-            try {
-              sortie = fs.readFileSync(`${process.env.RUNNER_TEMP}/sortie.txt`, "utf8");
-            } catch { sortie = "(sortie du contrôleur indisponible)"; }
-
-            // Une seule Issue d'incident à la fois : on la retrouve par son
-            // marqueur, jamais par son titre — un titre se reformule.
-            const ouvertes = await github.paginate(github.rest.issues.listForRepo, {
-              owner, repo, state: "open", labels: "", per_page: 100
-            });
-            const incident = ouvertes.find(i => !i.pull_request && i.body && i.body.includes(marqueur));
-
-            const lien = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
-
-            if (etat === "ok") {
-              if (incident) {
-                await github.rest.issues.createComment({
-                  owner, repo, issue_number: incident.number,
-                  body: [
-                    "## Retour à la normale",
-                    "",
-                    `Le contrôle de \`${adresse}\` est repassé au vert.`,
-                    "",
-                    `Passage : ${lien}`,
-                    "",
-                    "```",
-                    sortie.trim(),
-                    "```",
-                    "",
-                    "---",
-                    "_Generated by [Claude Code](https://claude.ai/code)_"
-                  ].join("\n")
-                });
-                await github.rest.issues.update({
-                  owner, repo, issue_number: incident.number,
-                  state: "closed", state_reason: "completed"
-                });
-                core.notice(`Incident #${incident.number} clos : le site répond de nouveau.`);
-              } else {
-                core.notice("Le site en ligne répond. Rien à signaler.");
-              }
-              return;
-            }
-
-            const corps = [
-              marqueur,
-              "## P0 — le site en ligne ne répond plus correctement",
-              "",
-              `Adresse contrôlée : ${adresse}`,
-              `Détecté : ${new Date().toISOString()}`,
-              `Déclencheur : \`${context.eventName}\``,
-              `Passage : ${lien}`,
-              "",
-              "**Deux passages consécutifs ont échoué**, à une minute d'intervalle : ce n'est pas un coup de réseau du coureur.",
-              "",
-              "### Ce que le contrôleur a mesuré",
-              "",
-              "```",
-              sortie.trim(),
-              "```",
-              "",
-              "### Ce que ça veut dire",
-              "",
-              "- « sert une AUTRE page » → un réglage d'hébergeur, pas le code.",
-              "- « fichier(s) du site manquent » → `construire.sh` ne publie pas ce fichier.",
-              "- « on ne peut pas réserver » → la page est en ligne et ne sert à rien.",
-              "- « n'a pas publié le dernier main » ou « /version.json » → l'hébergeur (Cloudflare) sert un ancien commit : sa construction a échoué ou vise une autre branche.",
-              "- « contient … ancienne règle » → un texte de l'ancien paiement est servi en ligne.",
-              "- « réservation de bout en bout » ou « le dépôt répond » → le moteur ou le serveur ne prend plus de demande : c'est l'incident le plus grave. La sonde n'enregistre jamais rien (référence SONDE-).",
-              "- « le service worker servi » → les téléphones qui ont installé le site gardent l'ancienne version.",
-              "",
-              "Aucune correction automatique n'est appliquée. Cette Issue se ferme d'elle-même dès qu'un contrôle repasse au vert.",
-              "",
-              "---",
-              "_Generated by [Claude Code](https://claude.ai/code)_"
-            ].join("\n");
-
-            if (incident) {
-              await github.rest.issues.update({
-                owner, repo, issue_number: incident.number, body: corps
-              });
-              core.setFailed(`Panne toujours en cours — incident #${incident.number} mis à jour.`);
-            } else {
-              /* Assignée au propriétaire du dépôt : une Issue du robot ne notifie
-                 que ceux qui y participent (audit du 9 octobre 2026). */
-              const cree = await github.rest.issues.create({
-                owner, repo, title: titre, body: corps, assignees: [owner]
-              });
-              core.setFailed(`Panne détectée — incident #${cree.data.number} ouvert.`);
-            }
+            await require('./.github/scripts/incident-production.cjs')({ github, context, core });

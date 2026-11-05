@@ -160,7 +160,7 @@ jobs:
               # la suppression. Et la sonde du monitoring (20 octobre 2026),
               # qui réserve pour de vrai sur le site en ligne : une sonde qui se
               # tromperait enregistrerait une fausse course.
-              test-nouveau.mjs|test-nouveau-*.mjs|test-recherche-rapide.mjs|test-monitoring-sonde.mjs)
+              test-nouveau.mjs|test-nouveau-*.mjs|test-recherche-rapide.mjs|test-monitoring-sonde.mjs|test-monitoring-etats.mjs)
                 echo reservation;;
               *) echo AUCUN;;
             esac

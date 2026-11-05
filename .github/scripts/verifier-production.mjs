@@ -70,7 +70,7 @@ import { chromium } from "playwright";
 import { writeFileSync } from "node:fs";
 import { chercher, exempte } from "./textes-interdits.mjs";
 import { auditerIndexation, lecteurHttp } from "./seo-indexation.mjs";
-import { sonderReservation } from "./sonde-reservation.mjs";
+import { sonderReservation, relancerErreurTechnique } from "./sonde-reservation.mjs";
 
 const args = process.argv.slice(2);
 const BASE = (args.find((a) => !a.startsWith("--")) || "https://elatransfer.com/").replace(/\/*$/, "/");
@@ -199,6 +199,7 @@ for (const p of PAGES) {
       else ko(`${p.quoi} (${url}) est ${lu === "index" ? "INDEXABLE alors qu'elle ne doit pas sortir dans Google" : "en NOINDEX alors qu'elle doit sortir dans Google"}`);
     }
   } catch (e) {
+    relancerErreurTechnique(e);
     ko(`${p.quoi} (${url}) injoignable : ${e.message}`);
   }
 }
@@ -229,6 +230,7 @@ for (const [chemin, quoi, langue] of [
     else if (indexable(html, r.headers.get("x-robots-tag"))) ko(`${quoi} répond 404 avec une page INDEXABLE`);
     else ok(`${quoi} — 404${langue ? `, « ${titre.trim()} », noindex` : ""}`);
   } catch (e) {
+    relancerErreurTechnique(e);
     ko(`${quoi} (${url}) injoignable : ${e.message}`);
   }
 }
@@ -241,7 +243,10 @@ async function lireVersion() {
     if (!r.ok) return { erreur: `r\u00e9pond ${r.status}` };
     const brut = await r.text();
     try { return JSON.parse(brut); } catch { return { erreur: "illisible (une autre page a r\u00e9pondu ?)" }; }
-  } catch (e) { return { erreur: `injoignable : ${e.message}` }; }
+  } catch (e) {
+    relancerErreurTechnique(e);
+    return { erreur: `injoignable : ${e.message}` };
+  }
 }
 let version = await lireVersion();
 const limite = Date.now() + ATTENDRE * 1000;
@@ -265,7 +270,10 @@ if (!version.erreur && version.cache) {
     if (!r.ok) ko(`/sw.js r\u00e9pond ${r.status} \u2014 l'application install\u00e9e ne se met plus \u00e0 jour`);
     else if (cache !== version.cache) ko(`/sw.js sert le cache \u00ab ${cache || "?"} \u00bb au lieu de \u00ab ${version.cache} \u00bb \u2014 les t\u00e9l\u00e9phones qui ont install\u00e9 le site gardent l'ancienne version`);
     else ok(`le service worker servi est celui de cette version (${cache})`);
-  } catch (e) { ko(`/sw.js injoignable : ${e.message}`); }
+  } catch (e) {
+    relancerErreurTechnique(e);
+    ko(`/sw.js injoignable : ${e.message}`);
+  }
 }
 
 /* ---- 1 quater. Ce que Google peut découvrir et indexer ---------------
@@ -280,6 +288,7 @@ try {
   const { controles } = await auditerIndexation(lecteurHttp(BASE));
   for (const c of controles) (c.ok ? ok : ko)(c.m);
 } catch (e) {
+  relancerErreurTechnique(e);
   ko(`contr\u00f4le d'indexation impossible : ${e.message}`);
 }
 
@@ -300,12 +309,14 @@ for (const c of PUBLICS) {
       fautesTexte++;
       ko(`/${c} contient ${x.quoi} \u2014 \u2026 ${x.extrait} \u2026`);
     }
-  } catch { /* une page injoignable est déjà signalée au point 1 */ }
+  } catch (e) { relancerErreurTechnique(e); /* réseau déjà signalé au point 1 */ }
 }
 if (!fautesTexte) ok(`aucun texte retir\u00e9 (ancien paiement, promesse partenaire) dans les ${PUBLICS.length} pages et scripts publics servis`);
 
 /* ---- 2 à 4. La page d'accueil, vraiment ouverte --------------------- */
 const navigateur = await chromium.launch();
+let navigateurPerdu = false;
+navigateur.on("disconnected", () => { navigateurPerdu = true; });
 const ctx = await navigateur.newContext({
   viewport: { width: 390, height: 844 },
   deviceScaleFactor: 2,
@@ -335,6 +346,7 @@ try {
   ouverte = true;
   ok("la page s'ouvre");
 } catch (e) {
+  relancerErreurTechnique(e);
   ko(`la page ne s'ouvre pas : ${e.message.split("\n")[0]}`);
 }
 
@@ -390,6 +402,7 @@ try {
   await pDemo.waitForURL((u) => new URL(u).pathname.startsWith(new URL(BASE).pathname + "professionnels/"), { timeout: 10000 });
   ok("sans session, la démo renvoie au formulaire des professionnels");
 } catch (e) {
+  relancerErreurTechnique(e);
   const ou = pDemo.url();
   const visible = await pDemo.evaluate(() => !document.documentElement.classList.contains("demo-attente")).catch(() => null);
   ko(`sans session, la démo ne renvoie pas au formulaire \u2014 adresse finale : ${ou}${visible ? " (et la page est AFFICHÉE)" : ""}`);
@@ -398,9 +411,13 @@ if (appelsDemo.length) ko(`sans session, la démo a appelé le serveur : ${appel
 else ok("sans session, la démo n'appelle pas le serveur");
 await ctxDemo.close();
 
+if (navigateurPerdu || !navigateur.isConnected()) throw new Error("Navigateur du monitoring interrompu");
 await navigateur.close();
 
 rapport.echecs = echecs;
+// Écrit seulement après TOUS les contrôles et la fermeture du navigateur.
+rapport.termine = true;
+rapport.execution = process.env.ELA_MONITORING_EXECUTION || "";
 if (RAPPORT) writeFileSync(RAPPORT, JSON.stringify(rapport, null, 2));
 
 console.log(
