@@ -47,7 +47,7 @@ jobs:
   # lui, jamais au jugé.
   suites:
     name: suites (${{ matrix.groupe }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # 40 MINUTES : trois fois la durée d'un groupe. Avant le découpage, le
     # contrôle unique durait 42 à 45 min pour un plafond de 45, puis 75 (31/10).
     # Un plafond atteint n'est pas un échec de suite : relire la durée avant
