@@ -27,6 +27,12 @@
    (test-monitoring-sonde.mjs, hors ligne) : ils remplacent le réseau,
    jamais la logique qui l'entoure.
    ===================================================================== */
+// Les erreurs du programme de contrôle ne sont pas des constats sur le site.
+export function relancerErreurTechnique(e) {
+  if (e instanceof ReferenceError || e instanceof SyntaxError || e instanceof RangeError ||
+      (e instanceof TypeError && e.message !== "fetch failed")) throw e;
+}
+
 export async function sonderReservation({ navigateur, base, ok, ko, envoyer = null, lire = null, preparer = null }) {
   const ctx = await navigateur.newContext({ viewport: { width: 390, height: 844 }, locale: "fr-FR",
     timezoneId: "Europe/Paris", serviceWorkers: "block" });
@@ -75,6 +81,7 @@ export async function sonderReservation({ navigateur, base, ok, ko, envoyer = nu
       if (j && typeof j === "object") return route.fulfill({ status: rep.status(), headers: rep.headers(), contentType: "application/json", body: JSON.stringify(pourLaPage(j)) });
       return route.fulfill({ response: rep });
     } catch (e) {
+      relancerErreurTechnique(e);
       etat.depot = { status: 0, raison: e.message };
       return route.abort();
     }
@@ -121,6 +128,7 @@ export async function sonderReservation({ navigateur, base, ok, ko, envoyer = nu
     if (erreurs.length) ko(`${erreurs.length} erreur(s) JavaScript pendant la réservation : ${erreurs[0]}`);
     else ok("aucune erreur JavaScript pendant la réservation");
   } catch (e) {
+    relancerErreurTechnique(e);
     ko(`la réservation de bout en bout ne va pas au bout : ${e.message.split("\n")[0]}`);
     etat.erreur = e.message.split("\n")[0];
   }
