@@ -76,7 +76,6 @@ jobs:
           ADRESSE: ${{ github.event.inputs.adresse || 'https://elatransfer.com/' }}
         run: |
           # Une erreur avant le verdict laisse l'état absent : jamais une panne.
-          echo "adresse=$ADRESSE" >> "$GITHUB_OUTPUT"
           attendu=""
           if [ "$ADRESSE" = "https://elatransfer.com/" ]; then
             git fetch --quiet --depth=1 origin main
@@ -116,7 +115,7 @@ jobs:
         uses: actions/github-script@v9
         env:
           ETAT: ${{ steps.controle.outputs.etat }}
-          ADRESSE: ${{ steps.controle.outputs.adresse }}
+          ADRESSE: ${{ github.event.inputs.adresse || 'https://elatransfer.com/' }}
         with:
           script: |
             await require('./.github/scripts/incident-production.cjs')({ github, context, core });
